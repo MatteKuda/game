@@ -592,7 +592,7 @@ export class Game {
     this.r.setTimeOfDay(this.hour(), this.cam.target);
     const night = this.r.night;
     this.shell.setSignLit(night, this.upgrades.has('neon'));
-    this.env.update(running ? realDt * Math.min(this.speed, 2) : 0, realDt, night, this.r.camera.position, this.cam.target);
+    this.env.update(running ? realDt * Math.min(this.speed, 2) : 0, realDt, night, this.r.camera.position, this.cam.target, this.cam.farFactor);
     this.env.van.position.set(this.van.x, 0, ROAD_Z0 + 1.1);
     // selection ring follows; queue lane + heat map refresh (also while paused)
     this.updateSelectionVisual();

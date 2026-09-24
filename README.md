@@ -4,7 +4,13 @@ Sıcak, esprili ve okunaklı bir **3D perakende yönetim oyunu**. Köşedeki kü
 
 > Bu depo oyunun **oynanabilir dikey kesitidir** (Aşama 1 Büfe + Aşama 2 Market genişlemesi). Süpermarket ve AVM aşamaları henüz **uygulanmadı**. Onları nasıl kuracağımız [`docs/ROADMAP.md`](docs/ROADMAP.md) dosyasında somut olarak yazıyor.
 
-![Oyun ekranı](docs/screenshot-main.png)
+![Ana oyun ekranı: sabah yoğunluğu, kapıdan taşan kuyruk, müşteri inceleme kartı](docs/screenshot-main.jpg)
+
+| Yerleştirme (erişim ve yol kuralları) | Ürün & Fiyat (arketip kabulü) |
+|---|---|
+| ![Yerleştirme](docs/screenshot-build.jpg) | ![Ürün paneli](docs/screenshot-products.jpg) |
+| **Mahalle Marketi (ilk genişleme)** | **Gece: neon tabela, dış cephe** |
+| ![Market](docs/screenshot-market.jpg) | ![Gece](docs/screenshot-night.jpg) |
 
 ---
 

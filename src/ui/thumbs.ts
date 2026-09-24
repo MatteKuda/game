@@ -38,7 +38,7 @@ export class Thumbs {
     this.cam.lookAt(c);
     this.r.setClearColor(0x000000, 0);
     this.r.render(this.scene, this.cam);
-    const url = this.r.domElement.toDataURL('image/png');
+    const url = toObjectURL(this.r.domElement.toDataURL('image/png'));
     this.scene.remove(obj);
     return url;
   }
@@ -65,8 +65,16 @@ export class Thumbs {
     this.cam.lookAt(0, headY - 0.05, 0);
     this.r.setClearColor(0x000000, 0);
     this.r.render(this.scene, this.cam);
-    const url = this.r.domElement.toDataURL('image/png');
+    const url = toObjectURL(this.r.domElement.toDataURL('image/png'));
     this.scene.remove(g);
     return url;
   }
+}
+
+/** short blob: URLs keep the frequently diffed panel HTML small */
+function toObjectURL(dataUrl: string) {
+  const bin = atob(dataUrl.split(',')[1]);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return URL.createObjectURL(new Blob([bytes], { type: 'image/png' }));
 }

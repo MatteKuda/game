@@ -385,7 +385,7 @@ export class Environment {
   /** points of interest (shop interior corners) the camera must be able to see */
   focusPoints: THREE.Vector3[] = [];
 
-  update(dt: number, realDt: number, night: number, camPos: THREE.Vector3, target: THREE.Vector3) {
+  update(dt: number, realDt: number, night: number, camPos: THREE.Vector3, target: THREE.Vector3, far = 0) {
     for (const l of this.streetLights) l.intensity = night * 14;
     this.lampBulbs.emissiveIntensity = 0.2 + night * 4;
     for (const w of this.windowMats) w.emissiveIntensity = 0.25 + night * 1.2;
@@ -398,7 +398,7 @@ export class Environment {
       car.lights.emissiveIntensity = 0.1 + night * 3;
     }
     // occluder fading: buildings between camera and focus become see-through
-    const pts = [target, ...this.focusPoints];
+    const pts = far > 0.5 ? [target] : [target, ...this.focusPoints];
     const rays = pts.map((p) => ({ ray: new THREE.Ray(camPos, p.clone().sub(camPos).normalize()), dist: camPos.distanceTo(p) }));
     const hit = new THREE.Vector3();
     for (const o of this.occluders) {

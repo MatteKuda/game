@@ -91,7 +91,7 @@ export class Overlays {
     const tt = textTexture(text, color, bg);
     const m = new THREE.SpriteMaterial({ map: tt.tex, depthTest: false, depthWrite: false, transparent: true, toneMapped: false });
     const s = new THREE.Sprite(m);
-    const h = 0.42;
+    const h = 0.36;
     s.scale.set(h * tt.aspect, h, 1);
     s.position.copy(pos);
     s.renderOrder = 20;
@@ -107,7 +107,7 @@ export class Overlays {
       f.vy *= 0.97;
       const k = f.t / f.life;
       const pop = Math.min(1, f.t * 8);
-      f.sprite.scale.set(f.w * pop, 0.42 * pop, 1);
+      f.sprite.scale.set(f.w * pop, 0.36 * pop, 1);
       (f.sprite.material as THREE.SpriteMaterial).opacity = k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
       if (f.t >= f.life) { f.sprite.removeFromParent(); (f.sprite.material as THREE.Material).dispose(); this.floaters.splice(i, 1); }
     }
