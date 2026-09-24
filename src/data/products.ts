@@ -1,5 +1,5 @@
 export type Display = 'shelf' | 'fridge' | 'basket' | 'produce';
-export type ProductShape = 'bag' | 'bar' | 'box' | 'bottle' | 'cup' | 'ring' | 'loaf' | 'fruit' | 'carton' | 'jug';
+export type ProductShape = 'bag' | 'bar' | 'box' | 'bottle' | 'cup' | 'ring' | 'loaf' | 'fruit' | 'carton' | 'jug' | 'wedge';
 
 export interface ProductDef {
   id: string;
@@ -28,7 +28,15 @@ export const PRODUCTS: ProductDef[] = [
   { id: 'elma', name: 'Elma', brand: 'BAHÇE', display: 'produce', cost: 12, basePrice: 22, color: 0x9ccc3a, accent: 0xd6452e, shape: 'fruit', stage: 1 },
   { id: 'sut', name: 'Süt', brand: 'YAYLA', display: 'fridge', cost: 18, basePrice: 32, color: 0xf7f7f2, accent: 0x33a4d8, shape: 'carton', stage: 1 },
   { id: 'deterjan', name: 'Deterjan', brand: 'PARLAK', display: 'shelf', cost: 38, basePrice: 65, color: 0x3fb6a8, accent: 0xffffff, shape: 'jug', stage: 1 },
+  // Stage 2 (Süpermarket)
+  { id: 'makarna', name: 'Makarna', brand: 'BURGU', display: 'shelf', cost: 11, basePrice: 22, color: 0xf2d04b, accent: 0x2e5fa8, shape: 'bag', stage: 2 },
+  { id: 'cay', name: 'Çay', brand: 'KARADENİZ', display: 'shelf', cost: 45, basePrice: 85, color: 0x2f7a3a, accent: 0xf2b33d, shape: 'box', stage: 2 },
+  { id: 'peynir', name: 'Beyaz Peynir', brand: 'YAYLA', display: 'fridge', cost: 60, basePrice: 110, color: 0xfaf6e8, accent: 0x3f8f3a, shape: 'wedge', stage: 2 },
+  { id: 'su', name: 'Su', brand: 'PINAR BAŞI', display: 'fridge', cost: 4, basePrice: 10, color: 0x7fc4ea, accent: 0xffffff, shape: 'bottle', stage: 2 },
 ];
+
+/** baked in-house at the Fırın Tezgâhı: unit cost of flour & fuel */
+export const BAKED: Record<string, number> = { simit: 2, ekmek: 2.5 };
 
 export const PRODUCT_MAP: Record<string, ProductDef> = Object.fromEntries(PRODUCTS.map((p) => [p.id, p]));
 

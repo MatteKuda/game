@@ -4,6 +4,8 @@ export const R_VOID = 0;
 export const R_OUT = 1; // near sidewalk
 export const R_IN = 2; // shop interior
 export const R_FAR = 3; // far sidewalk (ambient walkers only)
+export const R_MALL = 4; // AVM corridors / food court
+export const R_UNIT0 = 10; // AVM tenant units: R_UNIT0 + unit index
 
 export interface Tile { x: number; z: number }
 
@@ -52,9 +54,18 @@ export class Grid {
   reserved = new Uint8Array(MAP_W * MAP_H); // tiles that must stay free (door approach)
   traffic = new Float32Array(MAP_W * MAP_H); // decaying heat for overlay
   occupancy = new Uint8Array(MAP_W * MAP_H); // agents per tile (rebuilt each tick)
-  doorEdges = new Set<number>(); // index of interior tile whose +z edge is a door
+  doorEdges = new Set<number>(); // edge keys (see edgeKey) that may be crossed between regions
+  extraCost = new Float32Array(MAP_W * MAP_H); // soft path cost (wet floor, crowds to avoid)
   version = 0;
   layout!: StageLayout;
+
+  constructor(public floor = 0) {}
+
+  edgeKey(ax: number, az: number, bx: number, bz: number) {
+    const ia = this.idx(ax, az), ib = this.idx(bx, bz);
+    return Math.min(ia, ib) * 2 + (az === bz ? 0 : 1);
+  }
+  addDoor(ax: number, az: number, bx: number, bz: number) { this.doorEdges.add(this.edgeKey(ax, az, bx, bz)); }
 
   idx(x: number, z: number) { return z * this.w + x; }
   inBounds(x: number, z: number) { return x >= 0 && z >= 0 && x < this.w && z < this.h; }
@@ -69,8 +80,12 @@ export class Grid {
     this.doorEdges.clear();
     this.reserved.fill(0);
     for (const dx of layout.doors) {
-      this.doorEdges.add(this.idx(dx, r.z1 - 1));
+      this.addDoor(dx, r.z1 - 1, dx, r.z1);
       this.reserved[this.idx(dx, r.z1 - 1)] = 1;
+    }
+    for (const dx of layout.backDoors ?? []) {
+      this.addDoor(dx, r.z0, dx, r.z0 - 1);
+      this.reserved[this.idx(dx, r.z0)] = 1;
     }
     this.version++;
   }
@@ -88,12 +103,8 @@ export class Grid {
     if (!this.walkable(bx, bz)) return false;
     const ra = this.region[this.idx(ax, az)], rb = this.region[this.idx(bx, bz)];
     if (ra === rb) return true;
-    // interior <-> near sidewalk through a door edge (vertical step only)
-    if (ax === bx && ((ra === R_IN && rb === R_OUT) || (ra === R_OUT && rb === R_IN))) {
-      const inZ = ra === R_IN ? az : bz;
-      return bz !== az && this.doorEdges.has(this.idx(ax, inZ)) && Math.abs(az - bz) === 1;
-    }
-    return false;
+    // different regions: only through a door edge
+    return this.doorEdges.has(this.edgeKey(ax, az, bx, bz));
   }
 
   canStep(ax: number, az: number, bx: number, bz: number) {
@@ -141,6 +152,7 @@ export class Grid {
         if (!this.canStep(cx, cz, nx, nz)) continue;
         let cost = dx && dz ? SQRT2 : 1;
         if (opts.avoidCrowd) cost += this.occupancy[ni] * 0.6;
+        cost += this.extraCost[ni];
         const ng = g[cur] + cost;
         if (ng < g[ni]) {
           g[ni] = ng; came[ni] = cur;

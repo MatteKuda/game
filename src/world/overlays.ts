@@ -3,7 +3,7 @@ import { MAP_W, MAP_H } from '../config';
 import { canvasTexture, roundRect } from './textures';
 import { mat } from './materials';
 
-interface Floater { sprite: THREE.Sprite; t: number; life: number; vy: number; w: number }
+interface Floater { sprite: THREE.Sprite; t: number; life: number; vy: number; w: number; floor: number }
 
 const textCache = new Map<string, { tex: THREE.Texture; aspect: number }>();
 function textTexture(text: string, color: string, bg: string | null) {
@@ -87,6 +87,9 @@ export class Overlays {
     this.group.add(this.queueLine);
   }
 
+  /** only show floating texts of this floor (-1 = all) */
+  viewFloor = -1;
+
   floatText(pos: THREE.Vector3, text: string, color = '#1f8a86', bg: string | null = null, life = 1.6) {
     const tt = textTexture(text, color, bg);
     const m = new THREE.SpriteMaterial({ map: tt.tex, depthTest: false, depthWrite: false, transparent: true, toneMapped: false });
@@ -96,7 +99,7 @@ export class Overlays {
     s.position.copy(pos);
     s.renderOrder = 20;
     this.group.add(s);
-    this.floaters.push({ sprite: s, t: 0, life, vy: 0.7, w: h * tt.aspect });
+    this.floaters.push({ sprite: s, t: 0, life, vy: 0.7, w: h * tt.aspect, floor: pos.y > 3.6 ? 1 : 0 });
   }
 
   update(dt: number) {
@@ -108,6 +111,7 @@ export class Overlays {
       const k = f.t / f.life;
       const pop = Math.min(1, f.t * 8);
       f.sprite.scale.set(f.w * pop, 0.36 * pop, 1);
+      f.sprite.visible = this.viewFloor < 0 || f.floor === this.viewFloor;
       (f.sprite.material as THREE.SpriteMaterial).opacity = k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
       if (f.t >= f.life) { f.sprite.removeFromParent(); (f.sprite.material as THREE.Material).dispose(); this.floaters.splice(i, 1); }
     }
@@ -126,6 +130,16 @@ export class Overlays {
       else { const k = (v - 0.5) / 0.5; r = 242 + (229 - 242) * k; g = 179 + (72 - 179) * k; b = 61 + (77 - 61) * k; }
       this.heatData[i * 4] = r; this.heatData[i * 4 + 1] = g; this.heatData[i * 4 + 2] = b;
       this.heatData[i * 4 + 3] = mask(i) ? (v < 0.05 ? 60 : 150 + v * 105) : 0;
+    }
+    this.heatTex.needsUpdate = true;
+  }
+
+  /** mask: 0 outside, 1 unwatched floor, 2 camera, 3 staff line-of-sight */
+  updateSecurity(mask: Uint8Array) {
+    for (let i = 0; i < mask.length; i++) {
+      const m = mask[i];
+      const c = m === 3 ? [47, 174, 122, 150] : m === 2 ? [97, 179, 255, 150] : m === 1 ? [229, 72, 77, 110] : [0, 0, 0, 0];
+      this.heatData[i * 4] = c[0]; this.heatData[i * 4 + 1] = c[1]; this.heatData[i * 4 + 2] = c[2]; this.heatData[i * 4 + 3] = c[3];
     }
     this.heatTex.needsUpdate = true;
   }
@@ -154,5 +168,50 @@ export function litterMesh() {
   const s = new THREE.Mesh(new THREE.CircleGeometry(0.22, 16), new THREE.MeshStandardMaterial({ color: 0x7a5a3a, transparent: true, opacity: 0.35, depthWrite: false }));
   s.rotation.x = -Math.PI / 2; s.position.y = 0.085; s.scale.set(1, 0.7, 1);
   g.add(s);
+  return g;
+}
+
+/** spilled drink on the floor */
+export function puddleMesh() {
+  const g = new THREE.Group();
+  const shape = new THREE.Shape();
+  const n = 9;
+  for (let i = 0; i <= n; i++) {
+    const a = (i / n) * Math.PI * 2, r = 0.32 + Math.random() * 0.14;
+    if (i === 0) shape.moveTo(Math.cos(a) * r, Math.sin(a) * r); else shape.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+  }
+  const geo = new THREE.ShapeGeometry(shape, 8);
+  geo.rotateX(-Math.PI / 2);
+  const m = new THREE.Mesh(geo, new THREE.MeshPhysicalMaterial({ color: 0x9fd4ea, roughness: 0.02, metalness: 0.1, transparent: true, opacity: 0.55, clearcoat: 1, depthWrite: false }));
+  m.position.y = 0.092; m.renderOrder = 2;
+  g.add(m);
+  for (let i = 0; i < 3; i++) {
+    const d = new THREE.Mesh(new THREE.CircleGeometry(0.05 + Math.random() * 0.04, 10), m.material);
+    d.rotation.x = -Math.PI / 2; d.position.set((Math.random() - 0.5) * 0.9, 0.092, (Math.random() - 0.5) * 0.9); d.renderOrder = 2;
+    g.add(d);
+  }
+  return g;
+}
+
+/** yellow "ISLAK ZEMİN" A-frame */
+let _wet: THREE.Material | null = null;
+export function wetSignMesh() {
+  if (!_wet) {
+    const t = canvasTexture(128, 192, (ctx, w, h) => {
+      ctx.fillStyle = '#f2c230'; ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = '#1f2a44'; ctx.textAlign = 'center';
+      ctx.font = '800 26px "Baloo 2", system-ui'; ctx.fillText('DİKKAT', w / 2, 34);
+      ctx.beginPath(); ctx.moveTo(w / 2, 52); ctx.lineTo(w / 2 + 34, 112); ctx.lineTo(w / 2 - 34, 112); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#f2c230'; ctx.font = '800 40px "Baloo 2", system-ui'; ctx.fillText('!', w / 2, 106);
+      ctx.fillStyle = '#1f2a44'; ctx.font = '800 22px "Baloo 2", system-ui'; ctx.fillText('ISLAK', w / 2, 146); ctx.fillText('ZEMİN', w / 2, 172);
+    });
+    _wet = new THREE.MeshStandardMaterial({ map: t, roughness: 0.5, side: THREE.DoubleSide });
+  }
+  const g = new THREE.Group();
+  for (const s of [-1, 1]) {
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.6), _wet);
+    p.position.set(0, 0.36, s * 0.1); p.rotation.x = s * 0.28; p.castShadow = true;
+    g.add(p);
+  }
   return g;
 }

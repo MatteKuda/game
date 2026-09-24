@@ -57,8 +57,8 @@ export class Environment {
     sw.rotation.x = -Math.PI / 2; sw.position.set(MAP_W / 2, 0.06, (SIDEWALK_Z0 + SIDEWALK_Z1) / 2); sw.receiveShadow = true; g.add(sw);
     // pavement strip behind the shops (so the gap to buildings is not empty)
     const pav2 = paverTexture(); pav2.wrapS = pav2.wrapT = THREE.RepeatWrapping; pav2.repeat.set(swW / 2, 8);
-    const back = new THREE.Mesh(new THREE.PlaneGeometry(swW, 16), new THREE.MeshStandardMaterial({ map: pav2, roughness: 0.9, color: 0xe6ddd0 }));
-    back.rotation.x = -Math.PI / 2; back.position.set(MAP_W / 2, 0.005, SIDEWALK_Z0 - 8); back.receiveShadow = true; g.add(back);
+    const back = new THREE.Mesh(new THREE.PlaneGeometry(swW, 19), new THREE.MeshStandardMaterial({ map: pav2, roughness: 0.9, color: 0xe6ddd0 }));
+    back.rotation.x = -Math.PI / 2; back.position.set(MAP_W / 2, 0.005, SIDEWALK_Z0 - 9.5); back.receiveShadow = true; g.add(back);
     // curb
     addMesh(g, new THREE.BoxGeometry(swW, 0.14, 0.22), mat(PAL.curb, 0.8), MAP_W / 2, 0.07, ROAD_Z0 - 0.1, 0, 0, 0, false);
     addMesh(g, new THREE.BoxGeometry(swW, 0.14, 0.22), mat(PAL.curb, 0.8), MAP_W / 2, 0.07, ROAD_Z1 + 0.1, 0, 0, 0, false);
@@ -222,18 +222,17 @@ export class Environment {
 
   private buildBuildings() {
     // left flank
-    const a1 = this.apartment(0, 6, 10, 10, 4, 0xf3c9a4, 1, { roofExtras: true });
-    void a1;
+    this.named.a1 = this.apartment(0, 6, 10, 10, 4, 0xf3c9a4, 1, { roofExtras: true });
     // right: bakery (2 storeys) + apartment
     const bakery = this.apartment(26.2, 9, 7.8, 7, 2, 0xf6e1b5, 1, { shopFront: true });
+    this.named.bakery = bakery;
     this.shopFront(bakery, 7.8, 7, 1, 'FIRIN', 'SICAK EKMEK', '#8a5a35', '#f2b33d', 0xffb45c);
-    const a2 = this.apartment(34.2, 7, 9.8, 9, 5, 0xbfd8d2, 1, { roofExtras: true });
-    void a2;
+    this.named.a2 = this.apartment(34.2, 7, 9.8, 9, 5, 0xbfd8d2, 1, { roofExtras: true });
     // back row
-    this.apartment(-4, -6, 11, 9, 5, 0xe8b7a6, 1, { roofExtras: true });
-    this.apartment(8, -6, 10, 9, 6, 0xd9d2e9, 1, { roofExtras: true });
-    this.apartment(19, -6, 12, 8.5, 5, 0xf2d7a0, 1, { roofExtras: true });
-    this.apartment(32, -6, 13, 9, 4, 0xc9e0f0, 1, { roofExtras: true });
+    this.apartment(-4, -11, 11, 9, 5, 0xe8b7a6, 1, { roofExtras: true });
+    this.apartment(8, -11, 10, 9, 6, 0xd9d2e9, 1, { roofExtras: true });
+    this.apartment(19, -10.5, 12, 8.5, 5, 0xf2d7a0, 1, { roofExtras: true });
+    this.apartment(32, -11, 13, 9, 4, 0xc9e0f0, 1, { roofExtras: true });
     // across the street (facing -z)
     const x1 = this.apartment(-2, FAR_WALK_Z1 + 0.6, 11, 8, 3, 0xe5c1d0, -1, { shopFront: true });
     this.shopFront(x1, 11, 8, -1, 'ECZANE', 'NÖBETÇİ', '#d6333a', '#ffffff', 0xd8fff0);
@@ -374,6 +373,17 @@ export class Environment {
     const side2 = side.clone(); side2.position.z = -0.96; side2.rotation.y = Math.PI; v.add(side2);
     for (const x of [-1.6, 1.9]) for (const z of [-0.85, 0.85]) addMesh(v, cyl(0.38, 0.38, 0.26, 16), mat(0x1c1d22, 0.8), x, 0.38, z, Math.PI / 2, 0, 0);
     return v;
+  }
+
+  named: Record<string, THREE.Group> = {};
+
+  /** stage 2: the bakery next door is bought */
+  removeBakery() { this.named.bakery?.removeFromParent(); }
+  /** stage 3: the whole block becomes the AVM */
+  removeForMall() {
+    this.removeNeighbor(); this.removeBakery();
+    this.named.a1?.removeFromParent(); this.named.a2?.removeFromParent();
+    // street furniture that would stand in front of the mall entrances stays; nothing else to clear
   }
 
   removeNeighbor() {

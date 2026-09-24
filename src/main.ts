@@ -6,6 +6,10 @@ import './styles.css';
 import { Game } from './game';
 import { HUD } from './ui/hud';
 import { Thumbs } from './ui/thumbs';
+import { readSave } from './sim/save';
+import { Music, Ambience } from './audio/music';
+import { FIXTURE_MAP } from './data/fixtures';
+import { audio } from './audio/engine';
 
 async function boot() {
   // Canvas textures use the display font — make sure it is ready before we paint signage.
@@ -18,23 +22,37 @@ async function boot() {
   } catch { /* fall back to system font */ }
 
   const canvas = document.getElementById('scene') as HTMLCanvasElement;
+  const params = new URLSearchParams(location.search);
+  const slot = params.get('load');
+  const save = slot ? readSave(slot) : null;
+  if (slot) history.replaceState(null, '', location.pathname + (params.get('q') ? '?q=' + params.get('q') : ''));
+
   const game = new Game(canvas);
-  game.init();
+  game.init(save);
   const thumbs = new Thumbs();
   thumbs.build();
-  const hud = new HUD(game, thumbs);
+  const music = new Music();
+  const amb = new Ambience();
+  const hud = new HUD(game, thumbs, { loaded: !!save, onStart: () => { music.start(); amb.start(); } });
   game.paused = true; // until the player presses "Dükkânı Aç"
-
-  const params = new URLSearchParams(location.search);
   if (params.get('q') === 'balanced' || params.get('q') === 'low') game.r.setQuality(params.get('q') as 'balanced' | 'low');
   (window as unknown as { game: Game; hud: HUD }).game = game;
   (window as unknown as { game: Game; hud: HUD }).hud = hud;
+  if (import.meta.env.DEV) Object.assign(window, { FIX: FIXTURE_MAP, AUDIO: audio }); // for scripted tests
 
   let last = performance.now();
   const loop = (now: number) => {
     const dt = Math.max(0, (now - last) / 1000); last = now;
     game.frame(dt);
     hud.update(dt);
+    const h = game.hour();
+    const crowd = Math.min(1, (game.customersInside() + (game.mall?.visitors.length ?? 0) * 0.5) / 30);
+    const halted = game.paused || game.dayEnded;
+    music.night = h >= 19.5;
+    music.stage = game.stage;
+    music.paused = halted;
+    music.intensity = 0.45 + crowd * 0.55;
+    amb.update(dt, h, crowd, game.cam.farFactor, halted);
     requestAnimationFrame(loop);
   };
   requestAnimationFrame(loop);

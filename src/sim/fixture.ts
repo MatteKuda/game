@@ -3,6 +3,7 @@ import type { FixtureDef } from '../data/fixtures';
 import type { Tile } from './grid';
 import { buildFixtureModel, priceTagMaterial, type FixtureModel } from '../world/props';
 import { iconMaterial, type IconKind } from '../world/icons';
+import { FLOOR_H } from '../config';
 
 export interface Slot { productId: string | null; stock: number; claimed: number }
 
@@ -36,10 +37,17 @@ export class Fixture {
   fp!: Footprint;
   queue: import('./agents').Customer[] = []; // registers only
   queueSlots: Tile[] = [];
-  cashier: import('./agents').Staff | null = null;
+  cashier: import('./staff').Staff | null = null;
   highlight = 0;
+  claimed = 0; // staff id working on it (tables, ovens)
+  dirty = false; // food-court table needs clearing
+  baking = 0;
+  seatsUsed: (object | null)[] = [];
+  covers = new Set<number>(); // camera: tile indices within the view cone
+  alarmT = 0;
+  brokenT = 0;
 
-  constructor(public def: FixtureDef, public x: number, public z: number, public rot: number) {
+  constructor(public def: FixtureDef, public x: number, public z: number, public rot: number, public floor = 0) {
     this.model = buildFixtureModel(def);
     this.obj.add(this.model.root);
     for (let i = 0; i < (def.slots ?? 0); i++) this.slots.push({ productId: null, stock: 0, claimed: 0 });
@@ -55,18 +63,23 @@ export class Fixture {
     this.status.position.y = this.model.height + 0.55;
     this.obj.add(this.status);
     this.obj.traverse((o) => { o.userData.fixture = this; });
+    if (this.model.seats) this.seatsUsed = this.model.seats.map(() => null);
     this.place(x, z, rot);
   }
 
   place(x: number, z: number, rot: number) {
     this.x = x; this.z = z; this.rot = rot;
     this.fp = footprint(this.def, x, z, rot);
-    this.obj.position.set(x + this.fp.fw / 2, 0.08, z + this.fp.fd / 2);
+    this.obj.position.set(x + this.fp.fw / 2, this.floor * FLOOR_H + 0.08, z + this.fp.fd / 2);
     this.obj.rotation.y = rot * Math.PI / 2;
     this.obj.updateMatrixWorld(true);
   }
 
-  get center() { return new THREE.Vector3(this.x + this.fp.fw / 2, 0, this.z + this.fp.fd / 2); }
+  get center() { return new THREE.Vector3(this.x + this.fp.fw / 2, this.floor * FLOOR_H, this.z + this.fp.fd / 2); }
+  seatWorld(i: number) {
+    const s = this.model.seats?.[i]; if (!s) return this.center;
+    return s.clone().applyMatrix4(this.model.root.matrixWorld);
+  }
   get isDisplay() { return this.def.kind === 'display'; }
 
   cap() { return this.def.slotCapacity ?? 0; }
@@ -78,12 +91,13 @@ export class Fixture {
     if (kind) this.status.material = iconMaterial(kind, 'badge');
   }
 
-  refreshTags(prices: Record<string, number>) {
+  refreshTags(prices: Record<string, number>, sale: Set<string> = new Set()) {
     this.slots.forEach((s, i) => {
       const tag = this.tags[i]; if (!tag) return;
       const cap = this.cap();
-      const state = !s.productId ? 'none' : s.stock === 0 ? 'empty' : s.stock / cap < 0.34 ? 'low' : 'ok';
-      tag.material = priceTagMaterial(s.productId ? prices[s.productId] : null, state);
+      const onSale = !!s.productId && sale.has(s.productId);
+      const state = !s.productId ? 'none' : s.stock === 0 ? 'empty' : onSale ? 'sale' : s.stock / cap < 0.34 ? 'low' : 'ok';
+      tag.material = priceTagMaterial(s.productId ? (onSale ? Math.round(prices[s.productId] * 0.85) : prices[s.productId]) : null, state);
     });
   }
 

@@ -6,7 +6,7 @@ import { mergeRigidPart } from './merge';
 import type { Accessory } from '../data/customers';
 
 export type HairStyle = 'short' | 'long' | 'bun' | 'bald' | 'curly' | 'spiky';
-export type Anim = 'idle' | 'walk' | 'reach' | 'pay' | 'angry' | 'happy' | 'carry' | 'sweep' | 'work';
+export type Anim = 'idle' | 'walk' | 'reach' | 'pay' | 'angry' | 'happy' | 'carry' | 'sweep' | 'work' | 'fall' | 'push' | 'sit' | 'rest' | 'play';
 export type Face = 'neutral' | 'happy' | 'sad' | 'angry' | 'surprised';
 
 export interface Look {
@@ -18,7 +18,7 @@ export interface Look {
   shoes: number;
   height: number; // scale
   girth: number;
-  accessory?: Accessory | 'apron';
+  accessory?: Accessory | 'apron' | 'cap' | 'chef';
   accent?: number;
   glasses?: boolean;
   beard?: boolean;
@@ -72,8 +72,8 @@ export class CharacterView {
     // torso
     const torso = addMesh(this.body, capsule(0.19, 0.26, 6, 14), top, 0, 0.92, 0);
     torso.scale.set(L.girth, 1, 0.78);
-    if (L.accessory === 'apron') {
-      const apron = addMesh(this.body, rbox(0.3, 0.56, 0.04, 0.03), mat(L.accent ?? 0x1f8a86, 0.8), 0, 0.84, 0.14);
+    if (L.accessory === 'apron' || L.accessory === 'chef') {
+      const apron = addMesh(this.body, rbox(0.3, 0.56, 0.04, 0.03), mat(L.accessory === 'chef' ? 0xffffff : L.accent ?? 0x1f8a86, 0.8), 0, 0.84, 0.14);
       apron.scale.x = L.girth;
       addMesh(this.body, rbox(0.08, 0.05, 0.01, 0.01), mat(0xffffff, 0.4), 0.07, 1.0, 0.165, 0, 0, 0, false);
     }
@@ -198,6 +198,30 @@ export class CharacterView {
         addMesh(this.body, new THREE.TorusGeometry(0.2, 0.012, 6, 16, Math.PI), mat(0xd8c4a0, 0.9), -0.27, 0.9, 0.02, 0, Math.PI / 2, 0.2);
         break;
       }
+      case 'hood': {
+        // hoodie hood pulled up + kangaroo pocket
+        const hood = addMesh(this.head, new THREE.SphereGeometry(0.235, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), accent, 0, 0.0, -0.03, -0.35);
+        hood.scale.set(1.05, 1.05, 1.08);
+        addMesh(this.body, rbox(0.24, 0.12, 0.04, 0.03), mat(shadeNum(L.top, 0.8), 0.9), 0, 0.78, 0.15);
+        break;
+      }
+      case 'cap': {
+        // security: peaked cap + badge
+        addMesh(this.head, cyl(0.2, 0.22, 0.12, 16), mat(0x1b2130, 0.6), 0, 0.17, 0, -0.1);
+        addMesh(this.head, rbox(0.24, 0.02, 0.15, 0.01), mat(0x11151e, 0.4), 0, 0.12, 0.2, -0.25);
+        addMesh(this.head, rbox(0.06, 0.05, 0.02, 0.01), mat(0xf2b33d, 0.3, 0.6), 0, 0.2, 0.2, -0.1);
+        addMesh(this.body, rbox(0.08, 0.1, 0.02, 0.01), mat(0xf2b33d, 0.3, 0.6), 0.09, 1.02, 0.155);
+        addMesh(this.body, rbox(0.1, 0.04, 0.02, 0.01), mat(0xffffff, 0.5), -0.08, 1.04, 0.155);
+        break;
+      }
+      case 'chef': {
+        const hat = new THREE.Group(); hat.position.y = 0.16; this.head.add(hat);
+        addMesh(hat, cyl(0.17, 0.17, 0.14, 16), mat(0xffffff, 0.8), 0, 0.05, 0);
+        for (let i = 0; i < 5; i++) addMesh(hat, sphere(0.09, 10, 8), mat(0xffffff, 0.85), Math.cos(i * 1.26) * 0.09, 0.17, Math.sin(i * 1.26) * 0.09);
+        addMesh(hat, sphere(0.11, 10, 8), mat(0xffffff, 0.85), 0, 0.2, 0);
+        mergeRigidPart(hat);
+        break;
+      }
       case 'apron': {
         // visor cap for staff
         const c = addMesh(this.head, new THREE.SphereGeometry(0.215, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.42), accent, 0, 0.03, 0, -0.1);
@@ -237,6 +261,46 @@ export class CharacterView {
     });
   }
 
+  private cart: THREE.Group | null = null;
+  setCart(on: boolean) {
+    if (on && !this.cart) {
+      const c = new THREE.Group();
+      const wire = mat(0xc3cad2, 0.35, 0.8), red = mat(0xe0453a, 0.5), dark = mat(0x2a2d33, 0.8);
+      addMesh(c, rbox(0.46, 0.34, 0.66, 0.03), mat(0xd9dfe6, 0.3, 0.7), 0, 0.72, 0);
+      addMesh(c, rbox(0.4, 0.3, 0.6, 0.02), mat(0x9aa3ab, 0.4, 0.6), 0, 0.74, 0);
+      addMesh(c, rbox(0.5, 0.04, 0.04, 0.02), red, 0, 0.98, -0.36);
+      for (const [x, z] of [[-0.18, -0.26], [0.18, -0.26], [-0.18, 0.26], [0.18, 0.26]]) {
+        addMesh(c, cyl(0.012, 0.012, 0.5, 6), wire, x, 0.3, z);
+        addMesh(c, cyl(0.05, 0.05, 0.04, 10), dark, x, 0.05, z, 0, 0, Math.PI / 2);
+      }
+      addMesh(c, rbox(0.42, 0.02, 0.6, 0.01), wire, 0, 0.22, 0);
+      c.position.set(0, 0, 0.72);
+      mergeRigidPart(c);
+      c.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.castShadow = true; o.userData.agentPart = true; });
+      this.root.add(c);
+      this.cart = c;
+    }
+    if (this.cart) this.cart.visible = on;
+    if (this.basket) this.basket.visible = !on;
+    if (on && this.basket && this.cart) {
+      // move basket items into the cart
+      for (const m of this.basketItems) { this.cart.add(m); m.position.y += 0.78; m.position.x *= 1.4; }
+    }
+  }
+
+  private bags = 0;
+  addBag(color: number) {
+    if (this.bags >= 2) return;
+    const b = new THREE.Group();
+    addMesh(b, rbox(0.22, 0.26, 0.09, 0.02), mat(color, 0.85), 0, -0.12, 0);
+    addMesh(b, new THREE.TorusGeometry(0.06, 0.008, 6, 10, Math.PI), mat(0x2a2d33, 0.6), 0, 0.01, 0);
+    b.position.set(0, -0.44, 0.02 + this.bags * 0.05);
+    b.rotation.y = Math.PI / 2 + this.bags * 0.3;
+    (this.bags ? this.armL : this.armR).add(b);
+    b.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.castShadow = true; });
+    this.bags++;
+  }
+
   setCarry(on: boolean) { this.box.visible = on; }
   setBroom(on: boolean) { this.broom.visible = on; }
 
@@ -268,7 +332,7 @@ export class CharacterView {
     let legSwing = 0, armSwing = 0, bob = 0, lean = 0;
     let armLx = 0, armRx = 0, armLz = 0.08, armRz = -0.08;
     let headY = 0, headX = 0, bodyY = 0;
-    if (a === 'walk' || a === 'carry') {
+    if (a === 'walk' || a === 'carry' || (a === 'push' && moving > 0.05)) {
       const f = 7.5 * (this.walkSpeed / 1.4) * Math.max(0.35, moving);
       const ph = t * f;
       legSwing = Math.sin(ph) * 0.55;
@@ -300,8 +364,33 @@ export class CharacterView {
       }
       case 'carry': armLx = -1.25; armRx = -1.25; armLz = 0.25; armRz = -0.25; break;
       case 'sweep': armLx = -0.8 + Math.sin(t * 6) * 0.3; armRx = -0.7 + Math.sin(t * 6) * 0.3; this.broom.rotation.z = Math.sin(t * 6) * 0.4; break;
+      case 'push': armLx = -1.15; armRx = -1.15; armLz = 0.18; armRz = -0.18; lean = 0.12; break;
+      case 'fall': {
+        const k = Math.min(1, this.animT / 0.25);
+        lean = -1.35 * k; bodyY = -0.5 * k; armLx = -2.4 * k; armRx = -2.2 * k; armLz = 0.6; armRz = -0.6;
+        legSwing = -0.6 * k; headX = 0.3;
+        break;
+      }
+      case 'sit': {
+        this.legL.rotation.x = this.legR.rotation.x = -1.45;
+        bodyY = -0.34; armLx = -0.6; armRx = -0.9 + Math.max(0, Math.sin(t * 2.5)) * -0.7; headX = 0.15;
+        this.body.position.y = bodyY; this.body.rotation.x = 0;
+        this.armL.rotation.x = armLx; this.armR.rotation.x = armRx;
+        this.head.rotation.y = headY; this.head.rotation.x = headX;
+        return;
+      }
+      case 'rest': {
+        const sip = Math.max(0, Math.sin(t * 1.6));
+        armRx = -1.2 - sip * 0.9; armRz = -0.25; headX = -0.1 * sip;
+        break;
+      }
+      case 'play': {
+        bodyY = Math.abs(Math.sin(t * 7)) * 0.14;
+        armLx = -2.4 + Math.sin(t * 7) * 0.4; armRx = -2.4 - Math.sin(t * 7) * 0.4; armLz = 0.4; armRz = -0.4;
+        break;
+      }
     }
-    this.legL.rotation.x = legSwing; this.legR.rotation.x = -legSwing;
+    this.legL.rotation.x = a === 'fall' ? legSwing : legSwing; this.legR.rotation.x = a === 'fall' ? legSwing * 0.6 : -legSwing;
     this.armL.rotation.x = armLx; this.armR.rotation.x = armRx;
     this.armL.rotation.z = -armLz; this.armR.rotation.z = -armRz;
     this.body.position.y = bob + bodyY;

@@ -47,11 +47,17 @@ export type Rect = { x0: number; z0: number; x1: number; z1: number }; // x1/z1 
 export interface StageLayout {
   interior: Rect;
   doors: number[]; // x of door tiles on the front row (front row = interior.z1 - 1)
+  backDoors?: number[]; // x of door tiles on the back row (AVM corridor access)
 }
+
+/** vertical distance between AVM floors */
+export const FLOOR_H = 4.4;
 
 export const STAGE_LAYOUTS: StageLayout[] = [
   { interior: { x0: 18, z0: 10, x1: 26, z1: 16 }, doors: [22, 23] },
   { interior: { x0: 10, z0: 6, x1: 26, z1: 16 }, doors: [13, 14, 22, 23] },
+  { interior: { x0: 10, z0: 4, x1: 34, z1: 16 }, doors: [13, 14, 22, 23, 30, 31] },
+  { interior: { x0: 10, z0: 4, x1: 34, z1: 16 }, doors: [13, 14, 22, 23, 30, 31], backDoors: [21, 22] },
 ];
 
 export const TURKISH_NAMES = [

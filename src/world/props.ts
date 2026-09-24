@@ -4,6 +4,7 @@ import type { FixtureDef } from '../data/fixtures';
 import { M, rbox, cyl, sphere, mat, glow } from './materials';
 import { canvasTexture, roundRect } from './textures';
 import { mergeByMaterial } from './merge';
+import { buildCamera, buildGate, buildBreak, buildConveyorRegister, buildSelfCheckout, buildHangingSign, buildOven, buildCartStation, buildTable, buildPlayArea, buildBench } from './props2';
 
 export interface SlotLayout {
   units: THREE.Matrix4[]; // local transforms, filled in order
@@ -17,6 +18,12 @@ export interface FixtureModel {
   height: number;
   depotBoxes?: THREE.Object3D[];
   posDevice?: THREE.Object3D;
+  led?: THREE.MeshStandardMaterial;
+  alarmLight?: THREE.MeshStandardMaterial;
+  belt?: THREE.Texture;
+  ovenGlow?: THREE.MeshStandardMaterial;
+  trays?: THREE.Object3D;
+  seats?: THREE.Vector3[];
 }
 
 export function addMesh(parent: THREE.Object3D, geo: THREE.BufferGeometry, material: THREE.Material, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, shadow = true) {
@@ -396,20 +403,31 @@ function buildRaw(def: FixtureDef): FixtureModel {
     case 'depo': return buildDepot(def);
     case 'saksi': return buildPlant();
     case 'cop': return buildBin();
+    case 'kamera': return buildCamera();
+    case 'alarm': return buildGate();
+    case 'cay': return buildBreak();
+    case 'bantkasa': return buildConveyorRegister(def);
+    case 'selfkasa': return buildSelfCheckout();
+    case 'levha': return buildHangingSign();
+    case 'firin': return buildOven();
+    case 'araba': return buildCartStation();
+    case 'masa': return buildTable();
+    case 'oyunalani': return buildPlayArea();
+    case 'bank': return buildBench();
   }
   throw new Error('unknown fixture ' + def.id);
 }
 
 // price tag textures ---------------------------------------------------------
 const tagCache = new Map<string, THREE.Material>();
-export function priceTagMaterial(price: number | null, state: 'ok' | 'low' | 'empty' | 'none') {
+export function priceTagMaterial(price: number | null, state: 'ok' | 'low' | 'empty' | 'none' | 'sale') {
   const key = `${price}:${state}`;
   let m = tagCache.get(key);
   if (!m) {
     const t = canvasTexture(128, 64, (ctx, w, h) => {
-      const bg = state === 'empty' ? '#e5484d' : state === 'low' ? '#f2b33d' : state === 'none' ? '#8a94a6' : '#fffdf7';
+      const bg = state === 'empty' ? '#e5484d' : state === 'low' ? '#f2b33d' : state === 'none' ? '#8a94a6' : state === 'sale' ? '#d6333a' : '#fffdf7';
       ctx.fillStyle = bg; roundRect(ctx, 2, 2, w - 4, h - 4, 10); ctx.fill();
-      ctx.fillStyle = state === 'ok' ? '#1f2a44' : '#fff';
+      ctx.fillStyle = state === 'ok' ? '#1f2a44' : state === 'sale' ? '#ffd84a' : '#fff';
       ctx.font = '800 38px "Baloo 2", system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(price == null ? '—' : `₺${price}`, w / 2, h / 2 + 3);
     });

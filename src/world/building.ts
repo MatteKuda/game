@@ -24,6 +24,8 @@ export class ShopShell {
   signMat!: THREE.MeshStandardMaterial;
   neonTube: THREE.Mesh | null = null;
   private awnings: THREE.Mesh[] = [];
+  banner: THREE.Mesh | null = null;
+  setCampaign(on: boolean) { if (this.banner) this.banner.visible = on; }
   cutaway = true;
 
   constructor(private scene: THREE.Scene, public layout: StageLayout, public stage: number, public upgrades: Set<string>) {
@@ -64,7 +66,28 @@ export class ShopShell {
     };
     // BACK wall (z0), normal -z
     const back = mkSide(new THREE.Vector3(0, 0, -1));
-    this.solidWall(back.group, r.x0 - th / 2, r.z0 - th / 2, r.x1 + th / 2, r.z0 - th / 2, th, 'x', 1);
+    const bd = this.layout.backDoors ?? [];
+    if (!bd.length) this.solidWall(back.group, r.x0 - th / 2, r.z0 - th / 2, r.x1 + th / 2, r.z0 - th / 2, th, 'x', 1);
+    else {
+      const a = Math.min(...bd), b = Math.max(...bd) + 1;
+      this.solidWall(back.group, r.x0 - th / 2, r.z0 - th / 2, a, r.z0 - th / 2, th, 'x', 1);
+      this.solidWall(back.group, b, r.z0 - th / 2, r.x1 + th / 2, r.z0 - th / 2, th, 'x', 1);
+      const z = r.z0 - th / 2;
+      const frame = mat(PAL.ink, 0.45, 0.3);
+      addMesh(back.group, rbox(b - a + 0.2, WALL_H - 2.35, th, 0.02), M.wall, (a + b) / 2, 2.35 + (WALL_H - 2.35) / 2, z);
+      for (const x of [a, b]) addMesh(back.group, rbox(0.1, 2.35, 0.24, 0.02), frame, x, 1.175, z, 0, 0, 0, false);
+      const w = b - a;
+      const mk = (px: number) => {
+        const p = new THREE.Group(); p.position.set(px, 0, z);
+        const gl = new THREE.Mesh(new THREE.PlaneGeometry(w / 2 - 0.06, 2.2), M.glass); gl.position.y = 1.15; gl.renderOrder = 3; p.add(gl);
+        addMesh(p, rbox(w / 2, 0.06, 0.05, 0.01), frame, 0, 2.25, 0, 0, 0, 0, false);
+        back.group.add(p); return p;
+      };
+      const L = mk(a + w / 4), R2 = mk(b - w / 4);
+      this.doors.push({ x: (a + b) / 2, z, left: L, right: R2, open: 0, baseL: a + w / 4, baseR: b - w / 4 });
+      const sgn = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.3), backDoorSign());
+      sgn.position.set((a + b) / 2, 2.6, z + 0.12); back.group.add(sgn);
+    }
     // LEFT wall (x0), normal -x
     const left = mkSide(new THREE.Vector3(-1, 0, 0));
     this.solidWall(left.group, r.x0 - th / 2, r.z0, r.x0 - th / 2, r.z1, th, 'z', 1);
@@ -177,6 +200,10 @@ export class ShopShell {
     const sign = new THREE.Mesh(new THREE.BoxGeometry(signW, signW / 4, 0.12), [M.cream, M.cream, M.cream, M.cream, this.signMat, M.cream]);
     sign.position.set(signX, topH + bandH / 2 + 0.05, z + 0.22); sign.castShadow = true;
     g.add(sign); side.extras.push(sign);
+    // campaign banner (toggled by setCampaign)
+    this.banner = new THREE.Mesh(new THREE.PlaneGeometry(Math.min(4.2, (x1 - x0) * 0.5), 0.55), campaignMat());
+    this.banner.position.set(this.stage === 0 ? (x0 + x1) / 2 : x0 + 4, 1.95, z + 0.16);
+    this.banner.visible = false; this.banner.userData.dynamic = true; g.add(this.banner);
     // neon outline (upgrade)
     if (this.upgrades.has('neon')) {
       const shape = new THREE.Shape();
@@ -288,6 +315,26 @@ export class ShopShell {
       d.left.position.x = d.baseL - off; d.right.position.x = d.baseR + off;
     }
   }
+}
+
+function backDoorSign() {
+  const t = canvasTexture(512, 96, (ctx, w, h) => {
+    ctx.fillStyle = '#1f2a44'; roundRect(ctx, 0, 0, w, h, 18); ctx.fill();
+    ctx.fillStyle = '#fff1dc'; ctx.font = '800 50px "Baloo 2", system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('AVM GİRİŞİ ↔ SÜPERMARKET', w / 2, h / 2 + 3);
+  });
+  return new THREE.MeshStandardMaterial({ map: t, emissive: 0xffffff, emissiveMap: t, emissiveIntensity: 0.5 });
+}
+
+let _camp: THREE.Material | null = null;
+function campaignMat() {
+  if (_camp) return _camp;
+  const t = canvasTexture(768, 100, (ctx, w, h) => {
+    ctx.fillStyle = '#d6333a'; roundRect(ctx, 0, 0, w, h, 16); ctx.fill();
+    ctx.fillStyle = '#ffd84a'; ctx.font = '800 56px "Baloo 2", system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('KAMPANYA · FIRSATLAR İÇERİDE', w / 2, h / 2 + 4);
+  });
+  _camp = new THREE.MeshStandardMaterial({ map: t, emissive: 0xffffff, emissiveMap: t, emissiveIntensity: 0.35, side: THREE.DoubleSide });
+  return _camp;
 }
 
 let _open: THREE.Material | null = null;

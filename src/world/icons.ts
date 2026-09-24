@@ -2,12 +2,14 @@ import * as THREE from 'three';
 
 export type IconKind =
   | 'empty' | 'low' | 'noproduct' | 'price' | 'cheap' | 'wait' | 'happy' | 'angry' | 'notfound'
-  | 'dirty' | 'crowd' | 'wallet' | 'queue' | 'nocashier' | 'star' | 'box';
+  | 'dirty' | 'crowd' | 'wallet' | 'queue' | 'nocashier' | 'star' | 'box'
+  | 'slip' | 'sneak' | 'tired' | 'food' | 'fun' | 'alarm' | 'wrench' | 'shop';
 
 const COLORS: Record<IconKind, string> = {
   empty: '#e5484d', low: '#f2a93b', noproduct: '#7b8698', price: '#e0663c', cheap: '#2fae7a',
   wait: '#f2a93b', happy: '#2fae7a', angry: '#d6333a', notfound: '#7a5ae0', dirty: '#8a6a3c',
   crowd: '#d9822b', wallet: '#b0546a', queue: '#e0663c', nocashier: '#d6333a', star: '#f2b33d', box: '#2f5d8a',
+  slip: '#2f8fd6', sneak: '#c0263a', tired: '#7b8698', food: '#e0663c', fun: '#6c4ab6', alarm: '#e5484d', wrench: '#d9822b', shop: '#1f8a86',
 };
 
 function glyph(ctx: CanvasRenderingContext2D, k: IconKind, s: number) {
@@ -96,6 +98,54 @@ function glyph(ctx: CanvasRenderingContext2D, k: IconKind, s: number) {
       ctx.beginPath(); ctx.ellipse(0, u * 0.5, u * 0.45, u * 0.35, 0, Math.PI, 0); ctx.fill();
       ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.moveTo(-u * 0.7, u * 0.7); ctx.lineTo(u * 0.7, -u * 0.7); ctx.stroke(); break;
     }
+    case 'slip': {
+      // droplet + wave
+      ctx.beginPath(); ctx.moveTo(0, -u * 0.7); ctx.bezierCurveTo(u * 0.55, -u * 0.05, u * 0.45, u * 0.35, 0, u * 0.35); ctx.bezierCurveTo(-u * 0.45, u * 0.35, -u * 0.55, -u * 0.05, 0, -u * 0.7); ctx.fill();
+      ctx.lineWidth = s * 0.07; ctx.beginPath(); ctx.moveTo(-u * 0.75, u * 0.65); ctx.bezierCurveTo(-u * 0.4, u * 0.45, -u * 0.2, u * 0.85, 0, u * 0.62); ctx.bezierCurveTo(u * 0.2, u * 0.45, u * 0.4, u * 0.85, u * 0.75, u * 0.62); ctx.stroke();
+      break;
+    }
+    case 'sneak': {
+      // eye with a hand pocketing
+      ctx.beginPath(); ctx.moveTo(-u * 0.8, 0); ctx.quadraticCurveTo(0, -u * 0.75, u * 0.8, 0); ctx.quadraticCurveTo(0, u * 0.75, -u * 0.8, 0); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, u * 0.25, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = COLORS[k]; ctx.beginPath(); ctx.arc(u * 0.08, -u * 0.08, u * 0.08, 0, Math.PI * 2); ctx.fill();
+      break;
+    }
+    case 'tired': {
+      ctx.font = `800 ${s * 0.42}px "Baloo 2", system-ui`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('z', -u * 0.35, u * 0.3); ctx.font = `800 ${s * 0.32}px "Baloo 2", system-ui`; ctx.fillText('z', u * 0.1, -u * 0.05);
+      ctx.font = `800 ${s * 0.24}px "Baloo 2", system-ui`; ctx.fillText('z', u * 0.45, -u * 0.4); break;
+    }
+    case 'food': {
+      // fork + knife
+      ctx.beginPath(); ctx.moveTo(-u * 0.3, -u * 0.7); ctx.lineTo(-u * 0.3, u * 0.7); ctx.stroke();
+      for (const x of [-0.5, -0.1]) { ctx.beginPath(); ctx.moveTo(x * u, -u * 0.7); ctx.lineTo(x * u, -u * 0.2); ctx.stroke(); }
+      ctx.beginPath(); ctx.moveTo(u * 0.35, u * 0.7); ctx.lineTo(u * 0.35, -u * 0.7); ctx.quadraticCurveTo(u * 0.7, -u * 0.3, u * 0.35, u * 0.05); ctx.fill(); ctx.stroke();
+      break;
+    }
+    case 'fun': {
+      // balloon
+      ctx.beginPath(); ctx.ellipse(0, -u * 0.2, u * 0.45, u * 0.55, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = s * 0.05; ctx.beginPath(); ctx.moveTo(0, u * 0.35); ctx.bezierCurveTo(u * 0.2, u * 0.5, -u * 0.2, u * 0.6, 0, u * 0.8); ctx.stroke(); break;
+    }
+    case 'alarm': {
+      ctx.beginPath(); ctx.moveTo(-u * 0.5, u * 0.45); ctx.lineTo(-u * 0.5, -u * 0.1); ctx.arc(0, -u * 0.1, u * 0.5, Math.PI, 0); ctx.lineTo(u * 0.5, u * 0.45); ctx.closePath(); ctx.fill();
+      ctx.fillRect(-u * 0.7, u * 0.45, u * 1.4, u * 0.2);
+      ctx.lineWidth = s * 0.06;
+      for (const a of [-2.4, -1.57, -0.74]) { ctx.beginPath(); ctx.moveTo(Math.cos(a) * u * 0.62, -u * 0.1 + Math.sin(a) * u * 0.62); ctx.lineTo(Math.cos(a) * u * 0.85, -u * 0.1 + Math.sin(a) * u * 0.85); ctx.stroke(); }
+      break;
+    }
+    case 'wrench': {
+      ctx.save(); ctx.rotate(-Math.PI / 4);
+      ctx.fillRect(-u * 0.12, -u * 0.1, u * 0.24, u * 0.85);
+      ctx.beginPath(); ctx.arc(0, -u * 0.35, u * 0.32, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = COLORS[k]; ctx.fillRect(-u * 0.1, -u * 0.72, u * 0.2, u * 0.4);
+      ctx.restore(); break;
+    }
+    case 'shop': {
+      ctx.beginPath(); ctx.moveTo(-u * 0.55, -u * 0.2); ctx.lineTo(u * 0.55, -u * 0.2); ctx.lineTo(u * 0.45, u * 0.7); ctx.lineTo(-u * 0.45, u * 0.7); ctx.closePath(); ctx.fill();
+      ctx.lineWidth = s * 0.07; ctx.beginPath(); ctx.arc(0, -u * 0.2, u * 0.28, Math.PI, 0); ctx.stroke(); break;
+    }
     case 'star': {
       ctx.beginPath();
       for (let i = 0; i < 10; i++) { const r = i % 2 ? u * 0.32 : u * 0.7; const a = -Math.PI / 2 + i * Math.PI / 5; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
@@ -155,4 +205,5 @@ export const ICON_LABEL: Record<IconKind, string> = {
   empty: 'Raf boş', low: 'Stok azalıyor', noproduct: 'Ürün atanmamış', price: 'Çok pahalı', cheap: 'Uygun fiyat!',
   wait: 'Bekliyor', happy: 'Memnun', angry: 'Sinirli', notfound: 'Aradığını bulamadı', dirty: 'Ortam kirli',
   crowd: 'Çok kalabalık', wallet: 'Bütçe yetmedi', queue: 'Uzun kuyruk', nocashier: 'Kasiyer yok', star: 'Harika', box: 'Stok',
+  slip: 'Kaydı / ıslak zemin', sneak: 'Şüpheli', tired: 'Yorgun', food: 'Acıktı', fun: 'Eğleniyor', alarm: 'Alarm', wrench: 'Arızalı', shop: 'Alışveriş yaptı',
 };

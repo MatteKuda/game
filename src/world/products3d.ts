@@ -35,6 +35,11 @@ function labelTexture(p: ProductDef) {
         ctx.fillStyle = hex(p.color); ctx.font = '800 20px "Baloo 2", sans-serif'; ctx.textAlign = 'center';
         ctx.fillText(p.brand, w / 2, h * 0.21);
         break;
+      case 'wedge':
+        ctx.fillRect(0, h * 0.25, w, h * 0.5);
+        ctx.fillStyle = hex(p.color); ctx.font = '800 22px "Baloo 2", sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(p.brand, w / 2, h * 0.56);
+        break;
       case 'bottle':
       case 'cup':
       case 'carton':
@@ -125,6 +130,13 @@ function build(p: ProductDef): ProductVisual {
       const g = new THREE.CapsuleGeometry(0.055, 0.16, 6, 12); g.rotateZ(Math.PI / 2); g.scale(1, 0.8, 1); g.translate(0, 0.045, 0);
       const cuts = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.8, map: crustTexture() });
       return { geometry: g, material: cuts, height: 0.09, footprint: 0.27 };
+    }
+    case 'wedge': {
+      // cheese block in a green-labelled tub
+      const tub = new RoundedBoxGeometry(0.16, 0.08, 0.12, 2, 0.015); tub.translate(0, 0.04, 0);
+      const lid = new RoundedBoxGeometry(0.165, 0.015, 0.125, 2, 0.006); lid.translate(0, 0.085, 0);
+      const g = bake([{ g: tub, m: T() }, { g: lid, m: T() }]);
+      return { geometry: g, material: labeled, height: 0.095, footprint: 0.16 };
     }
     case 'fruit': {
       const s = new THREE.SphereGeometry(0.045, 14, 10); s.scale(1, 0.9, 1); s.translate(0, 0.04, 0);

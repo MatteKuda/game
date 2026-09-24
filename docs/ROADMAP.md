@@ -1,6 +1,6 @@
 # Yol Haritası: Büfeden AVM'ye
 
-Her aşama sadece daha büyük bir bina değildir. Her biri **yeni bir müşteri davranışı**, **yeni bir karar türü**, **yeni bir sorun sınıfı** ve **yeni bir görsel imza** ekler. Aşağıdaki tablo, mevcut kod tabanındaki hangi sistemin nasıl genişleyeceğini somut olarak gösterir.
+Her aşama sadece daha büyük bir bina değildir. Her biri **yeni bir müşteri davranışı**, **yeni bir karar türü**, **yeni bir sorun sınıfı** ve **yeni bir görsel imza** ekler.
 
 Durum etiketleri: ✅ uygulandı · 🟡 kısmen · ⬜ planlandı
 
@@ -12,72 +12,73 @@ Durum etiketleri: ✅ uygulandı · 🟡 kısmen · ⬜ planlandı
 |---|---|
 | Alan | 8×6 m, tek kapı, tek kasa |
 | Müşteri | Öğrenci, Emekli, Beyaz Yaka. Saatlik talep eğrileri: sabah ekmek ve simit, öğleden sonra atıştırmalık |
-| Kararlar | Raf yerleşimi, ürün atama, fiyat (arketipe göre kabul), sipariş ve oto-sipariş, reyon görevlisi almak, 3 yükseltme |
+| Kararlar | Raf yerleşimi, ürün atama, fiyat (arketipe göre kabul), sipariş ve oto-sipariş, reyon görevlisi almak, 3 yükseltme, ucuz kampanyalar (broşür, kasa önü standı) |
 | Sorunlar | Boş raf, sahibin kasayı bırakması, kapıdan taşan kuyruk, çöp, "çok pahalı" tepkisi |
 | Görsel imza | Çizgili tente, el yazısı tahta pano, kapıdan sokağa taşan kuyruk |
 
-## Aşama 2: Mahalle Marketi ✅ (ilk genişleme)
+## Aşama 2: Mahalle Marketi ✅
 
 | Katman | İçerik |
 |---|---|
 | Alan | 16×10 m. Komşu dükkân ve avlu kalkar, 2. kapı açılır |
-| Müşteri | **Aile Alışverişçisi**: 3–5 kalem, ikişer adet, taze ürün ve temizlik ister |
-| Kararlar | 3 kasaya kadar kasa ve kasiyer ataması, manav ve süt reyonu, gondollarla koridor tasarımı |
-| Sorunlar | Kasalar arası yük dengesi, koridor sıkışması, daha büyük depo ihtiyacı |
-| Görsel imza | Manav kasaları, açık soğutucu ışığı, iki kapılı cephe |
-| 🟡 Eksik | Temizlik görevlisi rolü var ama "ıslak zemin" gibi görsel olaylar yok. Market'e özel yükseltmeler (etiket yazıcı, raf aydınlatması) yok |
+| Müşteri | **Aile Alışverişçisi** (3–5 kalem), **Fırsatçı** (hırsız) |
+| Kararlar | 3 kasaya kadar kasa, manav ve süt reyonu, gondollarla koridor tasarımı, kamera ve alarm kapısı yerleşimi, vardiya planı |
+| Sorunlar | Kasalar arası yük dengesi, koridor sıkışması, depo kapasitesi, **hırsızlık ve kör noktalar**, **ıslak zemin ve kayma** |
+| Yükseltmeler | Elektronik Raf Etiketi, Sıcak Raf Aydınlatması |
+| Görsel imza | Manav kasaları, açık soğutucu ışığı, iki kapılı cephe, tavan kameraları, sarı ıslak zemin levhası |
 
-## Aşama 3: Süpermarket ⬜
+## Aşama 3: Süpermarket ✅
 
 **Hedef his:** "Artık tek başına her şeye yetişemiyorum; sistem kurmam lazım."
 
-| Sistem | Mevcut koddaki karşılığı | Genişleme |
+| Sistem | Durum | Not |
 |---|---|---|
-| **Kategori reyonları** | `FixtureDef.display` + `Slot` | Reyonlara kategori etiketi (Kahvaltılık, Temizlik, İçecek…). Müşteri önce kategori levhasını arar. Levhası olmayan reyonda arama süresi uzar (`nextWant` ağırlığı). |
-| **Kasa bantları ve self-servis** | `register` kind, `queueSlots` | Bantlı kasa (2 müşteri aynı anda), hızlı kasa ("10 ürün altı" kuralı, müşteri sepet boyuna göre seçer), self-servis kiosk (kasiyer gerektirmez ama hırsızlık riski artar). |
-| **Güvenlik ve hırsızlık** | `Customer` durum makinesi | Yeni arketip **Fırsatçı**: kamera ve görevli görüş alanı dışındaki raflardan ürün alıp ödemeden çıkmaya çalışır. Güvenlik kamerası (görüş konisi overlay'i), alarm kapısı, güvenlik görevlisi rolü. Görsel sinyal: kaçan müşterinin başında kırmızı çanta ikonu, kapıda alarm ışığı. |
-| **Taze üretim: fırın ve şarküteri** | `Staff` görev sistemi (`Task`) | Üretim tezgâhı hammaddeyi mala çevirir (un → ekmek). Personel rolü "Fırıncı". Fırın ürününün bir tazelik süresi olur. Bayat ürün indirim rafına ya da çöpe gider (yeni `Slot.age`). |
-| **Vardiya ve yorgunluk** | `Staff.skill`, `wage` | Sabah ve akşam vardiyası, yorgunluk barı, mola odası (yeni oda tipi). Yorgun personel yavaşlar. |
-| **Otopark ve alışveriş arabası** | `Environment`, `CharacterView.ensureBasket` | Otoparktan gelen müşteri araba iter (daha geniş koridor ister, 2 karo). Araba toplama görevi. |
-| **Kampanyalar** | `prices`, `ARCHETYPES.priceTolerance` | "3 al 2 öde", haftalık broşür. Kampanya günü talep artar, marj düşer. Gondol başı teşhir (end-cap) anlık alımı artırır. |
-| **Oda sistemi** | `Grid.region` (R_IN) | Bölgeler: satış alanı, depo odası (sadece personel), mola odası, soğuk oda. `region` kodları genişler, kapı kenarları (`doorEdges`) odalar arasında da kullanılır. |
+| Reyon levhaları | ✅ | Levhanın 5 m yakınındaki raflar daha hızlı bulunur. Levhasız reyonda arama uzar |
+| Bantlı ve self-servis kasa | ✅ | Bant %35 hızlı. Self-servis kasiyer istemez ama yavaş ve kayıp riski taşır |
+| Güvenlik ve hırsızlık | ✅ | Fırsatçı, kamera (görüş konisi, yüksek raflar görüşü keser), alarm kapısı, güvenlik görevlisi, `G` katmanı |
+| Fırın ve fırıncı | ✅ | Ucuz üretim ve "sıcacık" moral bonusu. 🟡 Tazelik ve bayatlama yok |
+| Vardiya ve yorgunluk | ✅ | Tam, sabah ve akşam vardiyası. Enerji barı, çay ocağında mola |
+| Alışveriş arabası | ✅ | Haftalık Alışverişçi araba iter. Park yoksa listesi kısalır |
+| Kampanyalar | ✅ | Broşür, Günün İndirimleri, Kasa Önü Standı, Tadım Günü. 🟡 "3 al 2 öde" ve gondol başı teşhir yok |
+| Oda sistemi | ⬜ | Personel-only depo odası, soğuk oda, mola odası. `doorEdges` altyapısı hazır |
+| Otopark | 🟡 | Yükseltme olarak var (müşteri artışı). Fiziksel otopark alanı yok |
 
-**Görsel imza:** Tavandan asılı kategori levhaları, bantlı kasaların ritmik hareketi, otoparkta arabalar, gece parlayan büyük pano.
-**Genişleme kararı:** "Arsayı al" (otopark) ya da "üst katı kirala" (depo ve personel). İki farklı yol, iki farklı yerleşim oyunu.
+**Görsel imza:** tavandan asılı kategori levhaları, bantlı kasaların dönen bandı, parlayan fırın ağzı, kampanya günü kapıda tanıtımcı.
 
-## Aşama 4: Çok Katlı AVM ⬜
+## Aşama 4: Köşebaşı AVM ✅
 
 **Hedef his:** "Dükkân işletmiyorum, bir mekân işletiyorum; kiracılarım ve etkinliklerim var."
 
-| Sistem | Genişleme |
-|---|---|
-| **Katlar** | `Grid` kat başına bir örnek (`Grid[]`). Kamera kat seçici; üst katlar yarı saydam olur. A* katlar arası "bağlantı düğümleri" (yürüyen merdiven ve asansör) üzerinden hiyerarşik çalışır. |
-| **Katlar arası ulaşım** | Yürüyen merdiven (yönlü, yüksek kapasite), asansör (kuyruklu, engelli ve bebek arabalı aileler tercih eder), merdiven (ucuz, yaşlılar kaçınır). Akış ısı haritası kat başına gösterilir. |
-| **Kiracı mağazalar** | Oyuncu kendi süpermarketini işletmeye devam eder. Diğer birimleri kiraya verir (giyim, elektronik, kafe). Her kiracının kira, ciro payı ve memnuniyet ihtiyaçları vardır ("yanımda rakip istemem", "yürüyen merdivene yakın olayım"). Kiracı yerleşimi yeni bir bulmaca olur. |
-| **Yemek katı** | Ortak oturma alanı, masa temizliği, yoğun saatler (öğle ve akşam). Müşteri alışveriş sonrası "açlık" ihtiyacı kazanır. Yeni ihtiyaç barları: açlık, yorgunluk, tuvalet. |
-| **Eğlence alanları** | Çocuk oyun alanı, sinema, oyun salonu. Aileler kalış süresini uzatır, harcama artar. Gürültü komşu kiracıların memnuniyetini düşürür. |
-| **Etkinlik yönetimi** | Takvim: bayram alışverişi, okul dönemi, konser, imza günü. Etkinlik öncesi stok ve personel planlaması. Aşırı kalabalıkta güvenlik ve tahliye. |
-| **Tesis yönetimi** | Tuvaletler, klima, aydınlatma giderleri, bakım ekibi, arızalar (yürüyen merdiven arızası). Görsel sinyal: dururken kırmızı şerit ve toplanan kalabalık. |
+| Sistem | Durum | Not |
+|---|---|---|
+| Katlar | ✅ | Kat başına `Grid`. Kat seçici (`PageUp`/`PageDown`). Görünmeyen kat gizlenir, uzaktan bakınca tüm bina görünür |
+| Katlar arası ulaşım | ✅ | Yukarı / aşağı yürüyen merdiven, cam asansör. Ajanlar "yürü + bin" bacaklarıyla katlar arası yol bulur. 🟡 Merdiven yok |
+| Kiracılar | ✅ | 11 birim, 10 kurgusal marka, günlük teklifler, kira + ciro payı, gerekçeli memnuniyet, mutsuz kiracı çıkar |
+| Yemek katı | ✅ | İki yemek standı, masa ve koltuk, masa kirlenmesi, ayakta kalan ziyaretçi |
+| Eğlence | 🟡 | Çocuk oyun alanı, oyun salonu (gürültülü kiracı). Sinema yok |
+| Etkinlikler | ✅ | Konser, İmza Günü, Bayram İndirimleri, Çocuk Şenliği. Bugüne veya yarına planlanır, süslemeler görünür, güvenliksiz kalabalıkta arbede |
+| Tesis yönetimi | 🟡 | Yürüyen merdiven arızası ve tamir, elektrik ve bakım gideri, Merkezi Klima yükseltmesi. Tuvalet, bakım ekibi, tahliye yok |
 
-**Görsel imza:** Cam tavanlı atrium, katlar arası boşluktan görünen insan akışı, kiracı vitrinlerinin farklı marka renkleri (hepsi özgün, kurgusal), etkinlik günü süslemeleri.
+**Görsel imza:** cam korkuluklu galeri ve kayan yürüyen merdiven bantları, cam asansör kabini, kiracı vitrinlerinin marka renkleri, konser sahnesi ve balonlar, gece yanan dev AVM tabelası.
 
 ---
 
-## Teknik yol haritası
+## Teknik durum
 
-| Konu | Şimdi | Sonra |
+| Konu | Durum | Sonra |
 |---|---|---|
-| Kayıt ve yükleme | ⬜ Yok | Tüm sim durumu (`Game`, `Fixture`, ajanlar) düz JSON'a serileştirilir. Ajan görselleri kimlik tohumundan (`Look`) yeniden kurulur. |
-| Varlık hattı | Prosedürel (kod) | Aynı `FixtureModel` arayüzüyle glTF yükleyici. Sanatçı modeli gelince `buildFixtureModel` yalnızca yükleyiciye yönlenir. `slots.units` bağlantı noktaları glTF'teki boş nesnelerden okunur. |
-| Performans | Statik birleştirme (~1,1K draw call, 40 ajan) | Karakterlerde tek skinned mesh ve `InstancedMesh`, uzak ajanlar için düşük LOD, büyük alanlarda sim LOD (görünmeyen katlarda soyut sim). |
-| Motor | Three.js | Ticari PC sürümü için Godot 4 portu değerlendirilir. `sim/` katmanı motordan bağımsız tutulduğu için mantık doğrudan taşınır. |
-| Ses | Sentez efektler | Katmanlı ortam sesi (sokak, dükkân uğultusu, gece), aşamaya göre değişen müzik. |
-| Erişilebilirlik | ⬜ | Renk körlüğü paleti (ikonlar zaten şekille de ayrışıyor), arayüz ölçeği, tuş atama. |
+| Kayıt ve yükleme | ✅ Günlük otomatik kayıt + 3 yuva (`localStorage`) | Dosyaya dışa aktarma, kayıt sürümleme ve göç |
+| Ayarlar | ✅ Kalite, ses kanalları, arayüz ölçeği, kesik duvar | Tuş atama, renk körlüğü paleti |
+| Ses | ✅ Üretken müzik + ortam, 4 kanal | Kiracıya özel vitrin sesleri, etkinlik müziği |
+| Dokunmatik | ✅ Kaydır, kıstır, çevir, dokunarak yerleştir, alttan açılan paneller | Dikey telefon düzeni, dokunmatik için büyük tablo görünümleri |
+| Varlık hattı | Prosedürel (kod) | Aynı `FixtureModel` arayüzüyle glTF yükleyici |
+| Performans | Statik birleştirme, AVM'de ~120 ajan akıcı | `InstancedMesh` karakterler, uzak ajanlar için LOD, görünmeyen katta soyut sim |
+| Test | Başsız tarayıcıda senaryolu simülasyon (elle) | Vitest ile sim birim testleri, CI'da gece dengesi raporu |
 
-## Dikey kesitten sonraki ilk 5 iş (öneri)
+## Sıradaki 5 iş (öneri)
 
-1. Kayıt ve yükleme, hemen ardından ayarlar menüsü (kalite, ses, arayüz ölçeği).
-2. Market'e özel 2 yükseltme ve "ıslak zemin" temizlik olayı. Böylece temizlik görevlisi anlamlı olur.
-3. Kategori levhaları ve kampanya sistemi (Süpermarket'in çekirdeği, Market'te denenebilir).
-4. Hırsızlık ve güvenlik prototipi: Fırsatçı arketipi, kamera görüş konisi.
-5. Oyun testi ve denge: hedef süreler (Büfe → Market ~45 dk, Market → Süpermarket ~2 saat).
+1. **Oda sistemi:** personel-only depo odası ve soğuk oda. Depo raflarını satış alanından çıkarmak yerleşim bulmacasını derinleştirir.
+2. **Tazelik:** fırın ürünlerinde yaş, akşam indirim rafı, bayat ürün kaybı.
+3. **AVM tesisleri:** tuvalet ve temizlik ihtiyacı, bakım ekibi (arızaları oyuncu yerine çözer), merdiven.
+4. **Rakip dükkân:** karşı köşeye açılan zincir market. Fiyat savaşı ve sadakat kartının anlamı.
+5. **Oyun testi ve denge:** hedef süreler (Büfe → Market ~45 dk, Market → Süpermarket ~2 saat, Süpermarket → AVM ~3 saat), otomatik denge raporu.
