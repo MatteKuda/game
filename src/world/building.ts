@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { WALL_H, PAL, type StageLayout } from '../config';
 import { M, rbox, cyl, mat, glow } from './materials';
 import { addMesh } from './props';
+import { mergeByMaterial } from './merge';
 import { awningTexture, signTexture, posterTexture, canvasTexture, roundRect } from './textures';
 
 interface WallSide {
@@ -75,6 +76,11 @@ export class ShopShell {
     this.storefront(front, r.x0, r.x1, r.z1 + th / 2 - 0.05);
 
     this.decorateBackWall(r.x0, r.x1, r.z0 + 0.01);
+    for (const sd of this.sides) {
+      for (const e of sd.extras) e.userData.dynamic = true;
+      for (const d of this.doors) { d.left.userData.dynamic = true; d.right.userData.dynamic = true; }
+      mergeByMaterial(sd.group);
+    }
     // interior lights (warm)
     const nL = this.stage === 0 ? 2 : 4;
     for (let i = 0; i < nL; i++) {

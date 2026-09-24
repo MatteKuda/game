@@ -89,7 +89,7 @@ export class Overlays {
 
   floatText(pos: THREE.Vector3, text: string, color = '#1f8a86', bg: string | null = null, life = 1.6) {
     const tt = textTexture(text, color, bg);
-    const m = new THREE.SpriteMaterial({ map: tt.tex, depthTest: false, transparent: true, toneMapped: false });
+    const m = new THREE.SpriteMaterial({ map: tt.tex, depthTest: false, depthWrite: false, transparent: true, toneMapped: false });
     const s = new THREE.Sprite(m);
     const h = 0.42;
     s.scale.set(h * tt.aspect, h, 1);
@@ -119,13 +119,13 @@ export class Overlays {
     let max = 4;
     for (let i = 0; i < traffic.length; i++) if (mask(i) && traffic[i] > max) max = traffic[i];
     for (let i = 0; i < traffic.length; i++) {
-      const v = mask(i) ? Math.min(1, traffic[i] / max) : 0;
+      const v = mask(i) ? Math.sqrt(Math.min(1, traffic[i] / max)) : 0;
       // ramp: transparent -> teal -> yellow -> red
       let r = 0, g = 0, b = 0;
       if (v < 0.5) { const k = v / 0.5; r = 31 + (242 - 31) * k; g = 138 + (179 - 138) * k; b = 134 + (61 - 134) * k; }
       else { const k = (v - 0.5) / 0.5; r = 242 + (229 - 242) * k; g = 179 + (72 - 179) * k; b = 61 + (77 - 61) * k; }
       this.heatData[i * 4] = r; this.heatData[i * 4 + 1] = g; this.heatData[i * 4 + 2] = b;
-      this.heatData[i * 4 + 3] = mask(i) ? (v < 0.02 ? 40 : 90 + v * 150) : 0;
+      this.heatData[i * 4 + 3] = mask(i) ? (v < 0.05 ? 60 : 150 + v * 105) : 0;
     }
     this.heatTex.needsUpdate = true;
   }

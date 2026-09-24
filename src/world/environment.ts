@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { MAP_W, PAL, SIDEWALK_Z0, SIDEWALK_Z1, ROAD_Z0, ROAD_Z1, FAR_WALK_Z0, FAR_WALK_Z1 } from '../config';
 import { M, rbox, cyl, sphere, mat, glow } from './materials';
 import { addMesh } from './props';
+import { mergeByMaterial } from './merge';
 import { paverTexture, asphaltTexture, brickTexture, plasterTexture, awningTexture, shutterTexture, signTexture, canvasTexture, roundRect, mulberry } from './textures';
 
 export interface Occluder { obj: THREE.Object3D; box: THREE.Box3; mats: THREE.Material[]; fade: number }
@@ -33,6 +34,14 @@ export class Environment {
     this.van = this.buildVan();
     this.van.visible = false;
     this.group.add(this.van);
+    // bake everything static that is left at the top level (street, furniture, trees, lamps)
+    this.van.userData.dynamic = true;
+    for (const c of this.cars) c.obj.userData.dynamic = true;
+    this.neighborShop.userData.dynamic = true;
+    this.backyard.userData.dynamic = true;
+    for (const o of this.occluders) o.obj.userData.dynamic = true;
+    mergeByMaterial(this.group);
+    mergeByMaterial(this.backyard);
   }
 
   private buildGround() {
@@ -175,6 +184,13 @@ export class Environment {
       void dish;
     }
     this.group.add(b);
+    this.pendingBuildings.push(b);
+    return b;
+  }
+
+  /** bake + make fadeable (called once the facade incl. shop front is complete) */
+  private finalizeBuilding(b: THREE.Group) {
+    mergeByMaterial(b);
     b.updateMatrixWorld(true);
     const mats: THREE.Material[] = [];
     b.traverse((o) => {
@@ -182,12 +198,12 @@ export class Environment {
       if (m.isMesh) {
         // private material clones so the whole building can fade when it hides the shop
         const src = m.material as THREE.MeshStandardMaterial;
-        const c = src.clone(); c.transparent = true; c.opacity = 1; m.material = c; mats.push(c);
+        const c = src.clone(); c.transparent = false; c.opacity = 1; m.material = c; mats.push(c);
         if (src === litWindow) (c as THREE.MeshStandardMaterial).userData.lit = true;
+        if (src.userData.shopWindow) this.windowMats.push(c as THREE.MeshStandardMaterial);
       }
     });
     this.occluders.push({ obj: b, box: new THREE.Box3().setFromObject(b), mats, fade: 1 });
-    return b;
   }
 
   windowMats: THREE.MeshStandardMaterial[] = [];
@@ -196,7 +212,7 @@ export class Environment {
     const fz = face * (d / 2) + face * 0.03;
     const win = new THREE.Mesh(new THREE.BoxGeometry(w - 1.2, 2.0, 0.05), new THREE.MeshStandardMaterial({ color: 0x3b3f48, emissive: glowCol, emissiveIntensity: 0.35, roughness: 0.2 }));
     win.position.set(0, 1.55, fz); b.add(win);
-    this.windowMats.push(win.material as THREE.MeshStandardMaterial);
+    (win.material as THREE.MeshStandardMaterial).userData.shopWindow = true;
     const aw = new THREE.Mesh(new THREE.BoxGeometry(w - 0.6, 0.08, 1.4), new THREE.MeshStandardMaterial({ map: awningTexture(colA, colB), roughness: 0.8 }));
     aw.position.set(0, 2.85, fz + face * 0.65); aw.rotation.x = face * 0.3; aw.castShadow = true; b.add(aw);
     const signM = new THREE.MeshStandardMaterial({ map: signTexture(name, sub, { bg: colA, fg: '#fff', accent: colB, w: 512, h: 128 }), roughness: 0.6 });
@@ -227,7 +243,9 @@ export class Environment {
     this.shopFront(x3, 12, 8, -1, 'ÇAY OCAĞI', 'DEMLİ ÇAY', '#b44a28', '#f2b33d', 0xffc27a);
     const x4 = this.apartment(33, FAR_WALK_Z1 + 0.6, 12, 8, 5, 0xe9d8a6, -1, { shopFront: true });
     this.shopFront(x4, 12, 8, -1, 'KIRTASİYE', 'OKUL İHTİYAÇLARI', '#6c4ab6', '#f2b33d', 0xfff0c8);
+    for (const b of this.pendingBuildings) this.finalizeBuilding(b);
   }
+  private pendingBuildings: THREE.Group[] = [];
 
   private buildNeighborShop() {
     // closed shop at x 10..18, z 10..16 plus the upper storey band
@@ -268,11 +286,12 @@ export class Environment {
   }
 
   private registerOccluder(b: THREE.Object3D) {
+    mergeByMaterial(b);
     b.updateMatrixWorld(true);
     const mats: THREE.Material[] = [];
     b.traverse((o) => {
       const m = o as THREE.Mesh;
-      if (m.isMesh) { const c = (m.material as THREE.Material).clone(); c.transparent = true; m.material = c; mats.push(c); }
+      if (m.isMesh) { const c = (m.material as THREE.Material).clone(); c.transparent = false; m.material = c; mats.push(c); }
     });
     this.occluders.push({ obj: b, box: new THREE.Box3().setFromObject(b), mats, fade: 1 });
   }
@@ -366,7 +385,7 @@ export class Environment {
   /** points of interest (shop interior corners) the camera must be able to see */
   focusPoints: THREE.Vector3[] = [];
 
-  update(dt: number, night: number, camPos: THREE.Vector3, target: THREE.Vector3) {
+  update(dt: number, realDt: number, night: number, camPos: THREE.Vector3, target: THREE.Vector3) {
     for (const l of this.streetLights) l.intensity = night * 14;
     this.lampBulbs.emissiveIntensity = 0.2 + night * 4;
     for (const w of this.windowMats) w.emissiveIntensity = 0.25 + night * 1.2;
@@ -389,14 +408,16 @@ export class Environment {
         const p = r.ray.intersectBox(o.box, hit);
         if (p && camPos.distanceTo(hit) < r.dist - 0.5) { blocking = true; break; }
       }
-      const targetFade = blocking ? 0.07 : 1;
-      o.fade += (targetFade - o.fade) * Math.min(1, dt * 6);
-      o.obj.visible = o.fade > 0.08;
+      const targetFade = blocking ? 0 : 1;
+      o.fade += (targetFade - o.fade) * Math.min(1, realDt * 6);
+      o.obj.visible = o.fade > 0.1;
+      const fading = o.fade < 0.99;
       for (const m of o.mats) {
+        if (m.transparent !== fading) { m.transparent = fading; m.needsUpdate = true; }
         m.opacity = o.fade;
         m.depthWrite = o.fade > 0.95;
         const sm = m as THREE.MeshStandardMaterial;
-        if (sm.userData.lit) sm.emissiveIntensity = night * 1.4;
+        if (sm.userData.lit) sm.emissiveIntensity = night * 1.1;
       }
     }
   }

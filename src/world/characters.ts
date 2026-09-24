@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mat, rbox, sphere, capsule, cyl } from './materials';
 import { addMesh } from './props';
 import { productVisuals } from './products3d';
+import { mergeRigidPart } from './merge';
 import type { Accessory } from '../data/customers';
 
 export type HairStyle = 'short' | 'long' | 'bun' | 'bald' | 'curly' | 'spiky';
@@ -124,6 +125,9 @@ export class CharacterView {
     this.body.add(this.broom);
     if (withBasket) this.ensureBasket();
     this.headY = 1.38 * L.height + 0.3;
+    // bake rigid parts into single vertex-coloured meshes (expression parts stay live)
+    this.mouth.userData.dynamic = true; this.browL.userData.dynamic = true; this.browR.userData.dynamic = true;
+    for (const part of [this.body, this.hips, this.legL, this.legR, this.armL, this.armR, this.head, this.box, this.broom]) mergeRigidPart(part);
 
     this.root.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.castShadow = true; } });
   }

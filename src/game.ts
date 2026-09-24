@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { MAP_W, DAY_OPEN, DAY_CLOSE, MIN_PER_SEC, STAGE_LAYOUTS, ROAD_Z0, SIDEWALK_Z0, FAR_WALK_Z0 } from './config';
 import { Grid, R_IN, type Tile } from './sim/grid';
 import { Fixture, footprint } from './sim/fixture';
+import { buildFixtureModel } from './world/props';
 import { Customer, Staff, type Role, ROLE_LABEL, tileCenter } from './sim/agents';
 import { FIXTURE_MAP, type FixtureDef } from './data/fixtures';
 import { PRODUCTS, PRODUCT_MAP } from './data/products';
@@ -285,8 +286,7 @@ export class Game {
     this.cancelPlacement();
     const def = FIXTURE_MAP[defId];
     const ghost = new THREE.Group();
-    const src = moving ? moving.model.root : new Fixture(def, 0, 0, 0).model.root;
-    const clone = src.clone(true);
+    const clone = buildFixtureModel(def).root;
     const gm = new THREE.MeshStandardMaterial({ color: 0x5ad19a, transparent: true, opacity: 0.55, emissive: 0x2f9a6a, emissiveIntensity: 0.5, depthWrite: false });
     clone.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) { m.material = gm; m.castShadow = false; } if ((o as THREE.Sprite).isSprite) o.visible = false; });
     ghost.add(clone);
@@ -517,7 +517,7 @@ export class Game {
     let a = 0.55 + (this.rating / 5) * 0.75;
     if (this.upgrades.has('neon')) a *= this.hour() > 18 ? 1.45 : 1.15;
     if (this.upgrades.has('tente')) a *= 1.1;
-    if (this.stage >= 1) a *= 1.55;
+    if (this.stage >= 1) a *= 1.3;
     return a;
   }
 
@@ -592,10 +592,17 @@ export class Game {
     this.r.setTimeOfDay(this.hour(), this.cam.target);
     const night = this.r.night;
     this.shell.setSignLit(night, this.upgrades.has('neon'));
-    this.env.update(running ? realDt * Math.min(this.speed, 2) : 0, night, this.r.camera.position, this.cam.target);
+    this.env.update(running ? realDt * Math.min(this.speed, 2) : 0, realDt, night, this.r.camera.position, this.cam.target);
     this.env.van.position.set(this.van.x, 0, ROAD_Z0 + 1.1);
-    // selection ring follows
+    // selection ring follows; queue lane + heat map refresh (also while paused)
     this.updateSelectionVisual();
+    this.heatAcc += realDt;
+    if (this.heatAcc > 0.4) {
+      this.heatAcc = 0;
+      if (this.heatVisible) this.overlays.updateHeat(this.grid.traffic, (i) => this.grid.region[i] === R_IN);
+      const sel = this.selection;
+      this.overlays.setQueueLine(sel?.kind === 'fixture' && sel.f.def.kind === 'register' ? sel.f.queueSlots.map((t) => tileCenter(t).setY(0.16)) : null);
+    }
     this.r.render();
   }
 
@@ -620,7 +627,7 @@ export class Game {
     this.farAcc += dt * 0.18;
     while (this.farAcc > 1) { this.farAcc -= Math.random() * 2; if (this.customers.length < 60) this.spawnWalker(false, true); }
     if (this.isOpen()) {
-      const rate = 0.34 * this.demand(h) * this.attract() * (this.stage >= 1 ? 1.25 : 1);
+      const rate = 0.34 * this.demand(h) * this.attract();
       this.spawnAcc += dt * rate;
       while (this.spawnAcc > 1) { this.spawnAcc -= 1; if (this.customers.length < 70) this.spawnShopper(); }
     }
@@ -654,8 +661,6 @@ export class Game {
     // status icons & alerts (4Hz)
     this.statusAcc += dt;
     if (this.statusAcc > 0.25) { this.statusAcc = 0; this.updateStatuses(); }
-    this.heatAcc += dt;
-    if (this.heatAcc > 0.5 && this.heatVisible) { this.heatAcc = 0; this.overlays.updateHeat(this.grid.traffic, (i) => this.grid.region[i] === R_IN); }
 
     // day end
     if (prevClock < DAY_CLOSE && this.clock >= DAY_CLOSE) this.alert('closing', 'wait', 'Saat 22:00 — dükkân kapanıyor. Son müşteriler çıkınca gün sonu raporu gelecek.', 'info');
@@ -687,11 +692,6 @@ export class Game {
       }
       f.setStatus(k);
     }
-    // stuck-queue visibility
-    const sel = this.selection;
-    if (sel?.kind === 'fixture' && sel.f.def.kind === 'register') this.overlays.setQueueLine(sel.f.queueSlots.map((t) => tileCenter(t).setY(0.14)));
-    else if (this.placing?.def.kind === 'register') this.overlays.setQueueLine(null);
-    else this.overlays.setQueueLine(null);
   }
 
   private updateVan(dt: number) {

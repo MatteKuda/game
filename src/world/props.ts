@@ -3,6 +3,7 @@ import { PAL } from '../config';
 import type { FixtureDef } from '../data/fixtures';
 import { M, rbox, cyl, sphere, mat, glow } from './materials';
 import { canvasTexture, roundRect } from './textures';
+import { mergeByMaterial } from './merge';
 
 export interface SlotLayout {
   units: THREE.Matrix4[]; // local transforms, filled in order
@@ -376,6 +377,14 @@ function buildBin(): FixtureModel {
 }
 
 export function buildFixtureModel(def: FixtureDef): FixtureModel {
+  const m = buildRaw(def);
+  m.depotBoxes?.forEach((b) => (b.userData.dynamic = true));
+  if (m.posDevice) m.posDevice.userData.dynamic = true;
+  mergeByMaterial(m.root);
+  return m;
+}
+
+function buildRaw(def: FixtureDef): FixtureModel {
   switch (def.id) {
     case 'raf': return buildShelf(def);
     case 'gondol': return buildGondola(def);

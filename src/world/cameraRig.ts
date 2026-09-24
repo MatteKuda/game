@@ -108,5 +108,5 @@ export class CameraRig {
   }
 
   /** 0 when close, 1 when zoomed far out (used to raise cut-away walls) */
-  get farFactor() { return THREE.MathUtils.clamp((this.dist - 44) / 12, 0, 1); }
+  get farFactor() { return THREE.MathUtils.clamp((this.dist - 38) / 9, 0, 1); }
 }
