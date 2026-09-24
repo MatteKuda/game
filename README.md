@@ -1,5 +1,9 @@
 # Tezgâh — Büfeden AVM'ye
 
+> **Yeni ana sürüm Godot'da:** [`godot/`](godot/README.md) klasörü. Masaüstünde normal bir oyun gibi çalışır, npm gerekmez; yeni görsel yön, Fredoka/Nunito tipografi ve animasyonlu karakterlerle geliyor. Kurulum adımları [godot/README.md](godot/README.md) içinde. Aşağıdaki metin, kökteki **web (Three.js) sürümünü** anlatır. Web sürümü dört aşamanın hepsini içeriyor ve Godot'ya aşama aşama taşınıyor.
+
+![Godot sürümü: Mahalle Marketi](godot/docs/market.jpg)
+
 Sıcak, esprili ve okunaklı bir **3D perakende yönetim oyunu**. Köşedeki küçük bir büfeyle başlarsın; rafları dizer, fiyatları ayarlar, stoku yönetir, personel alırsın. Yan dükkânı devralıp **Mahalle Marketi**'ne, ardından bantlı kasaları ve fırınıyla bir **Süpermarket**'e, en sonunda kiracıları, yemek katı ve etkinlikleriyle iki katlı **Köşebaşı AVM**'ye dönüşürsün.
 
 > Dört aşamanın dördü de oynanabilir. Neyin uygulandığı ve neyin **hâlâ eksik** olduğu aşağıda açıkça yazıyor.
