@@ -1495,7 +1495,7 @@ func end_day() -> void:
 	var unit_costs := {}
 	for p in DB.PRODUCTS: unit_costs[p["id"]] = cost_of(p["id"])
 	product_log.append({"day": day, "sold": (stats["sold"] as Dictionary).duplicate(), "missed": (stats["missed"] as Dictionary).duplicate(),
-		"expensive": (stats["expensive"] as Dictionary).duplicate(), "oos": (stats["oos_min"] as Dictionary).duplicate(), "price": prices.duplicate(), "cost": unit_costs})
+		"expensive": (stats["expensive"] as Dictionary).duplicate(), "oos": (stats["oos_min"] as Dictionary).duplicate(), "price": prices.duplicate(), "cost": unit_costs, "buyers": (stats["buyers"] as Dictionary).duplicate(true)})
 	if product_log.size() > 14: product_log.pop_front()
 	neighborhood.end_day(self)
 	rival.end_day(self)

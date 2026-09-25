@@ -240,7 +240,10 @@ static func analysis(h, body: VBoxContainer) -> void:
 			profit += n * (pr - cst)
 			missed += int(e["missed"].get(pid, 0)); exp += int(e["expensive"].get(pid, 0))
 			oos += float(e["oos"].get(pid, 0.0))
-		var by: Dictionary = g.stats["buyers"].get(pid, {})
+		var by: Dictionary = (g.stats["buyers"].get(pid, {}) as Dictionary).duplicate()
+		for e in log:
+			var eb: Dictionary = e.get("buyers", {}).get(pid, {})
+			for a in eb: by[a] = int(by.get(a, 0)) + int(eb[a])
 		rows.append({"p": p, "days": days, "units": units, "profit": profit, "missed": missed, "exp": exp, "oos": oos / maxf(1, log.size()), "stocked": g.is_stocked(pid), "by": by})
 	rows.sort_custom(func(a, b): return a["profit"] > b["profit"])
 	# headline cards
