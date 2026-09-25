@@ -19,7 +19,9 @@ static func _tabs(h, cur: String, list: Array, cb: Callable) -> HBoxContainer:
 static func _thumb(h, pid: String, size := 34) -> TextureRect:
 	var img := TextureRect.new(); img.custom_minimum_size = Vector2(size, size); img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED; img.texture = h.thumbs.products.get(pid)
-	img.tooltip_text = Loc.t(DB.product(pid)["name"]); img.mouse_filter = Control.MOUSE_FILTER_PASS
+	var nm := Loc.t(DB.product(pid)["name"])
+	var gl := Glossary.note(nm)
+	img.tooltip_text = nm + ("\n" + gl if gl != "" else ""); img.mouse_filter = Control.MOUSE_FILTER_PASS
 	return img
 
 static func _stat_card(title: String, value: String, col: Color, w := 150.0) -> PanelContainer:

@@ -64,6 +64,7 @@ static func icon(name: String, size := 18, col := Cfg.INK2) -> TextureRect:
 static func label(text: String, size := 14, col := Cfg.INK, kind := "body", weight := 500) -> Label:
 	var l := Label.new()
 	l.text = Loc.t(text)
+	Glossary.scan(l.text)
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", col)
 	l.add_theme_font_override("font", Art.font("display") if kind == "display" else (Art.font("display700") if kind == "display700" else Art.body_font(weight)))

@@ -71,6 +71,8 @@ var radio_lbl: Label
 var tutorial := Tutorial.new()
 var tut_card: PanelContainer
 var _tut_sig := -2
+var word_card: PanelContainer
+var _word_t := 0.0
 
 func setup(g: Game, t: Thumbs) -> void:
 	game = g; thumbs = t
@@ -320,6 +322,10 @@ func _process(dt: float) -> void:
 	weather_icon.modulate = {"sun": Cfg.MUSTARD, "cloud": Cfg.INK3, "rain": Cfg.BLUE, "snow": Color("7fb8e0")}.get(wi["icon"], Cfg.INK2)
 	weather_icon.tooltip_text = Loc.t("Bugün: %s\nYarın: %s" % [wi["name"], game.calendar.weather_info(game.calendar.tomorrow)["name"]])
 	_render_quests()
+	_word_t -= 0.12
+	if _word_t <= 0.0 and started:
+		var k := Glossary.pop()
+		if k != "": _show_word(k)
 	if tutorial.check(self):
 		GameAudio.play("good", -6.0)
 		if not tutorial.active:
@@ -423,6 +429,31 @@ func _render_goal() -> void:
 	goal_card.add_child(v)
 	var st: StyleBoxFlat = goal_card.get_theme_stylebox("panel")
 	st.border_color = Cfg.MUSTARD; st.set_border_width_all(3 if game.can_expand() else 0)
+
+## "New word" card: a Turkish word explained the first time an English player meets it
+func _show_word(k: String) -> void:
+	if word_card: word_card.queue_free()
+	word_card = UIKit.card(Color("fff3d6"), 14, Vector4(14, 10, 14, 10), 10)
+	var st: StyleBoxFlat = word_card.get_theme_stylebox("panel"); st.border_color = Cfg.MUSTARD; st.border_width_left = 5
+	word_card.anchor_left = 1.0; word_card.anchor_right = 1.0; word_card.anchor_top = 1.0; word_card.anchor_bottom = 1.0
+	word_card.offset_left = -380; word_card.offset_right = -18; word_card.offset_top = -250; word_card.offset_bottom = -130
+	word_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var v := UIKit.vbox(2)
+	var h := UIKit.hbox(8)
+	h.add_child(UIKit.icon("book", 16, Cfg.TERRA))
+	h.add_child(UIKit.label("Yeni kelime", 11, Cfg.TERRA, "body", 900))
+	v.add_child(h)
+	v.add_child(UIKit.label(k, 22, Cfg.INK, "display"))
+	v.add_child(UIKit.wrap(UIKit.label(Glossary.TERMS[k], 13, Cfg.INK2, "body", 700), 330))
+	word_card.add_child(v)
+	root.add_child(word_card)
+	word_card.modulate.a = 0.0
+	var tw := word_card.create_tween()
+	tw.tween_property(word_card, "modulate:a", 1.0, 0.3); tw.tween_interval(8.0)
+	tw.tween_property(word_card, "modulate:a", 0.0, 0.5)
+	var wc := word_card
+	tw.tween_callback(func(): if is_instance_valid(wc): wc.queue_free())
+	_word_t = 9.0
 
 func _announce(text: String) -> void:
 	radio_lbl.text = Loc.t(text)
@@ -727,6 +758,8 @@ func _p_products() -> void:
 		var row := UIKit.hbox(8)
 		var img := TextureRect.new(); img.custom_minimum_size = Vector2(44, 44); img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE; img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		img.texture = thumbs.products.get(pid); row.add_child(img)
+		var gl := Glossary.note(Loc.t(p["name"]))
+		if gl != "": img.tooltip_text = gl; img.mouse_filter = Control.MOUSE_FILTER_PASS
 		var nv := UIKit.vbox(-2); nv.custom_minimum_size.x = 150
 		nv.add_child(UIKit.label(p["name"], 15, Cfg.INK, "body", 800))
 		nv.add_child(UIKit.label("%s · maliyet ₺%d" % [DB.DISPLAY_LABEL[p["display"]], game.cost_of(pid)], 11, Cfg.INK3, "body", 700))
@@ -1327,6 +1360,8 @@ func _hover(pos: Vector2) -> void:
 		else: txt = "[b]%s[/b]\n%s · memnuniyet %d" % [u["tenant"]["def"]["brand"], u["tenant"]["def"]["name"], int(u["tenant"]["sat"])]
 	tooltip.visible = txt != ""
 	tooltip_lbl.text = Loc.t(txt)
+	var gnote := Glossary.note(tooltip_lbl.text)
+	if gnote != "": tooltip_lbl.text += "\n[color=#f2d38a]" + gnote + "[/color]"
 	tooltip.reset_size()
 
 func _update_tooltip_pos() -> void:
@@ -1439,7 +1474,14 @@ func _show_welcome() -> void:
 	c.add_theme_stylebox_override("panel", UIKit.sb(Color("fffaf2"), 28, Color(0, 0, 0, 0), 0, 30, Vector4(36, 30, 36, 30)))
 	c.custom_minimum_size = Vector2(700, 0)
 	var v := UIKit.vbox(12)
-	v.add_child(UIKit.label("PERAKENDE YÖNETİM OYUNU", 13, Cfg.TEAL, "body", 900))
+	var top := UIKit.hbox(8)
+	var kick := UIKit.label("PERAKENDE YÖNETİM OYUNU", 13, Cfg.TEAL, "body", 900); kick.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	kick.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	top.add_child(kick)
+	top.add_child(UIKit.icon("globe", 18, Cfg.INK3))
+	top.add_child(_seg(["Türkçe", "English"], 1 if Loc.lang == "en" else 0, func(i):
+		Settings.lang = "en" if i == 1 else "tr"; Loc.set_lang(Settings.lang); Settings.save_settings(); get_tree().reload_current_scene()))
+	v.add_child(top)
 	var t := UIKit.hbox(0)
 	t.add_child(UIKit.label("Tezgâh", 84, Cfg.INK, "display"))
 	t.add_child(UIKit.label(".", 84, Cfg.TERRA, "display"))
@@ -1837,7 +1879,7 @@ func _render_menu() -> void:
 	c.custom_minimum_size = Vector2(520, 0)
 	var v := UIKit.vbox(10)
 	var head := UIKit.hbox(10)
-	var title: String = {"main": "Menü", "save": "Oyunu Kaydet", "load": "Kayıt Yükle", "settings": "Ayarlar", "map": "Mahalle Haritası", "ach": "Başarımlar"}[menu_page]
+	var title: String = {"main": "Menü", "save": "Oyunu Kaydet", "load": "Kayıt Yükle", "settings": "Ayarlar", "map": "Mahalle Haritası", "ach": "Başarımlar", "words": "Sözlük"}[menu_page]
 	var tl := UIKit.label(title, 30, Cfg.INK, "display"); tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(tl)
 	if menu_page != "main" and started:
@@ -1855,6 +1897,7 @@ func _render_menu() -> void:
 		"settings": _menu_settings(v)
 		"map": _menu_map(v)
 		"ach": _menu_ach(v)
+		"words": _menu_words(v)
 	c.add_child(v)
 	menu.add_child(c)
 	c.reset_size()
@@ -1864,7 +1907,7 @@ func _menu_main(v: VBoxContainer) -> void:
 	v.add_child(UIKit.label("Oyun duraklatıldı. Gün %d, %s" % [game.day, Cfg.clock_str(game.clock)], 13, Cfg.INK3, "body", 800))
 	for it in [["Devam et", "play", func(): close_menu(), true], ["Kaydet", "save", func(): menu_page = "save"; _render_menu(), false],
 		["Yükle", "box", func(): menu_page = "load"; _render_menu(), false], ["Mahalle haritası", "map", func(): menu_page = "map"; _render_menu(), false],
-		["Başarımlar", "trophy", func(): menu_page = "ach"; _render_menu(), false], ["Ayarlar", "settings", func(): menu_page = "settings"; _render_menu(), false],
+		["Başarımlar", "trophy", func(): menu_page = "ach"; _render_menu(), false], ["Sözlük", "book", func(): menu_page = "words"; _render_menu(), false], ["Ayarlar", "settings", func(): menu_page = "settings"; _render_menu(), false],
 		["Oyundan çık", "close", func(): get_tree().quit(), false]]:
 		var b := UIKit.button(it[0], it[1], it[3])
 		b.custom_minimum_size = Vector2(0, 46)
@@ -1978,6 +2021,22 @@ func _menu_ach(v: VBoxContainer) -> void:
 		tv.add_child(UIKit.label(a["desc"], 12, Cfg.INK2 if on else Cfg.INK3, "body", 700))
 		h.add_child(tv)
 		list.add_child(h)
+	sc.add_child(list); v.add_child(sc)
+
+func _menu_words(v: VBoxContainer) -> void:
+	v.add_child(UIKit.label("Oyunda bilerek Türkçe bırakılan kelimeler.", 13, Cfg.INK3, "body", 800))
+	var sc := ScrollContainer.new(); sc.custom_minimum_size = Vector2(560, 420); sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var list := UIKit.vbox(8); list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var keys := Glossary.TERMS.keys(); keys.sort()
+	for k in keys:
+		if k == "Ramadan": continue
+		var tv := UIKit.vbox(0)
+		var l := Label.new(); l.text = k; l.add_theme_font_override("font", Art.font("display")); l.add_theme_font_size_override("font_size", 17); l.add_theme_color_override("font_color", Cfg.TERRA)
+		tv.add_child(l)
+		var d := Label.new(); d.text = Glossary.TERMS[k]; d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; d.custom_minimum_size.x = 520
+		d.add_theme_font_override("font", Art.body_font(700)); d.add_theme_font_size_override("font_size", 13); d.add_theme_color_override("font_color", Cfg.INK2)
+		tv.add_child(d)
+		list.add_child(tv)
 	sc.add_child(list); v.add_child(sc)
 
 func _toast(text: String) -> void:

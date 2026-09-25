@@ -32,13 +32,14 @@ static var data := {}
 
 static func load_data() -> void:
 	if not data.is_empty(): return
-	data = {"ach": {}, "medals": {}}
+	data = {"ach": {}, "medals": {}, "glossary": {}}
 	var f := FileAccess.open(PATH, FileAccess.READ)
 	if f == null: return
 	var d = JSON.parse_string(f.get_as_text())
 	if d is Dictionary:
 		data["ach"] = d.get("ach", {})
 		data["medals"] = d.get("medals", {})
+		data["glossary"] = d.get("glossary", {})
 
 static func save_data() -> void:
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
@@ -63,6 +64,15 @@ static func medal(id: String) -> bool:
 static func give_medal(id: String) -> void:
 	load_data()
 	data["medals"][id] = Time.get_date_string_from_system()
+	save_data()
+
+static func glossary_seen(k: String) -> bool:
+	load_data()
+	return data["glossary"].has(k)
+
+static func mark_glossary(k: String) -> void:
+	load_data()
+	data["glossary"][k] = true
 	save_data()
 
 static func ach_def(id: String) -> Dictionary:

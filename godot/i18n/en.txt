@@ -49,7 +49,7 @@ Madalya mahalle haritasına eklendi. Başka bir mahallede şansını dene ya da 
 Hedefe ulaşamadın. Yeniden dene ya da haritadan başka bir mahalle seç. ⟶ You didn't reach the goal. Try again or pick another neighbourhood on the map.
 Burada devam et ⟶ Keep playing here
 Mahalle haritası ⟶ Neighbourhood map
-Komşular, veresiye defteri, görevler ve karşıdaki rakip. ⟶ Neighbours, the credit book, quests and the rival across the road.
+Komşular, veresiye defteri, görevler ve karşıdaki rakip. ⟶ Neighbours, the veresiye book, quests and the rival across the road.
 Bir eşya seç, dükkânda yerine tıkla. R: döndür · Shift+tık: arka arkaya · Esc: iptal ⟶ Pick an item, click its spot in the shop. R: rotate · Shift+click: place several · Esc: cancel
 Şu an %s görünüyor, eşya bu kata yerleşir. AVM eşyaları koridora ve yemek katına, market eşyaları süpermarkete. PgUp/PgDn: kat değiştir. ⟶ Now showing the $1; items go on this floor. Mall items go in the corridors and food court, shop items in the supermarket. PgUp/PgDn: change floor.
 1. kat ⟶ 1st floor
@@ -186,7 +186,7 @@ Etkinlik kalabalığında %d arbede çıktı. Büyük etkinlikte güvenlik göre
 %d kişi dükkân çok kalabalık diye girmedi. Büyümenin zamanı yaklaşıyor. ⟶ $1 people didn't come in because it was too crowded. Time to grow is near.
 %s %d kişiye pahalı geldi. ⟶ $1 seemed too dear to $2 people.
 %d kişi bugün alışverişi karşıdaki UCUZA'da yaptı. Mahalle panelinden (N) fiyatları karşılaştır. ⟶ $1 people shopped at UCUZA across the road today. Compare prices in the Neighbourhood panel (N).
-Veresiye: bugün %s deftere yazıldı, %s tahsil edildi. Defterde toplam %s alacak var. ⟶ Credit: $1 went in the book today, $2 was collected. $3 is owed in total.
+Veresiye: bugün %s deftere yazıldı, %s tahsil edildi. Defterde toplam %s alacak var. ⟶ Veresiye: $1 went in the book today, $2 was collected. $3 is owed in total.
 Sakin bir gün. Müşteriler aradığını buldu. ⟶ A quiet day. Shoppers found what they came for.
 Yarın: %s, %s. ⟶ Tomorrow: $1, $2.
 Yarın: %s, %s. %s! ⟶ Tomorrow: $1, $2. $3!
@@ -352,11 +352,11 @@ Hurma ⟶ Dates
 Un ⟶ Flour
 Toz Şeker ⟶ Sugar
 Ayçiçek Yağı ⟶ Sunflower oil
-Sucuk ⟶ Sucuk sausage
-Kaşar ⟶ Kaşar cheese
+Sucuk ⟶ Sucuk
+Kaşar ⟶ Kaşar
 Donuk Pizza ⟶ Frozen pizza
 Bebek Bezi ⟶ Nappies
-Ramazan Pidesi ⟶ Ramadan pide
+Ramazan Pidesi ⟶ Ramazan pide
 Ahşap Raf ⟶ Wooden Shelf
 Kuru gıda için iki bölmeli sıcak ahşap raf. ⟶ A warm wooden shelf with two sections for dry goods.
 Teşhir ⟶ Display
@@ -387,7 +387,7 @@ Tavana asılı dönen kamera. Görüş konisindeki hırsızlar fark edilir (6 m)
 Güvenlik & Personel ⟶ Security & Staff
 Alarm Kapısı ⟶ Alarm Gate
 Kapının yanına kurulur. Ödenmemiş ürünle geçenlerde öter (%85). ⟶ Goes next to a door. Beeps at anyone walking out with unpaid goods (85%).
-Çay Ocağı (Mola) ⟶ Tea Corner (Break)
+Çay Ocağı (Mola) ⟶ Çay ocağı (tea break)
 Yorulan personel burada çay içip dinlenir. Molasız personel yavaşlar. ⟶ Tired staff drink tea and rest here. Without breaks, staff slow down.
 Bantlı Kasa ⟶ Conveyor Till
 Yürüyen bantlı kasa. Ödeme %35 daha hızlı, uzun kuyruk için ideal. ⟶ A till with a conveyor belt. Checkout is 35% faster; ideal for long queues.
@@ -561,7 +561,7 @@ Yere bir şey döküldü ⟶ Something was spilled
 %s: zemin ıslak! Boştaki personel paspas yapacak. ⟶ $1: wet floor! Idle staff will mop it.
 %d masa kirli. Temizlik görevlisi olmadan yemek katı dağılır. ⟶ $1 tables are dirty. Without a cleaner the food court falls apart.
 Kampanya için yeterli nakit yok. ⟶ Not enough cash for the campaign.
-Deftere yazıldı %s ⟶ Put on credit $1
+Deftere yazıldı %s ⟶ On veresiye $1
 Zabıta denetimi: dükkân tertemiz, raflar dolu. Puanın yükseldi! ⟶ Inspection: spotless shop, full shelves. Your rating went up!
 Zabıta denetimi: %d çöp, %d boş raf bölmesi. ₺%d ceza. ⟶ Inspection: $1 litter, $2 empty sections. ₺$3 fine.
 Yarın sabahki teslimat için otomatik sipariş verildi: %s ⟶ Auto-order placed for tomorrow morning's delivery: $1
@@ -661,11 +661,11 @@ Toplu sipariş ⟶ Bulk order
 Hazırla · +₺%d ⟶ Pack it · +₺$1
 Stok yetmiyor ⟶ Not enough stock
 Reddet ⟶ Decline
-Bu akşam derbi var! ⟶ Derby tonight!
+Bu akşam derbi var! ⟶ Derbi tonight!
 Mahalle maç için toplanacak: 19:00–22:00 arası kola ve cips talebi 2,5 katı. Stok yap, istersen vitrine afiş as. ⟶ The neighbourhood gathers for the match: cola and crisps demand ×2.5 from 19:00 to 22:00. Stock up, and put a poster in the window if you like.
 Afiş as · ₺150 (akşam +%30 müşteri) ⟶ Put up a poster · ₺150 (+30% shoppers tonight)
 Tamam, stok yaparım ⟶ OK, I'll stock up
-Zabıta denetimi geliyor ⟶ Inspection coming
+Zabıta denetimi geliyor ⟶ Zabıta inspection coming
 Belediye 1 saat içinde denetime gelecek. Yerde çöp ya da boş raf varsa ceza keser; temiz dükkâna puan artar. ⟶ The council inspector arrives within the hour. Litter or empty shelves mean a fine; a clean shop earns rating.
 Hazırız ⟶ We're ready
 Temizlikçi çağır · ₺120 ⟶ Call a cleaner · ₺120
@@ -742,8 +742,8 @@ Dört Buçuk Yıldız ⟶ Four and a Half Stars
 Mağaza puanı 4,5. ⟶ A 4.5 shop rating.
 Kedili Dükkân ⟶ Shop with a Cat
 Mahallenin kedisini sahiplen. ⟶ Adopt the neighbourhood cat.
-Defter Kabarık ⟶ A Thick Credit Book
-Toplam ₺1.000 veresiye yaz. ⟶ Put ₺1,000 on credit in total.
+Defter Kabarık ⟶ A Thick Veresiye Book
+Toplam ₺1.000 veresiye yaz. ⟶ Put ₺1,000 on veresiye in total.
 Hakkını Helal Et ⟶ Consider It Forgiven
 Bir komşunun borcunu sil. ⟶ Wipe a neighbour's debt.
 Kepenk İndirttin ⟶ Shutters Down
@@ -797,7 +797,7 @@ Maç öncesi son çağrı: çekirdek yok, cips var. Kimse bize kızmasın. ⟶ L
 %s'e mama vermeyiniz, kendisi diyette. Tamam, bir tane verebilirsiniz. ⟶ Please don't feed $1, they're on a diet. Oh, all right, just one.
 Kayıp bulundu: %s'in oyuncak faresi. Kasada teslim alınabilir, sahibi pek ilgilenmiyor. ⟶ Found: $1's toy mouse. Collect it at the till; its owner doesn't seem bothered.
 Karşıdaki UCUZA'da ucuz olabilir ama orada seni adınla selamlayan var mı? Yok. ⟶ UCUZA over the road may be cheap, but does anyone there greet you by name? No.
-Hatırlatma: Veresiye defteri sadece Köşebaşı'nda. UCUZA'da defter yok, sadece kasa var. ⟶ Reminder: the credit book is only at Köşebaşı. UCUZA has no book, just a till.
+Hatırlatma: Veresiye defteri sadece Köşebaşı'nda. UCUZA'da defter yok, sadece kasa var. ⟶ Reminder: the veresiye book is only at Köşebaşı. UCUZA has no book, just a till.
 Hayırlı Ramazanlar! İftar pideleri 17:30'dan itibaren fırından çıkıyor, sıcacık. ⟶ Happy Ramadan! Iftar pide come out of the oven from 17:30, piping hot.
 İftara az kaldı; hurmalar reyonda, sabır kasada. ⟶ Iftar is near; dates in the aisle, patience at the till.
 Bayramınız mübarek olsun! Bayram şekerleri ve çikolatalar ön rafta. ⟶ Happy Bayram! Holiday sweets and chocolate on the front shelf.
@@ -831,11 +831,11 @@ karlı ⟶ snowy
 %s · %s %d · %s ⟶ $1 · $2 $3 · $4
 Ramazan ⟶ Ramadan
 Gündüz sakin, iftardan önce (17:30–19:30) ekmek ve pide kuyruğu. Hurma talebi dört katı. ⟶ Quiet by day, a rush for bread and pide before iftar (17:30–19:30). Dates demand ×4.
-Ramazan Bayramı ⟶ Eid al-Fitr
+Ramazan Bayramı ⟶ Ramazan Bayramı (Eid al-Fitr)
 Bayram şekeri ve çikolata talebi 2,5 katı; mahallenin yarısı memlekette. ⟶ Holiday sweets and chocolate ×2.5; half the neighbourhood is away visiting family.
-Kurban Bayramı ⟶ Eid al-Adha
+Kurban Bayramı ⟶ Kurban Bayramı (Eid al-Adha)
 Mahalle sakin, bayram ziyaretine gidenler çikolata ve kola alıyor. ⟶ The neighbourhood is quiet; those off visiting buy chocolate and cola.
-Arife ⟶ Holiday Eve
+Arife ⟶ Arife (holiday eve)
 Bayram öncesi herkes alışverişte: müşteri +%30. ⟶ Everyone shops before the holiday: +30% shoppers.
 Okullar açıldı ⟶ Back to school
 Defter talebi dört katı, öğrenciler akın ediyor. ⟶ Notebook demand ×4; students flood in.
@@ -846,11 +846,11 @@ Aileler ve haftalık alışverişçiler daha çok, beyaz yakalar az. ⟶ More fa
 %s, %s. Şemsiye satılır, kapının önü çamur olur. ⟶ $1, $2. Umbrellas will sell and the entrance will get muddy.
 %s, %s. Salep aranır, müşteri azdır. ⟶ $1, $2. Salep will be wanted; fewer shoppers.
 # ------------------------------------------------------------------ neighbourhood
-%s Teyze ⟶ Auntie $1
-%s Amca ⟶ Uncle $1
-%s Hanım ⟶ Mrs $1
-%s Bey ⟶ Mr $1
-%s Abi ⟶ Brother $1
+%s Teyze ⟶ $1 Teyze
+%s Amca ⟶ $1 Amca
+%s Hanım ⟶ $1 Hanım
+%s Bey ⟶ $1 Bey
+%s Abi ⟶ $1 Abi
 Öğretmen %s ⟶ Teacher $1
 Doktor %s ⟶ Dr $1
 Her sabah gazetesini alır, manşetleri yorumlamadan gitmez. ⟶ Buys the paper every morning and never leaves without commenting on the headlines.
@@ -969,20 +969,20 @@ Haftalık ⟶ Weekly
 Aile ⟶ Family
 Müdavimler ⟶ Regulars
 Rakip ⟶ Rival
-Defter ⟶ Credit book
-Veresiye defteri: tanıdık komşular \"yazarsın\" der. Deftere yazmak sadakati ve satışı artırır ama bazıları geç öder, bazıları hiç ödemez. Hatırlatmak parayı getirir ama biraz kırar; borcu silmek mahallede adını büyütür. ⟶ The credit book: neighbours you know say "put it on my tab". Credit builds loyalty and sales, but some pay late and some never do. Reminding brings the money in but stings a little; wiping a debt makes your name around the neighbourhood.
-Kime yazılır? ⟶ Who gets credit?
+Defter ⟶ Veresiye
+Veresiye defteri: tanıdık komşular \"yazarsın\" der. Deftere yazmak sadakati ve satışı artırır ama bazıları geç öder, bazıları hiç ödemez. Hatırlatmak parayı getirir ama biraz kırar; borcu silmek mahallede adını büyütür. ⟶ The veresiye book: neighbours you know say "put it on my tab". Veresiye builds loyalty and sales, but some pay late and some never do. Reminding brings the money in but stings a little; wiping a debt makes your name around the neighbourhood.
+Kime yazılır? ⟶ Who can buy on veresiye?
 Kimseye ⟶ Nobody
 Sadık müdavimlere ⟶ Loyal regulars
 Bütün mahalleye ⟶ The whole neighbourhood
 Kişi başı sınır ⟶ Limit per person
 Toplam alacak ⟶ Total owed
-Bugün yazılan ⟶ Credited today
+Bugün yazılan ⟶ On veresiye today
 Bugün tahsil ⟶ Collected today
 Silinen ⟶ Written off
 Borçlular ⟶ Debtors
 Defter temiz, kimsenin borcu yok. ⟶ The book is clean; nobody owes anything.
-Veresiye kapalı. Açarsan tanıdık müşteriler parası yetmeyince deftere yazdırır. ⟶ Credit is off. Turn it on and regulars who come up short will put it on their tab.
+Veresiye kapalı. Açarsan tanıdık müşteriler parası yetmeyince deftere yazdırır. ⟶ Veresiye is off. Turn it on and regulars who come up short will put it on their tab.
 %s · %d gündür · %s ⟶ $1 · for $2 days · $3
 %s · %d gündür · %s · hatırlatıldı ⟶ $1 · for $2 days · $3 · reminded
 sözünün eri ⟶ true to their word
@@ -1043,7 +1043,7 @@ Kemal Usta hem kasaya hem rafa yetişemez. Personel panelinden bir reyon görevl
 Bir eşya kur (B) ⟶ Build something (B)
 İnşa panelinden bir eşya seç (ör. saksı bitki ya da dondurma dolabı), dükkânda yerine tıkla. R ile döndür. ⟶ Pick an item in Build (e.g. a potted plant or the ice cream freezer) and click its spot in the shop. R rotates.
 Mahalleyi tanı (N) ⟶ Meet the neighbourhood (N)
-Mahalle panelinde müdavimler, veresiye defteri ve görevler var. Görevler sana her gün yapacak bir şey verir. ⟶ The Neighbourhood panel has your regulars, the credit book and quests. Quests give you something to aim for every day.
+Mahalle panelinde müdavimler, veresiye defteri ve görevler var. Görevler sana her gün yapacak bir şey verir. ⟶ The Neighbourhood panel has your regulars, the veresiye book and quests. Quests give you something to aim for every day.
 Zamanı hızlandır (2–5) ⟶ Speed up time (2–5)
 Dükkân kendi kendine dönmeye başlayınca hızı artır. Sorun çıkınca uyarılar sol altta belirir. ⟶ Once the shop runs itself, speed things up. When something goes wrong, alerts appear bottom left.
 Kapıda bir kedi ⟶ A cat at the door
@@ -1206,3 +1206,7 @@ Yeşil ⟶ Green
 %s — %s ⟶ $1 — $2
 %s (%s) ⟶ $1 ($2)
 HOŞ GELDİN YA ŞEHR-İ RAMAZAN ⟶ HOŞ GELDİN YA ŞEHR-İ RAMAZAN
+# ------------------------------------------------------------------ glossary
+Yeni kelime ⟶ New word
+Sözlük ⟶ Glossary
+Oyunda bilerek Türkçe bırakılan kelimeler. ⟶ Words the game keeps in Turkish on purpose.

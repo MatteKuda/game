@@ -145,7 +145,7 @@ Dört aşamanın dördü de oynanabilir: **Büfe → Mahalle Marketi → Süperm
   - **Ürün analizi** (Ürün & Fiyat → Analiz): son 7 günün satışları, kâr, kaçan satış, rafın boş kaldığı süre, kimin aldığı ve her ürün için bir öneri ("Rafa koy!", "Fiyat yüksek", "Stok yetmiyor", "Durgun").
 - **Mahalleler (senaryolar) ve başarımlar:** açılış ekranındaki **Mahalleler** düğmesinden: Moda Sahili (batmak üzere olan marketi 30 günde kurtar), Kampüs Yolu (12 günde 1.500 mutlu öğrenci), Çarşı (karşıdaki güçlü UCUZA'yı 28 günde kapattır) ve Serbest Mod (₺250.000, hedefsiz). Kazanılan mahallelere madalya işlenir. 23 başarım var; menüden görülebilir.
 - **Rehber:** yeni oyunda sol üstte 8 adımlık bir kontrol listesi, sıradaki adımın dock düğmesini yanıp söndürür. Kapatılabilir, bir kez bitince bir daha çıkmaz.
-- **Dil:** Ayarlar → Dil / Language ile İngilizce seçilebilir.
+- **Dil:** açılış ekranından ya da Ayarlar → Dil / Language ile İngilizce seçilebilir. İngilizcede simit, ayran, salep, sucuk, kaşar, pide, veresiye, bayram, muhtar, zabıta, usta, teyze/amca/abi, hanım/bey gibi kelimeler bilerek Türkçe kalır: ilk görüldüklerinde sağ altta "New word" kartı kısa bir açıklama gösterir, fare üstü bilgilerde de açıklama çıkar. Tüm liste menüdeki **Sözlük** sayfasında.
 - **Kayıt ve ayarlar:**
   - Oyun her sabah otomatik kaydedilir. Açılış ekranında "Devam et" düğmesi çıkar.
   - Menüden (`Esc`) 3 kayıt yuvasına kaydedip yükleyebilirsin. Yüklenen oyun o günün sabahından başlar.
