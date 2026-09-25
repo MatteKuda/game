@@ -90,6 +90,8 @@ static func furnish(g, n: int) -> void:
 			add.call("gondol", x, 10, 0, ["cikolata", "deterjan", "un"])
 		add.call("levha", 13, 8, 0, [])
 		add.call("levha", 25, 8, 0, [])
+		add.call("sarkuteri", 19, 7, 0, ["sucuk", "kasar"])
+		add.call("derin", 20, 10, 0, ["dondurma", "pizza"])
 		add.call("kasa", 15, 13, 0, [])
 		add.call("bantkasa", 25, 13, 0, [])
 		add.call("araba", 32, 14, 0, [])
@@ -103,6 +105,7 @@ static func furnish(g, n: int) -> void:
 		g.hire({"role": "cashier", "name": "Deniz", "wage": 300, "skill": 1.0}, true)
 		g.hire({"role": "stocker", "name": "Oğuz", "wage": 260, "skill": 1.0}, true)
 		g.hire({"role": "cleaner", "name": "Nermin", "wage": 230, "skill": 1.0}, true)
+		g.hire({"role": "deli", "name": "Rıza Usta", "wage": 360, "skill": 1.0, "trait": "guleryuz"}, true)
 	g.refresh_all()
 
 ## the scenario's goal line for the goal card

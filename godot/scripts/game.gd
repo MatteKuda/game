@@ -70,6 +70,7 @@ signal scenario_result(result: String)
 var _next_announce := 1440.0 + Cfg.DAY_OPEN + 40.0
 var _ach_acc := 0.0
 var undo_stack: Array = [] # [{kind: place|move|sell, ...}]
+var style := {"wall": 0, "floor": 0, "awning": 0}
 var fixtures: Array = []
 var customers: Array = []
 var staff: Array = []
@@ -1584,6 +1585,7 @@ func start_next_day() -> void:
 	quests.refill(self)
 	_inflation()
 	cat.start_day(self)
+	update_festive()
 	_next_announce = day * 1440.0 + Cfg.DAY_OPEN + randf_range(30.0, 90.0)
 	_announce_day()
 	day_ended_flag = false
@@ -1739,9 +1741,25 @@ func _announce_day() -> void:
 		"kar": tip = " Salep aranır, müşteri azdır."
 	alert("day", sp.get("icon", w["icon"]), msg + tip, "info", null, 0.0)
 
+## facade decorations follow the calendar
+func update_festive() -> void:
+	var k := ""
+	if calendar.is_bayram(day) or calendar.is_arife(day): k = "bayram"
+	elif calendar.is_ramazan(day): k = "ramazan"
+	shop.set_festive(k)
+
+func set_style(key: String, i: int) -> void:
+	style[key] = i
+	shop.style = style
+	shop.build(grid.layout, stage, upgrades)
+	_campaign_visuals(); update_festive()
+	changed.emit()
+
 ## upgrade visuals after loading a save
 func apply_upgrade_visuals() -> void:
+	shop.style = style
 	shop.build(grid.layout, stage, upgrades)
+	update_festive()
 	_campaign_visuals()
 	if upgrades.has("pos"):
 		for f in fixtures: if f.model["pos_device"]: f.model["pos_device"].visible = true
@@ -1768,7 +1786,7 @@ func buy_upgrade(id: String) -> bool:
 	upgrades[id] = true
 	if id == "pos":
 		for f in fixtures: if f.model["pos_device"]: f.model["pos_device"].visible = true
-	if id == "neon" or id == "tente": shop.build(grid.layout, stage, upgrades)
+	if id == "neon" or id == "tente": shop.build(grid.layout, stage, upgrades); update_festive()
 	if id == "otopark": street.build_parking()
 	float_text(rig.target + Vector3(0, 3, 0), u["name"] + "!", Cfg.VIOLET)
 	changed.emit()
@@ -1808,6 +1826,7 @@ func apply_stage(n: int) -> void:
 		var g := floor_grid(f.lvl)
 		for t in f.fp["tiles"]: g.fixture[g.idx(t.x, t.y)] = f.uid
 	shop.build(Cfg.STAGE_LAYOUTS[n], n, upgrades)
+	update_festive()
 	_campaign_visuals()
 	for g in floors: g.version += 1
 	layout_changed()

@@ -1187,3 +1187,22 @@ Kasada mahallenin bütün haberlerini anlatır. ⟶ Shares all the neighbourhood
 Okul çıkışı çocukları alıp uğrar. ⟶ Drops by after picking the kids up from school.
 Cumartesi arabayla gelip bagajı doldurur. ⟶ Comes by car on Saturday and fills the boot.
 Listesini telefondan okur, hiçbir şeyi unutmaz. ⟶ Reads the list off their phone and never forgets a thing.
+Dükkânın rengi (ücretsiz) ⟶ Shop colours (free)
+Duvar ⟶ Walls
+Zemin ⟶ Floor
+Tente ⟶ Awning
+Turkuaz ⟶ Turquoise
+Hardal ⟶ Mustard
+Adaçayı ⟶ Sage
+Gül kurusu ⟶ Dusty rose
+Lacivert ⟶ Navy
+Terrakota ⟶ Terracotta
+Siyah beyaz ⟶ Black & white
+Çimen ⟶ Grass
+Deniz ⟶ Sea
+Kiremit ⟶ Brick red
+Kırmızı ⟶ Red
+Yeşil ⟶ Green
+%s — %s ⟶ $1 — $2
+%s (%s) ⟶ $1 ($2)
+HOŞ GELDİN YA ŞEHR-İ RAMAZAN ⟶ HOŞ GELDİN YA ŞEHR-İ RAMAZAN

@@ -66,6 +66,7 @@ static func serialize(game) -> Dictionary:
 		"quests": game.quests.serialize(),
 		"cat": game.cat.serialize(),
 		"scenario": game.scenario,
+		"style": game.style,
 		"rival": game.rival.serialize(),
 		"economy": {"cost_mul": game.cost_mul, "price_mul": game.price_mul, "next_hike": game._next_hike_day, "loan": game.loan, "vouchers": game.vouchers},
 	}
@@ -145,6 +146,8 @@ static func apply(game, d: Dictionary) -> void:
 		var ns: Staff = game.hire({"role": sd["role"], "name": sd["name"], "wage": int(sd["wage"]), "skill": float(sd["skill"]), "trait": sd.get("trait", "")}, true, sd.get("shift", "full"))
 		ns.morale = float(sd.get("morale", 70.0)); ns.days_worked = int(sd.get("days", 0)); ns.raise_day = int(sd.get("raise_day", game.day))
 	for u in d.get("upgrades", []): game.upgrades[u] = true
+	var sty: Dictionary = d.get("style", {})
+	for k in sty: game.style[k] = int(sty[k])
 	game.apply_upgrade_visuals()
 	if d.has("mall") and game.mall != null:
 		var md: Dictionary = d["mall"]

@@ -15,6 +15,15 @@ var cutaway := true
 var lamps: Array[OmniLight3D] = []
 var lamp_mats: Array[StandardMaterial3D] = []
 var banner: Node3D
+var festive: Node3D
+var _front_up: Node3D
+var _front_w := 0.0
+var _front_cx := 0.0
+## player-chosen colours (Gelişim → Dükkânın rengi); indices into the palettes below
+var style := {"wall": 0, "floor": 0, "awning": 0}
+const WALLS := [["Turkuaz", Color(0.24, 0.62, 0.6)], ["Hardal", Color("d9a441")], ["Adaçayı", Color("8fb39a")], ["Gül kurusu", Color("c98a8a")], ["Lacivert", Color("3a4f7a")]]
+const FLOORS := [["Terrakota", Color(0.93, 0.86, 0.72), Color(0.78, 0.36, 0.22)], ["Siyah beyaz", Color("f0ece4"), Color("2d3348")], ["Çimen", Color("eef0e0"), Color("3f8f3a")], ["Deniz", Color("eef3f8"), Color("2f6fb5")]]
+const AWNINGS := [["Kiremit", Color("e0663c")], ["Turkuaz", Color("1f8a86")], ["Kırmızı", Color("d6333a")], ["Yeşil", Color("3f8f3a")], ["Lacivert", Color("2f4a7a")]]
 
 func build(l: Dictionary, st: int, upgrades: Dictionary) -> void:
 	for c in get_children(): c.queue_free()
@@ -27,10 +36,11 @@ func build(l: Dictionary, st: int, upgrades: Dictionary) -> void:
 	var W := x1 - x0; var D := z1 - z0
 	var H := Cfg.WALL_H
 	# floor slab + terrazzo
-	var floor_mi := Art.box(self, Vector3(W, 0.12, D), Art.shader_mat("checker"), Vector3((x0 + x1) * 0.5, -0.04, (z0 + z1) * 0.5), 0.0)
+	var fl: Array = FLOORS[int(style.get("floor", 0)) % FLOORS.size()]
+	var floor_mi := Art.box(self, Vector3(W, 0.12, D), Art.shader_mat("checker", {"color_a": fl[1], "color_b": fl[2]}), Vector3((x0 + x1) * 0.5, -0.04, (z0 + z1) * 0.5), 0.0)
 	floor_mi.name = "Floor"
 	# door mat at each door pair
-	var inner_wall := Art.shader_mat("wall_paint")
+	var inner_wall := Art.shader_mat("wall_paint", {"paint": WALLS[int(style.get("wall", 0)) % WALLS.size()][1]})
 	var outer := Art.shader_mat("brick", {"brick": Color("c9714f"), "mortar": Color("efe3d2")})
 	var cap := Art.mat(Color("2d3348"), 0.6)
 	# back wall
@@ -148,7 +158,7 @@ func _front(x0: float, x1: float, z1: float, H: float, door_xs: Array) -> void:
 	var aw := MeshInstance3D.new()
 	var pm := PlaneMesh.new(); pm.size = Vector2(W + 0.3, 1.5 if tente else 1.15); pm.subdivide_depth = 6
 	aw.mesh = pm
-	var ca := Color("1f8a86") if tente else Cfg.TERRA
+	var ca: Color = AWNINGS[int(style.get("awning", 0)) % AWNINGS.size()][1]
 	aw.material_override = Art.shader_mat("stripes", {"color_a": ca, "color_b": Color("fff1dc"), "count": (W + 0.3) * 2.2})
 	aw.position = Vector3(cx, 2.35, 0.62 if tente else 0.5)
 	aw.rotation.x = 0.42
@@ -162,6 +172,39 @@ func _front(x0: float, x1: float, z1: float, H: float, door_xs: Array) -> void:
 		s.rotation.x = PI / 2
 		s.scale = Vector3(1, 1, 0.8)
 	walls.append({"node": base, "upper": up, "normal": Vector3(0, 0, 1), "sink": 0.0, "h": H, "front": true})
+	_front_up = up; _front_w = W; _front_cx = cx
+	festive = null
+
+## holiday dressing on the facade: bunting and balloons for bayram, a string of lights for Ramazan
+func set_festive(kind: String) -> void:
+	if festive: festive.queue_free(); festive = null
+	if kind == "" or _front_up == null: return
+	festive = Node3D.new(); _front_up.add_child(festive)
+	var W := _front_w + 0.4
+	var x0 := _front_cx - W * 0.5
+	if kind == "bayram":
+		var cols := [Color("d6333a"), Color("f2b33d"), Color("2f6fb5"), Color("3f8f3a"), Color("fff1dc")]
+		var n := int(W / 0.42)
+		for i in n:
+			var t := float(i) / maxf(1.0, n - 1)
+			var fx := x0 + t * W
+			var sag := sin(t * PI) * 0.28
+			var flag := MeshInstance3D.new(); flag.mesh = Art.prim("prism", 0.26, 0.3, 0.01)
+			flag.material_override = Art.mat(cols[i % cols.size()], 0.7)
+			flag.position = Vector3(fx, 3.18 - sag, 0.42); flag.rotation.z = PI
+			festive.add_child(flag)
+		for k in 3:
+			var b := Node3D.new(); b.position = Vector3(x0 + 0.3 + k * 0.28, 0, 0.5); festive.add_child(b)
+			Art.cyl(b, 0.006, 0.006, 1.2, Art.mat(Color("fbf6ee")), Vector3(0, 2.2, 0), 4)
+			Art.sphere(b, 0.16, Art.mat(cols[k], 0.3), Vector3(0, 2.9 + k * 0.08, 0), 1.15)
+	else:
+		var n2 := int(W / 0.3)
+		for i in n2:
+			var t2 := float(i) / maxf(1.0, n2 - 1)
+			var m := StandardMaterial3D.new(); m.albedo_color = Color("fff1c8"); m.emission_enabled = true
+			m.emission = [Color("ffd27a"), Color("fff1c8")][i % 2]; m.emission_energy_multiplier = 2.4
+			Art.sphere(festive, 0.045, m, Vector3(x0 + t2 * W, 3.2 - sin(t2 * PI) * 0.22, 0.42))
+		Art.label(festive, "HOŞ GELDİN YA ŞEHR-İ RAMAZAN", 44, Color("ffe2a0"), Vector3(_front_cx, 3.42, 0.3), 0.0, "display", 6, Color("5b3a24"))
 
 func set_campaign(on: bool) -> void:
 	if banner: banner.visible = on

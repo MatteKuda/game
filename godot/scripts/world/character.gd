@@ -160,6 +160,18 @@ func add_bag(col: Color) -> void:
 	Art.box(bag, Vector3(0.26, 0.3, 0.1), Art.mat(col, 0.7), Vector3(0, -0.2, 0), 0.02)
 	Art.box(bag, Vector3(0.12, 0.02, 0.02), Art.mat(col.darkened(0.3)), Vector3(0, -0.02, 0), 0.0)
 
+## an open umbrella over the head for walking about in the rain
+var umbrella: Node3D
+func set_umbrella(on: bool, col := Color("d6333a")) -> void:
+	if on and not umbrella:
+		umbrella = Node3D.new(); add_child(umbrella)
+		umbrella.position = Vector3(0.14, 0, 0.06)
+		Art.cyl(umbrella, 0.012, 0.012, 0.95, Art.mat(Color("2a2233"), 0.4), Vector3(0, head_y - 0.05, 0), 6)
+		Art.cyl(umbrella, 0.05, 0.62, 0.2, Art.mat(col, 0.55), Vector3(0, head_y + 0.48, 0), 12)
+		Art.cyl(umbrella, 0.6, 0.63, 0.03, Art.mat(col.darkened(0.2), 0.55), Vector3(0, head_y + 0.37, 0), 12)
+		Art.sphere(umbrella, 0.03, Art.mat(Color("2a2233")), Vector3(0, head_y + 0.6, 0))
+	if umbrella: umbrella.visible = on
+
 func set_carry(on: bool) -> void:
 	if on and not carry_box:
 		carry_box = Node3D.new(); add_child(carry_box)

@@ -61,6 +61,7 @@ static func _word(g: String) -> String:
 	if _exact.has(g): return _exact[g]
 	var cap := g.capitalize()
 	if g != "" and g == g.to_lower() and _exact.has(cap): return (_exact[cap] as String).to_lower()
+	if g.length() > 3 and not g.is_valid_float() and not g.begins_with("₺"): return t(g) # composite values ("Cuma · İlkbahar 14")
 	return g
 
 static func _esc(c: String) -> String:

@@ -577,7 +577,7 @@ func _sig_panel() -> String:
 			for q in game.quests.active: s5 += str(q["id"]) + str(int(game.quests.progress(game, q) * 20))
 			if game.rival.active: s5 += str(game.rival.lost_today) + str(game.rival.prices) + str(game.prices)
 			return s5
-		"growth": return "%d|%d|%s|%s" % [int(game.money / 100), game.stage, str(game.upgrades.keys()), game.can_expand()]
+		"growth": return "%d|%d|%s|%s|%s" % [int(game.money / 100), game.stage, str(game.upgrades.keys()), game.can_expand(), str(game.style)]
 		"campaign": return "%s|%s|%s|%d" % [str(game.campaigns.keys()), str(game.discounts + game.multi), str(picks), int(game.money / 100)]
 		"mall":
 			if game.mall == null: return ""
@@ -941,6 +941,26 @@ func _p_growth() -> void:
 		b.pressed.connect(func(): if game.expand(): open_panel(""))
 		v.add_child(b)
 		c.add_child(v); body.add_child(c)
+	body.add_child(UIKit.section("Dükkânın rengi (ücretsiz)"))
+	for row in [["wall", "Duvar", ShopShell.WALLS], ["floor", "Zemin", ShopShell.FLOORS], ["awning", "Tente", ShopShell.AWNINGS]]:
+		var h := UIKit.hbox(6)
+		var rl := UIKit.label(row[1], 13, Cfg.INK, "body", 800); rl.custom_minimum_size.x = 60; h.add_child(rl)
+		var key: String = row[0]
+		var pal: Array = row[2]
+		for i in pal.size():
+			var sw := Button.new(); sw.focus_mode = Control.FOCUS_NONE; sw.custom_minimum_size = Vector2(34, 28)
+			sw.tooltip_text = Loc.t(pal[i][0])
+			var on: bool = int(game.style.get(key, 0)) == i
+			var c1: Color = pal[i][1]
+			sw.add_theme_stylebox_override("normal", UIKit.sb(c1, 8, Cfg.INK if on else Color(0, 0, 0, 0.1), 3 if on else 1, 0, Vector4(0, 0, 0, 0)))
+			sw.add_theme_stylebox_override("hover", UIKit.sb(c1.lightened(0.1), 8, Cfg.TERRA, 2, 0, Vector4(0, 0, 0, 0)))
+			if pal[i].size() > 2:
+				var inner := ColorRect.new(); inner.color = pal[i][2]; inner.custom_minimum_size = Vector2(12, 12)
+				inner.position = Vector2(11, 8); inner.mouse_filter = Control.MOUSE_FILTER_IGNORE; sw.add_child(inner)
+			var ii: int = i
+			sw.pressed.connect(func(): game.set_style(key, ii); panel_sig = "")
+			h.add_child(sw)
+		body.add_child(h)
 	body.add_child(UIKit.section("Yükseltmeler"))
 	for u in DB.UPGRADES:
 		if u["stage"] > game.stage: continue

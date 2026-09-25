@@ -98,8 +98,15 @@ func log_thought(icon: String, text: String, game, show := true) -> void:
 	if thoughts.size() > 6: thoughts.pop_back()
 	if show: think(icon)
 
+var _umbrella := false
+const OUTDOOR := ["walkby", "exit", "to_door", "leaving", "flee", "to_car"]
+
 func update(dt: float, game) -> void:
 	var v := view
+	var want: bool = game.calendar.weather == "yagmur" and OUTDOOR.has(state)
+	if want != _umbrella:
+		_umbrella = want
+		v.set_umbrella(want, [Color("d6333a"), Color("2f6fb5"), Color("f2b33d"), Color("1f8a86"), Color("2a2233")][get_instance_id() % 5])
 	if slip_t > 0.0:
 		slip_t -= dt; v.play("fall"); moving = 0.0
 		if slip_t <= 0.0: v.play("idle")
