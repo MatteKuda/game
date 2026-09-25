@@ -468,7 +468,7 @@ func _announce(text: String) -> void:
 	tw.tween_interval(9.0)
 	tw.tween_property(radio, "modulate:a", 0.0, 0.6)
 	tw.tween_callback(func(): radio.visible = false)
-	GameAudio.play("bell", -12.0, 0.8)
+	GameAudio.play("jingle", -10.0, 0.8)
 
 func _achievement(id: String) -> void:
 	var a := Progress.ach_def(id)

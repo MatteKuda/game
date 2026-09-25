@@ -91,6 +91,7 @@ func maybe_arrive(game) -> void:
 func adopt(game) -> void:
 	adopted = true
 	state = "walk"; visible = true
+	GameAudio.play("meow", -8.0, 0.5)
 	_go(game, _rand_tile(game))
 	place_bowl(game)
 
@@ -135,7 +136,9 @@ func update(dt: float, game) -> void:
 			timer -= dt
 			if timer <= 0.0:
 				timer = randf_range(3.0, 6.0)
-				if game.rig.far_factor() < 0.6: game.float_text(position + Vector3(0, 0.6, 0), "Miyav!", Cfg.TERRA)
+				if game.rig.far_factor() < 0.6:
+					game.float_text(position + Vector3(0, 0.6, 0), "Miyav!", Cfg.TERRA)
+					GameAudio.play("meow", -14.0, 4.0)
 		"walk", "leave":
 			if path.is_empty():
 				if state == "leave":
@@ -176,6 +179,7 @@ func _cheer(game) -> void:
 		var aid: String = c.arch["id"]
 		var bonus := 6.0 if aid in ["ogrenci", "aile"] else (3.0 if aid != "calisan" else 2.0)
 		c._feel(game, bonus, "Dükkân kedisi")
+		if game.rig.far_factor() < 0.5: GameAudio.play("purr" if state == "sleep" else "meow", -18.0, 6.0)
 		var lines := ["%s ne tatlı! Başını okşadım." % cat_name, "Kedili dükkân, ne güzel.", "%s bana baktı, gün güzel başladı." % cat_name, "Pisi pisi! Sonra alışveriş."]
 		if state == "sleep": lines = ["%s mışıl mışıl uyuyor, sessiz olayım." % cat_name]
 		c.log_thought("happy", lines.pick_random(), game, randf() < 0.5)

@@ -148,7 +148,7 @@ func update(dt: float, game) -> void:
 					leave_street(game)
 				else:
 					if not thief(): game.stats["visitors"] += 1
-					GameAudio.play("bell", -16.0, 1.5)
+					GameAudio.play("door", -18.0, 1.5)
 					var station = null
 					if arch.get("cart", false):
 						for f in game.fixtures:
@@ -280,6 +280,7 @@ func be_caught(game) -> void:
 	for pid in stolen: game.backstock[pid] = int(game.backstock.get(pid, 0)) + 1
 	game.stats["caught"] += 1
 	game.totals["caught"] = int(game.totals.get("caught", 0)) + 1
+	GameAudio.play("whistle", -8.0, 1.0)
 	stolen.clear()
 	view.set_basket_items([])
 	log_thought("angry", "Yakalandım…", game)
@@ -308,11 +309,12 @@ func _inside_tick(dt: float, game) -> void:
 			if randf() < 0.0008 * dt: game.spill_at(t, lvl, "Bir müşteri içeceğini döktü")
 			break
 	if not flags.has("dirty") and game.litter_near(t, 1.6, lvl):
-		flags["dirty"] = true; _feel(game, -(7), "Kirli zemin"); log_thought("dirty", "Yerler çok kirli…", game)
+		flags["dirty"] = true; _feel(game, -(4 if game.stage == 0 else 7), "Kirli zemin"); log_thought("dirty", "Yerler çok kirli…", game)
 	if not flags.has("ambiance") and game.plant_near(t):
 		flags["ambiance"] = true; _feel(game, (4 + (2 if game.upgrades.has("isik") else 0)), "Bitkiler ve ışık")
-	if crowd_t > 2.5 and not flags.has("crowd"):
-		flags["crowd"] = true; _feel(game, -(6), "Dar koridorlar"); log_thought("crowd", "Koridorlar çok dar, sıkıştım.", game)
+	if crowd_t > (4.5 if game.stage == 0 else 2.5) and not flags.has("crowd"):
+		# a kiosk is cramped by nature; people expect a little shuffling there
+		flags["crowd"] = true; _feel(game, -(3 if game.stage == 0 else 6), "Dar koridorlar"); log_thought("crowd", "Koridorlar çok dar, sıkıştım.", game)
 
 func next_want(game) -> void:
 	var best = null

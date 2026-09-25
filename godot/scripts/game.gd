@@ -1286,6 +1286,7 @@ func _process(real_dt: float) -> void:
 	shop.update(real_dt, cam_dir, far, agent_pos, sky.night)
 	if GameAudio.I:
 		var busy := float(customers_inside()) / maxf(1.0, max_inside()) + (float(mall.visitors.size()) / 40.0 if mall != null else 0.0)
+		GameAudio.I.weather = calendar.weather
 		GameAudio.I.update(real_dt, hour(), busy, paused or not is_open())
 	if mall_shell != null: mall_shell.update(real_dt, view_dt, cam_dir, view_floor, far, shop.cutaway, sky.night, agent_pos)
 	street.update(view_dt if running else 0.0, sky.night, van["x"], van["state"] != "idle", agent_pos)
@@ -1800,6 +1801,7 @@ func expand() -> bool:
 	apply_stage(e["to"])
 	neighborhood.grow(self)
 	expanded.emit(e["to"])
+	GameAudio.play("levelup", -4.0)
 	var msg: String = ["", "Mahalle Marketi açıldı! Yeni reyonlar, manav ve aile alışverişçileri seni bekliyor.",
 		"Süpermarket açıldı! Bantlı kasalar, fırın, reyon levhaları ve araba parkı kilidi açıldı.",
 		"Köşebaşı AVM açıldı! Kiracı birimlerini AVM panelinden (V) doldur, üst kata PageUp ile çık."][e["to"]]

@@ -182,6 +182,7 @@ func at_till(game, c, total: int) -> String:
 		r["debt"] = int(r["debt"]) + total
 		game.stats["credit"] += total
 		game.totals["credit"] = int(game.totals.get("credit", 0)) + total
+		GameAudio.play("paper", -12.0, 1.0)
 		out = "credit"
 		c.log_thought("happy", "Deftere yazdırdım, ay başında öderim.", game)
 	elif int(r["debt"]) > 0 and randf() < float(r["trust"]) * (1.25 if r["reminded"] else 0.7):

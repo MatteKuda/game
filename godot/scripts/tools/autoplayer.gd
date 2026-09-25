@@ -38,7 +38,7 @@ func tick() -> void:
 	_hourly()
 
 func _hourly() -> void:
-	if g.can_expand() and g.money > g.expansion()["cost"] + 3000:
+	if g.can_expand() and g.money > g.expansion()["cost"] + 1500:
 		var to: int = g.expansion()["to"]
 		g.expand()
 		stage_times[to] = [g.day, g.clock]
