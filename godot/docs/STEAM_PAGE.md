@@ -140,7 +140,7 @@ bu ortamda yalnızca CPU simülasyonu ölçüldü.
 | main_capsule.png | 616×353 | Ana sayfa vitrini |
 | vertical_capsule.png | 374×448 | Sezonluk vitrinler |
 | library_capsule.png | 600×900 | Kütüphane |
-| library_hero.png | 3840×1240 | Kütüphane arka planı (yazısız) |
+| library_hero.jpg | 3840×1240 | Kütüphane arka planı (yazısız; 1600×900 görüntüden büyütüldü, yayın için yüksek çözünürlükte yeniden çekilmeli) |
 | library_logo.png | 1280×720, şeffaf | Kütüphane logosu |
 
 Görseller oyunun kendi motoruyla, arayüz gizlenerek çekilmiş sahnelerden ve oyunun yazı tipiyle
