@@ -58,6 +58,7 @@ var product_log: Array = [] # last 14 days: {day, sold, missed, expensive, oos, 
 signal quests_changed()
 var quests := Quests.new()
 var rival := Rival.new()
+var branches := Branches.new()
 var vouchers := {} # fixture id -> free builds won from quests
 ## economy: wholesale prices creep up every week; customers' price expectations follow
 var cost_mul := 1.0
@@ -1263,7 +1264,7 @@ func _spawn_to_rival(arch: Dictionary, res := {}) -> void:
 	c.flags["to_rival"] = true
 	c.exit_x = 2
 	c.go_to(self, Vector2i(2, Cfg.FAR_WALK_Z0 + 1))
-	if not res.is_empty(): c.log_thought("price", "UCUZA'da süt daha ucuzmuş, bugün oradan alayım.", self, false)
+	if not res.is_empty(): c.log_thought("price", "UCUZA'da süt daha ucuzmuş, bugün oradan alayım." if rival.gen == 1 else "NOKTA'da kola daha ucuzmuş, bugün oradan alayım.", self, false)
 	customers.append(c)
 
 func _demand(h: float) -> float:
@@ -1544,7 +1545,8 @@ func end_day() -> void:
 		stats["mall_income"] = inc; stats["mall_visitors"] = mall_sum["visitors"]
 	money -= wages + rent() + utilities()
 	stats["wages"] = wages; stats["rent"] = rent(); stats["utilities"] = utilities()
-	var income: int = stats["revenue"] + stats["mall_income"]
+	stats["branch_income"] = branches.end_day(self)
+	var income: int = stats["revenue"] + stats["mall_income"] + int(stats["branch_income"])
 	var costs: int = stats["purchases"] + wages + rent() + utilities() + stats["other"] + int(stats["loan"])
 	history.append({"day": day, "revenue": income, "costs": costs, "profit": income - costs, "rating": rating, "happy": stats["happy"]})
 	day_ended_flag = true

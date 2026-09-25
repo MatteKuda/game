@@ -113,6 +113,7 @@ static func serialize(game) -> Dictionary:
 		"scenario": game.scenario,
 		"style": game.style,
 		"strike_day": game.strike_day,
+		"branches": game.branches.serialize(),
 		"rival": game.rival.serialize(),
 		"economy": {"cost_mul": game.cost_mul, "price_mul": game.price_mul, "next_hike": game._next_hike_day, "loan": game.loan, "vouchers": game.vouchers},
 		"midday": _midday(game),
@@ -171,6 +172,7 @@ static func apply(game, d: Dictionary) -> void:
 	game.money = float(d.get("money", 0))
 	game.rating = float(d.get("rating", 3.0))
 	game.strike_day = int(d.get("strike_day", -1))
+	game.branches.apply(d.get("branches", []))
 	for k in d.get("prices", {}): game.prices[k] = int(d["prices"][k])
 	for k in d.get("auto", {}): game.auto[k] = bool(d["auto"][k])
 	for k in d.get("backstock", {}): game.backstock[k] = int(d["backstock"][k])

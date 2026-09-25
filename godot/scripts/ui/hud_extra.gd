@@ -187,7 +187,7 @@ static func _rival(h, body: VBoxContainer) -> void:
 	body.add_child(grid)
 	body.add_child(UIKit.section("Fiyat karşılaştırması"))
 	var head := UIKit.hbox(8)
-	for c in [["", 36], ["ÜRÜN", 150], ["SEN", 70], ["UCUZA", 70], ["", 180]]:
+	for c in [["", 36], ["ÜRÜN", 150], ["SEN", 70], [Rival.brand_now, 70], ["", 180]]:
 		var l := UIKit.label(c[0], 11, Cfg.INK3, "body", 800); l.custom_minimum_size.x = c[1]; head.add_child(l)
 	body.add_child(head)
 	for pid in rv.prices:

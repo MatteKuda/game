@@ -114,6 +114,23 @@ func _ready() -> void:
 			var before := [game.puddles.size(), game.stats.get("spoiled", 0), game.orders.map(func(o): return o["eta"])]
 			game.answer_event(ev["id"], 1)
 			print("CRISIS %s: %s | before %s after puddles=%d spoiled=%s outage=%.0f strike=%d orders=%s" % [k, ev["title"], before, game.puddles.size(), game.stats.get("spoiled", 0), game.outage_until - game.abs_minutes(), game.strike_day, game.orders.map(func(o): return o["eta"])])
+	if args.has("posttest"):
+		game.money = 400000.0
+		print("POST unlocked=", game.branches.unlocked(game), " scen=", game.scenario, " stage=", game.stage)
+		game.branches.open_branch(game, "kampus"); game.branches.open_branch(game, "moda")
+		game.branches.set_focus("kampus", "ucuz"); game.branches.set_manager("moda", true); game.branches.upgrade(game, "moda")
+		# UCUZA gone for a week: NOKTA should announce and open
+		game.rival.active = false; game.rival.closed = true; game.rival.closed_day = 0
+		for d in 9:
+			game.end_day(); game.start_next_day()
+			print("POST day ", game.day, " branch_income=", game.stats.get("branch_income", "-"), " rival gen=", game.rival.gen, " active=", game.rival.active, " brand=", Rival.brand_now, " list=", game.rival.prices.keys())
+		for b in game.branches.list: print("POST branch ", b)
+		var d := SaveGame.serialize(game)
+		var g2_branches := Branches.new(); g2_branches.apply(JSON.parse_string(JSON.stringify(d["branches"])))
+		print("POST save roundtrip branches=", g2_branches.list.size(), " rival gen saved=", d["rival"]["gen"])
+		Loc.set_lang("en")
+		print("POST en: ", Loc.t(Rival.b("%d kişi bugün alışverişi karşıdaki UCUZA'da yaptı. Mahalle panelinden (N) fiyatları karşılaştır.") % 7), " | ", Loc.t(game.rival.blurb(game)), " | ", Loc.t(game.rival.actions(game)[3]["name"]))
+		print("POST ach: ", Progress.has("sube"), " ", Progress.check(game))
 	if args.has("nev"):
 		for i in 2:
 			var ev := NeighborEvents.roll(game)

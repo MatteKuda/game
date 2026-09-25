@@ -87,7 +87,7 @@ func _make(g) -> Dictionary:
 		"request":
 			q.merge({"n": 1, "until": g.day + 3, "days": 4, "title": "Bir müdavimin isteğini karşıla", "desc": "Mahalle panelindeki istek listesinden bir ürünü rafa koy; sahibi gelip alsın.", "icon": "question", "reward": _reward(g)})
 		"rival":
-			q.merge({"n": 3, "streak": 0, "until": g.day + 6, "days": 7, "title": "3 gün üst üste pazarın %60'ı", "desc": "UCUZA'ya giden müşteriyi geri kazan: fiyat, tazelik, sadakat.", "icon": "rival", "reward": _reward(g, 1.8)})
+			q.merge({"n": 3, "streak": 0, "until": g.day + 6, "days": 7, "title": "3 gün üst üste pazarın %60'ı", "desc": Rival.b("UCUZA'ya giden müşteriyi geri kazan: fiyat, tazelik, sadakat."), "icon": "rival", "reward": _reward(g, 1.8)})
 		"season_ice":
 			q.merge({"pid": "dondurma", "n": 20 + st * 10, "until": g.day, "title": "Bugün %d dondurma sat" % (20 + st * 10), "desc": "Yaz geldi! Dondurma dolabını kapının yakınına koy, sıcak günlerde talep uçar.", "icon": "sun", "reward": _reward(g)})
 		"season_iftar":

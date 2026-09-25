@@ -1370,3 +1370,32 @@ Kendi kamyonetinle al · ₺%d ⟶ Fetch it in your own van · ₺$1
 Bekleriz ⟶ We'll wait
 Malı kendin getireceksin, teslimat sabah vaktinde. ⟶ You'll fetch the goods yourself; the delivery arrives in the morning as usual.
 Yarınki teslimat öğleden sonra gelecek. ⟶ Tomorrow's delivery will arrive in the afternoon.
+
+# --- post-game: second rival, branches
+Karşıdaki boş dükkâna yeni tabela asılıyor: NOKTA 7/24, 2 gün sonra açılıyor. Kola, cips, çikolata gibi atıştırmalıklarda ucuz olacak; öğrenciler ve çalışanlar karşıya geçebilir. ⟶ A new sign is going up on the empty shop across the road: NOKTA 7/24 opens in 2 days. It'll be cheap on snacks like cola, crisps and chocolate; students and office workers may cross over.
+NOKTA 7/24 açıldı! Atıştırmalık ve içeceklerde senden ucuz. Öğrenciler ve çalışanlar karşıya geçebilir; müdavimlerin ve tazelik senin kozun. ⟶ NOKTA 7/24 is open! Cheaper than you on snacks and drinks. Students and office workers may cross over; your regulars and fresh goods are your trump cards.
+NOKTA 7/24 karşı kaldırımda. Atıştırmalık ve içeceklerde senden ucuz; öğrenciler ve çalışanlar fiyata bakıp karşıya geçebilir. Sadakati 70'in üstündeki müdavimlerin hiç gitmez. ⟶ NOKTA 7/24 is across the road. It's cheaper on snacks and drinks; price-watching students and office workers may cross over. Regulars with loyalty above 70 never leave you.
+NOKTA'da kola daha ucuzmuş, bugün oradan alayım. ⟶ Cola's cheaper at NOKTA, I'll get it there today.
+Sokağın Tek Esnafı ⟶ Last Shop Standing
+İkinci rakip NOKTA'yı da kapattır ya da satın al. ⟶ Drive out or buy the second rival, NOKTA, too.
+Zincir Oluyoruz ⟶ Becoming a Chain
+Başka bir mahallede ilk şubeni aç. ⟶ Open your first branch in another neighbourhood.
+Şubeler ⟶ Branches
+Şubeler: %s ⟶ Branches: $1
+Köşebaşı büyüdü; şimdi başka mahallelerde şube aç. Şubeler uzaktan yönetilir: yön, müdür ve büyüklük seçersin, her akşam kasalarını bildirirler. Senaryosunu kazandığın mahallede şube %25 ucuz ve daha kalabalık. ⟶ Köşebaşı has grown; now open branches in other neighbourhoods. Branches are run from afar: you pick their focus, manager and size, and every evening they report their takings. Where you've won the scenario, a branch is 25% cheaper and busier.
+Madalyalı ⟶ Medal
+Öğrenciler: çok müşteri, küçük sepet. Ucuzluk burada iyi gider. ⟶ Students: lots of customers, small baskets. Low prices go down well here.
+Sahil ve kafeler: kaliteye para veren, seçici bir mahalle. ⟶ Seafront and cafés: a choosy neighbourhood that pays for quality.
+Kalabalık çarşı: en yüksek ciro, en sert rekabet. ⟶ A busy bazaar: the highest takings, the toughest competition.
+Şube aç · %s ⟶ Open a branch · $1
+Seviye %d · Puan %.1f · Dün %s · Toplam %s ⟶ Level $1 · Rating $2 · Yesterday $3 · Total $4
+Yön ⟶ Focus
+Ucuzluk ⟶ Low prices
+Denge ⟶ Balanced
+Kalite ⟶ Quality
+Şube müdürü (₺%d/gün) ⟶ Branch manager (₺$1/day)
+Büyüt · %s ⟶ Expand · $1
+%s şubesi açıldı! Her akşam kasasını buraya bildirecek. ⟶ The $1 branch is open! It will report its takings here every evening.
+%s şubesinde dolap bozuldu, mal çöpe gitti: −₺%d. Bir şube müdürü bunları azaltır. ⟶ A fridge broke down at the $1 branch and stock was thrown away: −₺$2. A branch manager makes this rarer.
+%s şubesinde dolap bozuldu, mal çöpe gitti: −₺%d. ⟶ A fridge broke down at the $1 branch and stock was thrown away: −₺$2.
+%s şubesi rekor kırdı: +₺%d. ⟶ The $1 branch set a record: +₺$2.

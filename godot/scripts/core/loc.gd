@@ -77,6 +77,13 @@ static func t(s: String) -> String:
 	if lang == "tr" or s == "": return s
 	if _exact.has(s): return _exact[s]
 	if _cache.has(s): return _cache[s]
+	# the second rival reuses every UCUZA sentence: translate with the old name, swap it back
+	if s.contains("NOKTA") and not s.contains("NOKTA 7/24"):
+		var alt := s.replace("NOKTA", "UCUZA")
+		var r := t(alt)
+		if r != alt:
+			_cache[s] = r.replace("UCUZA", "NOKTA")
+			return _cache[s]
 	var res := s
 	for p in _patterns:
 		var m: RegExMatch = (p[0] as RegEx).search(s)

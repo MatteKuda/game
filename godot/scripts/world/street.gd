@@ -402,8 +402,13 @@ func remove_for_stage(n: int) -> void:
 		# the AVM's back wall sits on z=0: step the apartments (and their balconies) back behind it
 		for a in back_row: (a as Node3D).position.z = -2.2
 
-## UCUZA, the discount chain across the road; a closed rival gets its shutters down and a KİRALIK sign
-func build_rival(closed: bool) -> void:
+## the rival across the road (UCUZA discount chain, later NOKTA 7/24); a closed rival gets its
+## shutters down and a KİRALIK sign
+func build_rival(closed: bool, brand := "UCUZA") -> void:
+	var nokta := brand == "NOKTA"
+	# brand palette: UCUZA yellow/red, NOKTA navy/mint
+	var band_col := (Color("1f3f78") if nokta else Color("f5c518")) if not closed else Color("b9b39a")
+	var accent := (Color("5fd3a8") if nokta else Color("d6333a")) if not closed else Color("8a8a84")
 	if rival_node: rival_node.queue_free()
 	rival_node = Node3D.new(); add_child(rival_node)
 	rival_node.position = Vector3(-0.2, 0, 27.35)
@@ -413,11 +418,11 @@ func build_rival(closed: bool) -> void:
 	Art.box(r, Vector3(9.6, 4.4, 6.0), wall, Vector3(0, 2.2, -3.0), 0.04)
 	Art.box(r, Vector3(9.8, 0.35, 6.2), Art.mat(Color("5b6570"), 0.6), Vector3(0, 0.17, -3.0), 0.02)
 	Art.box(r, Vector3(9.9, 0.25, 6.3), Art.mat(Color("c9c9c4"), 0.6), Vector3(0, 4.5, -3.0), 0.02)
-	var yellow := Color("f5c518") if not closed else Color("b9b39a")
-	Art.box(r, Vector3(9.8, 1.1, 0.25), Art.mat(yellow, 0.5), Vector3(0, 3.65, 0.05), 0.04)
-	Art.box(r, Vector3(9.8, 0.14, 0.27), Art.mat(Color("d6333a") if not closed else Color("8a8a84"), 0.5), Vector3(0, 3.05, 0.06), 0.0)
-	Art.label(r, "UCUZA", 190, Color("d6333a") if not closed else Color("6b6b66"), Vector3(-1.2, 3.68, 0.2), 0.0, "display", 10, Color.WHITE)
-	Art.label(r, "indirim marketi", 52, Cfg.INK if not closed else Color("6b6b66"), Vector3(2.6, 3.5, 0.2), 0.0, "display700")
+	Art.box(r, Vector3(9.8, 1.1, 0.25), Art.mat(band_col, 0.5), Vector3(0, 3.65, 0.05), 0.04)
+	Art.box(r, Vector3(9.8, 0.14, 0.27), Art.mat(accent, 0.5), Vector3(0, 3.05, 0.06), 0.0)
+	var name_col := (Color.WHITE if nokta else Color("d6333a")) if not closed else Color("6b6b66")
+	Art.label(r, brand, 190, name_col, Vector3(-1.2, 3.68, 0.2), 0.0, "display", 10, Color("1f3f78") if nokta else Color.WHITE)
+	Art.label(r, "7/24 market" if nokta else "indirim marketi", 52, (accent if nokta else Cfg.INK) if not closed else Color("6b6b66"), Vector3(2.6, 3.5, 0.2), 0.0, "display700")
 	if closed:
 		for i in 2:
 			var sh := Art.box(r, Vector3(4.2, 2.5, 0.08), Art.shader_mat("stripes", {"color_a": Color("a7aaae"), "color_b": Color("8d9095"), "count": 18.0}), Vector3(-2.3 + i * 4.6, 1.6, 0.1), 0.0)
@@ -432,16 +437,16 @@ func build_rival(closed: bool) -> void:
 	# glass front with a sliding door, price posters and a cart corral
 	Art.box(r, Vector3(9.0, 2.5, 0.05), Art.glass(Color(0.82, 0.93, 1.0), 0.3), Vector3(0, 1.6, 0.05), 0.0)
 	for sx in [-4.5, -1.5, 1.5, 4.5]: Art.box(r, Vector3(0.1, 2.6, 0.12), Art.mat(Color("8d9095"), 0.4, 0.5), Vector3(sx, 1.6, 0.07), 0.01)
-	var cols := [Color("d6333a"), Color("f5c518"), Color("d6333a")]
-	var posters := ["SÜT", "EKMEK", "DETERJAN"]
+	var cols := [Color("1f3f78"), Color("5fd3a8"), Color("1f3f78")] if nokta else [Color("d6333a"), Color("f5c518"), Color("d6333a")]
+	var posters := ["KOLA", "CİPS", "ÇİKOLATA"] if nokta else ["SÜT", "EKMEK", "DETERJAN"]
 	for i in 3:
 		var px := -3.2 + i * 1.3 + (4.0 if i == 2 else 0.0)
 		Art.box(r, Vector3(1.0, 1.2, 0.03), Art.mat(cols[i], 0.6), Vector3(px, 1.7, 0.1), 0.02)
-		Art.label(r, posters[i], 34, Color.WHITE if i != 1 else Cfg.INK, Vector3(px, 2.05, 0.13), 0.0, "display")
-		Art.label(r, "%%%d" % [15, 12, 18][i], 64, Color.WHITE if i != 1 else Color("d6333a"), Vector3(px, 1.55, 0.13), 0.0, "display")
+		Art.label(r, posters[i], 34 if posters[i].length() < 7 else 26, Color.WHITE if i != 1 else Cfg.INK, Vector3(px, 2.05, 0.13), 0.0, "display")
+		Art.label(r, "%%%d" % [15, 12, 18][i], 64, Color.WHITE if i != 1 else (Color("1f3f78") if nokta else Color("d6333a")), Vector3(px, 1.55, 0.13), 0.0, "display")
 	rival_poster = Art.label(r, "", 40, Cfg.INK, Vector3(1.4, 2.7, 0.14), 0.0, "display")
 	for k in 3:
 		var cart := Node3D.new(); cart.position = Vector3(3.3 + k * 0.28, 0, 0.9); r.add_child(cart)
-		Art.box(cart, Vector3(0.5, 0.35, 0.7), Art.mat(Color("d6333a"), 0.5, 0.3), Vector3(0, 0.6, 0), 0.02)
+		Art.box(cart, Vector3(0.5, 0.35, 0.7), Art.mat(accent, 0.5, 0.3), Vector3(0, 0.6, 0), 0.02)
 		for wx in [-0.2, 0.2]: Art.cyl(cart, 0.05, 0.05, 0.03, Art.mat(Color("2d3348")), Vector3(wx, 0.05, 0.25))
 	Art.stylize(r)

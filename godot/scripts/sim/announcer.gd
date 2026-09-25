@@ -37,7 +37,7 @@ static func pick(g) -> String:
 		"sicak": pools += [HOT, HOT]
 	if g.is_match_time() or g.match_night.get("day", -1) == g.day: pools += [MATCH, MATCH]
 	if g.cat != null and g.cat.adopted: pools.append(CAT)
-	if g.rival.active: pools.append(RIVAL)
+	if g.rival.active: pools.append(RIVAL.map(func(x): return Rival.b(x)))
 	if g.calendar.is_ramazan(g.day): pools += [RAMAZAN, RAMAZAN]
 	if g.calendar.is_bayram(g.day): pools += [BAYRAM, BAYRAM]
 	var empty := ""

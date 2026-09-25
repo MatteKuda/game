@@ -638,7 +638,7 @@ func _sig_panel() -> String:
 			for q in game.quests.active: s5 += str(q["id"]) + str(int(game.quests.progress(game, q) * 20))
 			if game.rival.active: s5 += str(game.rival.lost_today) + str(game.rival.prices) + str(game.prices)
 			return s5
-		"growth": return "%d|%d|%s|%s|%s" % [int(game.money / 100), game.stage, str(game.upgrades.keys()), game.can_expand(), str(game.style)]
+		"growth": return "%d|%d|%s|%s|%s|%s" % [int(game.money / 100), game.stage, str(game.upgrades.keys()), game.can_expand(), str(game.style), str(game.branches.list)]
 		"campaign": return "%s|%s|%s|%d" % [str(game.campaigns.keys()), str(game.discounts + game.multi), str(picks), int(game.money / 100)]
 		"mall":
 			if game.mall == null: return ""
@@ -987,6 +987,45 @@ func _p_finance() -> void:
 		body.add_child(row)
 
 # ---------------------------------------------------------------- growth
+func _branches_section(body: VBoxContainer) -> void:
+	var br = game.branches
+	body.add_child(UIKit.section("Şubeler"))
+	body.add_child(UIKit.wrap(UIKit.label("Köşebaşı büyüdü; şimdi başka mahallelerde şube aç. Şubeler uzaktan yönetilir: yön, müdür ve büyüklük seçersin, her akşam kasalarını bildirirler. Senaryosunu kazandığın mahallede şube %25 ucuz ve daha kalabalık.", 12, Cfg.INK2, "body", 700), 470))
+	for s in br.SITES:
+		var sid: String = s["id"]
+		var b: Dictionary = br.get_branch(sid)
+		var c := UIKit.card(Color.WHITE, 14, Vector4(12, 10, 12, 10), 0)
+		var v := UIKit.vbox(6)
+		var h := UIKit.hbox(8)
+		h.add_child(UIKit.icon(s["icon"], 20, Cfg.TEAL))
+		var tl := UIKit.label(s["name"], 16, Cfg.INK, "body", 900); tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL; h.add_child(tl)
+		if br.known(sid): h.add_child(UIKit.chip(Loc.t("Madalyalı"), Cfg.VIOLET, Color.WHITE, 10))
+		v.add_child(h)
+		if b.is_empty():
+			v.add_child(UIKit.wrap(UIKit.label(s["blurb"], 12, Cfg.INK2, "body", 700), 440))
+			var ob := UIKit.button("Şube aç · " + Cfg.fmt_money(br.open_cost(sid)), "plus", true, true)
+			ob.disabled = game.money < br.open_cost(sid)
+			ob.pressed.connect(func(): if br.open_branch(game, sid): panel_sig = ""; for id in Progress.check(game): _achievement(id))
+			v.add_child(ob)
+		else:
+			v.add_child(UIKit.label(Loc.t("Seviye %d · Puan %.1f · Dün %s · Toplam %s") % [b["level"], b["rating"], Cfg.fmt_money(b["last"]), Cfg.fmt_money(b["total"])], 12, Cfg.INK2, "body", 800))
+			var keys: Array = br.FOCUS.keys()
+			var fh := UIKit.hbox(8)
+			fh.add_child(UIKit.label("Yön", 12, Cfg.INK3, "body", 800))
+			fh.add_child(_seg(keys.map(func(k): return Loc.t(br.FOCUS[k][0])), keys.find(b["focus"]), func(i): br.set_focus(sid, keys[i]); panel_sig = ""))
+			v.add_child(fh)
+			var ah := UIKit.hbox(8)
+			var mg := CheckButton.new(); mg.text = Loc.t("Şube müdürü (₺%d/gün)") % br.MANAGER_WAGE; mg.button_pressed = b["manager"]; mg.focus_mode = Control.FOCUS_NONE
+			mg.toggled.connect(func(on): br.set_manager(sid, on); panel_sig = "")
+			ah.add_child(mg)
+			if int(b["level"]) < 3:
+				var ub := UIKit.button("Büyüt · " + Cfg.fmt_money(br.level_cost(b)), "arrowUp", false, true)
+				ub.disabled = game.money < br.level_cost(b)
+				ub.pressed.connect(func(): br.upgrade(game, sid); panel_sig = "")
+				ah.add_child(ub)
+			v.add_child(ah)
+		c.add_child(v); body.add_child(c)
+
 func _p_growth() -> void:
 	var body := _frame("Gelişim", "Hedefleri tamamla, dükkânı büyüt; yükseltmelerle çekimi ve hızı artır.", "arrowUp", Cfg.MUSTARD.darkened(0.15), 520)
 	var e = game.expansion()
@@ -1017,6 +1056,7 @@ func _p_growth() -> void:
 			b.pressed.connect(func(): if game.expand(): open_panel(""))
 			v.add_child(b)
 		c.add_child(v); body.add_child(c)
+	if game.branches.unlocked(game): _branches_section(body)
 	body.add_child(UIKit.section("Dükkânın rengi (ücretsiz)"))
 	for row in [["wall", "Duvar", ShopShell.WALLS], ["floor", "Zemin", ShopShell.FLOORS], ["awning", "Tente", ShopShell.AWNINGS]]:
 		var h := UIKit.hbox(6)
@@ -1460,6 +1500,16 @@ func _show_day_end(r: Dictionary) -> void:
 			cc2.add_child(vv2); cc2.custom_minimum_size.x = 150
 			g2.add_child(cc2)
 		v.add_child(g2)
+	if not game.branches.list.is_empty():
+		var bc := UIKit.card(Color(0.12, 0.54, 0.52, 0.08), 14, Vector4(12, 8, 12, 8), 0)
+		var bh := UIKit.hbox(8)
+		bh.add_child(UIKit.icon("store", 18, Cfg.TEAL))
+		var parts := []
+		for b in game.branches.list: parts.append("%s %s" % [Loc.t(game.branches.site(b["id"])["name"]), ("+" if int(b["last"]) >= 0 else "") + Cfg.fmt_money(b["last"])])
+		var bl := UIKit.label(Loc.t("Şubeler: %s") % " · ".join(parts), 13, Cfg.INK, "body", 800); bl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		bh.add_child(bl)
+		bh.add_child(UIKit.label(("+" if int(st.get("branch_income", 0)) >= 0 else "") + Cfg.fmt_money(int(st.get("branch_income", 0))), 18, Cfg.GOOD if int(st.get("branch_income", 0)) >= 0 else Cfg.BAD, "display"))
+		bc.add_child(bh); v.add_child(bc)
 	var rh := UIKit.hbox(8); rh.alignment = BoxContainer.ALIGNMENT_CENTER
 	rh.add_child(UIKit.stars(r["rating"], 22)); rh.add_child(UIKit.label("%.2f" % r["rating"], 20, Cfg.INK, "display"))
 	v.add_child(rh)
@@ -1505,7 +1555,7 @@ func _insights(st: Dictionary, ms := {}) -> Array:
 	for pid in exp:
 		if exp[pid] >= 3: out.append(["tag", "%s %d kişiye pahalı geldi." % [DB.product(pid)["name"], exp[pid]]]); break
 	if st.get("rival_lost", 0) >= 5:
-		out.append(["rival", "%d kişi bugün alışverişi karşıdaki UCUZA'da yaptı. Mahalle panelinden (N) fiyatları karşılaştır." % st["rival_lost"]])
+		out.append(["rival", Rival.b("%d kişi bugün alışverişi karşıdaki UCUZA'da yaptı. Mahalle panelinden (N) fiyatları karşılaştır.") % st["rival_lost"]])
 	if st.get("credit", 0) > 0 or st.get("credit_paid", 0) > 0:
 		out.append(["note", "Veresiye: bugün %s deftere yazıldı, %s tahsil edildi. Defterde toplam %s alacak var." % [Cfg.fmt_money(st["credit"]), Cfg.fmt_money(st["credit_paid"]), Cfg.fmt_money(game.neighborhood.total_debt())]])
 	if out.is_empty(): out.append(["heart", "Sakin bir gün. Müşteriler aradığını buldu."])
