@@ -105,6 +105,21 @@ func _ready() -> void:
 			var ev := NeighborEvents.roll(game)
 			if not ev.is_empty(): game.neighbor_events.append(ev)
 		game.events_changed.emit()
+	if args.has("bot"):
+		hud.start()
+		var bot := AutoPlayer.new(game)
+		var t0 := Time.get_ticks_msec()
+		for d in int(args["bot"]):
+			for i in 20000:
+				if game.day_ended_flag: break
+				game.tick(1.0 / 30.0)
+				bot.tick()
+			var st: Dictionary = game.stats
+			print("BOT day %d stage %d money %d rev %d served %d happy_tot %d rating %.2f lost %d rival %d  |%s" % [game.day, game.stage, int(game.money), st["revenue"], st["served"], game.totals["happy"], game.rating, st["lost"], st["rival_lost"], " ".join(bot.log.slice(-6))])
+			bot.log.clear()
+			if game.day_ended_flag: game.start_next_day()
+		print("BOT stage_times=", bot.stage_times, " cpu_s=", (Time.get_ticks_msec() - t0) / 1000.0)
+		if DisplayServer.get_name() == "headless": get_tree().quit()
 	if args.has("econ"):
 		if args.has("stocker"): game.hire({"role": "stocker", "name": "Can", "wage": 260, "skill": 1.0}, true)
 		if args.has("veresiye"): game.neighborhood.mode = args["veresiye"]
