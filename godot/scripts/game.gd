@@ -41,6 +41,9 @@ var orders: Array = [] # [{pid, qty, eta, urgent}]
 ## the wholesaler's single daily round comes right after opening; the auto-order is placed at 18:00
 const DELIVERY_AT := Cfg.DAY_OPEN + 5
 const AUTO_ORDER_AT := 18 * 60
+## midday round: at 11:00 the wholesaler takes a top-up order for products that won't last the day
+const MIDDAY_ORDER_AT := 11 * 60
+const MIDDAY_DELIVERY := 13 * 60
 const URGENT_FEE := 1.25
 var last_sold := {} # yesterday's units per product
 ## mahalle olayları waiting for the player's decision
@@ -683,7 +686,7 @@ func set_price(pid: String, p: int) -> void:
 
 func next_delivery() -> float: return (day + 1) * 1440.0 + DELIVERY_AT
 
-func order(pid: String, qty: int, is_auto := false, urgent := false) -> bool:
+func order(pid: String, qty: int, is_auto := false, urgent := false, eta_at := -1.0) -> bool:
 	var p := DB.product(pid)
 	var room := depot_capacity() - backstock_total() - incoming_total()
 	if room <= 0:
@@ -701,6 +704,7 @@ func order(pid: String, qty: int, is_auto := false, urgent := false) -> bool:
 	var eta := next_delivery()
 	if strike_day == day + 1: eta += 7.0 * 60.0
 	if urgent and clock + 60.0 < Cfg.DAY_CLOSE: eta = abs_minutes() + 60.0
+	if eta_at >= 0.0: eta = eta_at
 	for o in orders:
 		if o["pid"] == pid and o["eta"] == eta:
 			o["qty"] += qty; changed.emit(); return true
@@ -1125,6 +1129,34 @@ func answer_event(id: int, choice: int) -> void:
 	events_changed.emit(); changed.emit()
 
 ## one evening order for tomorrow's round: a day of sales plus a shelf refill, within the depot
+## 11:00 top-up: from this morning's pace, what would run out before closing comes at 13:00
+## (regular price, same fair sharing of depot room as the evening order)
+func midday_order() -> void:
+	var oven := has_oven()
+	var hours_gone := maxf(1.0, (clock - Cfg.DAY_OPEN) / 60.0)
+	var hours_left := (Cfg.DAY_CLOSE - MIDDAY_DELIVERY) / 60.0
+	var wants := {}
+	var total_need := 0
+	for p in unlocked_products():
+		var pid: String = p["id"]
+		if not auto[pid] or not is_stocked(pid) or (oven and DB.BAKERY.has(pid)): continue
+		var pace := (float(stats["sold"].get(pid, 0)) + float(stats["missed"].get(pid, 0)) * 0.5) / hours_gone
+		# still needed after 13:00, on top of what is in the depot and on the shelves until then
+		var need := int(ceil(pace * hours_left * 1.1)) - int(backstock[pid]) - incoming(pid) - maxi(0, shelf_stock(pid) - int(pace * 2.0))
+		if need >= 6: wants[pid] = need; total_need += need
+	if wants.is_empty(): return
+	var room := depot_capacity() - backstock_total() - incoming_total()
+	var share := minf(1.0, float(room) / maxf(1.0, float(total_need)))
+	var eta := day * 1440.0 + MIDDAY_DELIVERY
+	var lines := []
+	for pid in wants:
+		var q := int(wants[pid] * share) / 6 * 6
+		q = mini(q, depot_capacity() - backstock_total() - incoming_total())
+		if q < 6: continue
+		if order(pid, q, true, false, eta): lines.append("%s ×%d" % [DB.product(pid)["name"], q])
+	if not lines.is_empty():
+		alert("midorder", "truck", "Öğle turu: bitmek üzere olanlar 13:00'te geliyor: %s%s" % [", ".join(lines.slice(0, 5)), "…" if lines.size() > 5 else ""], "info", null, 0.0)
+
 func auto_order() -> void:
 	var oven := has_oven()
 	# with an oven, keep depot room free for fresh bread instead of filling it with wholesale stock
@@ -1431,6 +1463,7 @@ func tick(dt: float) -> void:
 		if dry >= 3 and empty_hits >= 20:
 			alert("depodry", "box", "Depo akşam olmadan boşaldı, raflar gün içinde boş kaldı. Bir Depo Rafı daha ekle (İnşa → Kasa & Depo): otomatik sipariş yarından itibaren daha çok getirir. Az satan ürünler depoda yer kaplıyorsa Ürünler'den kaldır.", "warn", null, 0.0)
 		auto_order()
+	if prev < MIDDAY_ORDER_AT and clock >= MIDDAY_ORDER_AT: midday_order()
 	_update_neighbor_events()
 	_status_acc += dt
 	if _status_acc > 0.25:

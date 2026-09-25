@@ -1399,3 +1399,11 @@ Büyüt · %s ⟶ Expand · $1
 %s şubesinde dolap bozuldu, mal çöpe gitti: −₺%d. Bir şube müdürü bunları azaltır. ⟶ A fridge broke down at the $1 branch and stock was thrown away: −₺$2. A branch manager makes this rarer.
 %s şubesinde dolap bozuldu, mal çöpe gitti: −₺%d. ⟶ A fridge broke down at the $1 branch and stock was thrown away: −₺$2.
 %s şubesi rekor kırdı: +₺%d. ⟶ The $1 branch set a record: +₺$2.
+Öğle turu: bitmek üzere olanlar 13:00'te geliyor: %s ⟶ Midday round: items about to run out arrive at 13:00: $1
+Öğle turu: bitmek üzere olanlar 13:00'te geliyor: %s… ⟶ Midday round: items about to run out arrive at 13:00: $1…
+yarın ⟶ tomorrow
+Yolda %d birim · %s ⟶ $1 units on the way · $2
+Rafta ⟶ On shelf
+Yolda ⟶ On the way
+Otomatik sipariş iki tur: 11:00'de öğle turu (13:00'te gelir) ve 18:00'de ertesi sabahın siparişi. Depo akşam azalır, sabah dolar. ⟶ Auto-orders come in two rounds: the midday round at 11:00 (arrives at 13:00) and the evening order at 18:00 for the next morning. The stockroom runs low in the evening and fills up in the morning.
+Ürün ⟶ Product

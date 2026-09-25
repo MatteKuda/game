@@ -117,7 +117,9 @@ func setup(g: Game, t: Thumbs) -> void:
 	game.events_changed.connect(_render_events)
 	radio = UIKit.card(Color(0.12, 0.16, 0.27, 0.92), 14, Vector4(12, 7, 14, 7), 8)
 	radio.anchor_left = 0.5; radio.anchor_right = 0.5; radio.anchor_top = 1.0; radio.anchor_bottom = 1.0
-	radio.offset_top = -150; radio.offset_left = -330; radio.offset_right = 330
+	# sits just above the dock and grows upwards with longer lines (never covers the dock buttons)
+	radio.offset_bottom = -112; radio.offset_top = -112; radio.offset_left = -330; radio.offset_right = 330
+	radio.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	radio.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var rh := UIKit.hbox(10)
 	var rb := PanelContainer.new(); rb.add_theme_stylebox_override("panel", UIKit.sb(Cfg.TERRA, 8, Color(0, 0, 0, 0), 0, 0, Vector4(6, 3, 6, 3)))
@@ -1242,6 +1244,27 @@ func _insp_fixture(v: VBoxContainer, f: Fixture) -> void:
 		elif game.stage >= 1 and not game.has_cold_room(): b.add_child(UIKit.wrap(UIKit.label("Soğuk oda yok: depodaki soğuk ürünlerin %30'u her gece bozulur.", 12, Cfg.WARN, "body", 800), 310))
 		b.add_child(UIKit.label("%d / %d birim dolu" % [game.backstock_total(), game.depot_capacity()], 16, Cfg.INK, "display"))
 		b.add_child(UIKit.bar(float(game.backstock_total()) / maxf(1, game.depot_capacity()), Cfg.BLUE, 0, 8))
+		# what is where: depot, on the shelves, on the way (evening order arrives in the morning)
+		var inc := game.incoming_total()
+		if inc > 0:
+			var next := 1e12
+			for o in game.orders: next = minf(next, float(o["eta"]))
+			var when: String = Cfg.clock_str(fmod(next, 1440.0)) if int(next / 1440.0) == game.day else Loc.t("yarın") + " " + Cfg.clock_str(fmod(next, 1440.0))
+			b.add_child(UIKit.label(Loc.t("Yolda %d birim · %s") % [inc, when], 13, Cfg.TEAL, "body", 800))
+		var tbl := GridContainer.new(); tbl.columns = 4
+		tbl.add_theme_constant_override("h_separation", 10); tbl.add_theme_constant_override("v_separation", 2)
+		for hd in ["Ürün", "Depo", "Rafta", "Yolda"]: tbl.add_child(UIKit.label(hd, 11, Cfg.INK3, "body", 800))
+		for p in game.unlocked_products():
+			var pid: String = p["id"]
+			if not game.is_stocked(pid): continue
+			var dep := int(game.backstock[pid])
+			var nl := UIKit.label(p["name"], 12, Cfg.INK, "body", 700); nl.custom_minimum_size.x = 120; tbl.add_child(nl)
+			tbl.add_child(UIKit.label(str(dep), 12, Cfg.BAD if dep == 0 else Cfg.INK, "body", 900))
+			tbl.add_child(UIKit.label(str(game.shelf_stock(pid)), 12, Cfg.INK2, "body", 700))
+			var w := game.incoming(pid)
+			tbl.add_child(UIKit.label("+%d" % w if w > 0 else "–", 12, Cfg.TEAL if w > 0 else Cfg.INK3, "body", 800))
+		b.add_child(tbl)
+		b.add_child(UIKit.wrap(UIKit.label("Otomatik sipariş iki tur: 11:00'de öğle turu (13:00'te gelir) ve 18:00'de ertesi sabahın siparişi. Depo akşam azalır, sabah dolar.", 11, Cfg.INK3, "body", 700), 310))
 	var acts := UIKit.hbox(6)
 	var mv := UIKit.button("Taşı", "move", false, true); mv.pressed.connect(func(): game.start_placement(d["id"], f); open_panel("build"))
 	if d.get("display", "") == "basket": _evening_toggle(b)
