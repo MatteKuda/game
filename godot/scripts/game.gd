@@ -36,7 +36,19 @@ var rating := 3.0
 var prices := {}
 var auto := {}
 var backstock := {}
-var orders: Array = [] # [{pid, qty, eta}]
+var orders: Array = [] # [{pid, qty, eta, urgent}]
+## the wholesaler's single daily round comes right after opening; the auto-order is placed at 18:00
+const DELIVERY_AT := Cfg.DAY_OPEN + 5
+const AUTO_ORDER_AT := 18 * 60
+const URGENT_FEE := 1.25
+var last_sold := {} # yesterday's units per product
+## mahalle olayları waiting for the player's decision
+signal events_changed()
+var neighbor_events: Array = []
+var match_night := {}
+var inspection_at := 0.0
+var praise_until := 0.0
+var _next_event_at := 1440.0 + Cfg.DAY_OPEN + 60.0
 var fixtures: Array = []
 var customers: Array = []
 var staff: Array = []
@@ -102,7 +114,7 @@ func _ready() -> void:
 	_add("kasa", 19, 12, 1)
 	_add("saksi", 18, 15, 0)
 	_add("cop", 25, 15, 0)
-	for pid in ["cips", "biskuvi", "cikolata", "kola", "ayran", "simit", "ekmek"]: backstock[pid] = 8
+	for pid in ["cips", "biskuvi", "cikolata", "kola", "ayran", "simit", "ekmek"]: backstock[pid] = 24
 	hire({"role": "owner", "name": "Kemal Usta", "wage": 0, "skill": 1.1}, true)
 	roll_candidates()
 	refresh_all()
@@ -196,8 +208,9 @@ func effective_price(pid: String) -> int:
 	if is_discounted(pid): p = int(round(p * 0.85))
 	if evening_sale(pid): p = int(round(p * 0.6))
 	return p
+func is_match_time() -> bool: return match_night.get("day", -1) == day and clock >= NeighborEvents.MATCH_FROM and clock < Cfg.DAY_CLOSE
 func demand_mul(pid: String) -> float:
-	return (1.8 if is_discounted(pid) else 1.0) * (1.5 if is_multi(pid) else 1.0) * (1.5 if campaigns.has("tadim") and (pid == "simit" or pid == "ekmek" or pid == "peynir") else 1.0)
+	return (2.5 if is_match_time() and (pid == "kola" or pid == "cips") else 1.0) * (1.8 if is_discounted(pid) else 1.0) * (1.5 if is_multi(pid) else 1.0) * (1.5 if campaigns.has("tadim") and (pid == "simit" or pid == "ekmek" or pid == "peynir") else 1.0)
 func has_cold_room() -> bool: return fixtures.any(func(f): return f.def.get("cold", false))
 ## freshness of the bakery goods a customer would pick from this slot
 func slot_fresh(s: Dictionary) -> float: return float(s.get("fresh", 1.0))
@@ -597,22 +610,28 @@ func set_price(pid: String, p: int) -> void:
 	refresh_all()
 	changed.emit()
 
-func order(pid: String, qty: int, is_auto := false) -> bool:
+func next_delivery() -> float: return (day + 1) * 1440.0 + DELIVERY_AT
+
+func order(pid: String, qty: int, is_auto := false, urgent := false) -> bool:
 	var p := DB.product(pid)
 	var room := depot_capacity() - backstock_total() - incoming_total()
 	if room <= 0:
 		alert("depofull", "box", ("Depo dolu: otomatik sipariş (%s) verilemedi. Depo rafı ekle ya da yavaş satan ürünü azalt." % p["name"]) if is_auto else "Depo dolu — sipariş verilemedi. Depo rafı ekleyin.", "warn", null, 120.0 if is_auto else 45.0)
 		return false
 	qty = mini(qty, room)
-	var cost: int = qty * int(p["cost"])
+	var cost: int = int(round(qty * int(p["cost"]) * (URGENT_FEE if urgent else 1.0)))
 	if money < cost:
 		alert("nomoney", "wallet", "Sipariş için yeterli nakit yok.", "bad")
 		return false
 	money -= cost
 	stats["purchases"] += cost
-	var eta := abs_minutes() + 50.0
-	if clock + 50.0 >= Cfg.DAY_CLOSE: eta = (day + 1) * 1440.0 + Cfg.DAY_OPEN + 20.0
-	orders.append({"pid": pid, "qty": qty, "eta": eta})
+	# regular orders ride on tomorrow morning's round; urgent ones come by a separate van within the hour
+	var eta := next_delivery()
+	if urgent and clock + 60.0 < Cfg.DAY_CLOSE: eta = abs_minutes() + 60.0
+	for o in orders:
+		if o["pid"] == pid and o["eta"] == eta:
+			o["qty"] += qty; changed.emit(); return true
+	orders.append({"pid": pid, "qty": qty, "eta": eta, "urgent": urgent})
 	changed.emit()
 	return true
 
@@ -967,8 +986,67 @@ func float_text(pos: Vector3, text: String, col: Color) -> void:
 	overlays.float_text(pos, text, col)
 
 # ------------------------------------------------------------------ spawning
+# ------------------------------------------------------------------ mahalle olayları
+func _update_neighbor_events() -> void:
+	var now := abs_minutes()
+	if is_open() and now >= _next_event_at and neighbor_events.size() < 2 and clock < 20 * 60:
+		var ev := NeighborEvents.roll(self)
+		if not ev.is_empty():
+			neighbor_events.append(ev); events_changed.emit(); GameAudio.play("bell", -6.0)
+		_next_event_at = now + 150.0 + randf() * 150.0
+	var n := neighbor_events.size()
+	neighbor_events = neighbor_events.filter(func(e): return e["expires"] > now)
+	if neighbor_events.size() != n: events_changed.emit()
+	if inspection_at > 0.0 and now >= inspection_at:
+		inspection_at = 0.0
+		var dirt := litter.filter(func(l): return l["lvl"] == 0).size()
+		var empty := 0
+		for f in fixtures:
+			for s in f.slots:
+				if s["pid"] != "" and int(s["stock"]) == 0: empty += 1
+		if dirt + empty == 0:
+			rating = minf(5.0, rating + 0.15)
+			alert("inspect", "star", "Zabıta denetimi: dükkân tertemiz, raflar dolu. Puanın yükseldi!", "good", null, 0.0)
+		else:
+			var fine := 150 * dirt + 100 * empty
+			money -= fine; stats["other"] += fine
+			alert("inspect", "angry", "Zabıta denetimi: %d çöp, %d boş raf bölmesi. ₺%d ceza." % [dirt, empty, fine], "bad", null, 0.0)
+
+func answer_event(id: int, choice: int) -> void:
+	var ev = null
+	for e in neighbor_events: if e["id"] == id: ev = e
+	if ev == null or choice >= ev["choices"].size() or ev["choices"][choice].get("disabled", false): return
+	neighbor_events.erase(ev)
+	var msg := NeighborEvents.resolve(self, ev, choice)
+	if msg != "": alert("event%d" % id, "star", msg, "good", null, 0.0)
+	events_changed.emit(); changed.emit()
+
+## one evening order for tomorrow's round: a day of sales plus a shelf refill, within the depot
+func auto_order() -> void:
+	var oven := has_oven()
+	# with an oven, keep depot room free for fresh bread instead of filling it with wholesale stock
+	var reserve := 24 if oven else 0
+	var stocked_n := maxi(1, unlocked_products().filter(func(p): return is_stocked(p["id"]) and not (oven and DB.BAKERY.has(p["id"]))).size())
+	var fair := maxi(12, int((depot_capacity() - reserve) / stocked_n * 1.3))
+	var lines := []
+	for p in unlocked_products():
+		var pid: String = p["id"]
+		if not auto[pid] or not is_stocked(pid) or (oven and DB.BAKERY.has(pid)): continue # own oven bakes the bread
+		var sold := maxi(int(last_sold.get(pid, 0)), int(stats["sold"].get(pid, 0)))
+		var target := mini(fair, maxi(shelf_cap(pid) * 2, int(round(sold * 1.25))))
+		var have := int(backstock[pid]) + incoming(pid)
+		var room := depot_capacity() - reserve - backstock_total() - incoming_total()
+		if have < target and room >= 4:
+			var q := mini(room, ceili((target - have) / 6.0) * 6)
+			if order(pid, q, true): lines.append("%s ×%d" % [p["name"], q])
+	if not lines.is_empty():
+		alert("autoorder", "box", "Yarın sabahki teslimat için otomatik sipariş verildi: %s%s" % [", ".join(lines.slice(0, 5)), "…" if lines.size() > 5 else ""], "info", null, 0.0)
+
 func _attract() -> float:
 	var a := 0.55 + (rating / 5.0) * 0.75
+	if stage == 0: a *= 1.35 # the büfe needs a busier street to be worth playing
+	if abs_minutes() < praise_until: a *= 1.2
+	if is_match_time(): a *= 1.55 if match_night.get("poster", false) else 1.2
 	if upgrades.has("neon"): a *= 1.45 if hour() > 18.0 else 1.15
 	if upgrades.has("tente"): a *= 1.1
 	if stage >= 1: a *= 1.3
@@ -1179,23 +1257,8 @@ func tick(dt: float) -> void:
 		van["cargo"] = due
 		orders = orders.filter(func(o): return not due.has(o))
 		van["state"] = "arriving"; van["x"] = -32.0
-	_auto_acc += dt * Cfg.MIN_PER_SEC
-	if _auto_acc > 30.0:
-		_auto_acc = 0.0
-		var oven := has_oven()
-		# with an oven, keep depot room free for fresh bread instead of filling it with wholesale stock
-		var reserve := 24 if oven else 0
-		var stocked_n := maxi(1, unlocked_products().filter(func(p): return is_stocked(p["id"]) and not (oven and (p["id"] == "simit" or p["id"] == "ekmek"))).size())
-		var fair := maxi(8, int((depot_capacity() - reserve) / stocked_n * 1.4))
-		if clock < Cfg.DAY_CLOSE - 60 and backstock_total() + incoming_total() < depot_capacity() - reserve:
-			for p in unlocked_products():
-				var pid: String = p["id"]
-				if not auto[pid] or not is_stocked(pid): continue
-				if (pid == "simit" or pid == "ekmek") and has_oven(): continue
-				var have := int(backstock[pid]) + incoming(pid)
-				var target := mini(fair, maxi(12, int(round(shelf_cap(pid) * 1.2))))
-				var room := depot_capacity() - reserve - backstock_total() - incoming_total()
-				if have < target * 0.5 and room >= 4: order(pid, mini(room, ceili((target - have) / 6.0) * 6), true)
+	if prev < AUTO_ORDER_AT and clock >= AUTO_ORDER_AT: auto_order()
+	_update_neighbor_events()
 	_status_acc += dt
 	if _status_acc > 0.25:
 		_status_acc = 0.0
@@ -1273,6 +1336,7 @@ func _update_van(dt: float) -> void:
 
 func end_day() -> void:
 	if day_ended_flag: return
+	last_sold = (stats["sold"] as Dictionary).duplicate()
 	for c in customers:
 		if c.inside():
 			if c.register: c.register.queue.erase(c)
@@ -1339,6 +1403,8 @@ func _morning_bread() -> void:
 	refresh_all()
 
 func start_next_day() -> void:
+	neighbor_events = []; events_changed.emit()
+	_next_event_at = (day + 1) * 1440.0 + Cfg.DAY_OPEN + 50.0 + randf() * 90.0
 	day += 1
 	clock = float(Cfg.DAY_OPEN)
 	stats = new_stats()

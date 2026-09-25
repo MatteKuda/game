@@ -48,6 +48,8 @@ var welcome: Control
 var menu: Control
 var menu_page := "main"
 var toast: PanelContainer
+var events_box: VBoxContainer
+var event_bars := {} # event id -> ColorRect fill
 var started := false
 var _acc := 0.0
 var _press_pos := Vector2.ZERO
@@ -90,6 +92,13 @@ func setup(g: Game, t: Thumbs) -> void:
 	tooltip_lbl.add_theme_font_size_override("normal_font_size", 13); tooltip_lbl.add_theme_font_size_override("bold_font_size", 17)
 	tooltip.add_child(tooltip_lbl); tooltip.visible = false; root.add_child(tooltip)
 	modal = Control.new(); modal.set_anchors_preset(Control.PRESET_FULL_RECT); modal.visible = false; root.add_child(modal)
+	events_box = UIKit.vbox(8)
+	events_box.anchor_left = 0.5; events_box.anchor_right = 0.5
+	events_box.offset_left = -220; events_box.offset_right = 220; events_box.offset_top = 92
+	events_box.custom_minimum_size = Vector2(440, 0)
+	events_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(events_box)
+	game.events_changed.connect(_render_events)
 	game.alert_added.connect(func(_a): _render_alerts())
 	game.selection_changed.connect(func(): slot_picker = -1; insp_sig = ""; _render_inspector())
 	game.day_ended.connect(_show_day_end)
@@ -132,8 +141,8 @@ func _build_top() -> void:
 	# time
 	var tp := _pill(Color("fffaf2"))
 	tp.anchor_left = 0.5; tp.anchor_right = 0.5
-	tp.offset_left = -190; tp.offset_right = 190; tp.offset_top = 16
-	tp.custom_minimum_size = Vector2(380, 0)
+	tp.offset_left = -240; tp.offset_right = 240; tp.offset_top = 16
+	tp.custom_minimum_size = Vector2(480, 0)
 	var th := UIKit.hbox(10)
 	th.alignment = BoxContainer.ALIGNMENT_CENTER
 	sun_icon = UIKit.icon("sun", 22, Cfg.MUSTARD)
@@ -147,12 +156,12 @@ func _build_top() -> void:
 	tv.add_child(day_prog)
 	th.add_child(tv)
 	var sp := UIKit.hbox(4)
-	for v in [[0.0, "pause", "Duraklat (Boşluk)"], [1.0, "play", "Normal (1)"], [2.0, "fast", "Hızlı (2)"], [4.0, "fast", "Çok hızlı (3)"]]:
+	for v in [[0.0, "pause", "Duraklat (Boşluk)"], [1.0, "play", "Normal (1)"], [2.0, "fast", "Hızlı (2)"], [4.0, "fast", "Çok hızlı (3)"], [8.0, "fast", "Süper hızlı (4)"], [16.0, "fast", "Işık hızı (5)"]]:
 		var b := Button.new()
 		b.icon = UIKit.icon_tex(v[1]); b.tooltip_text = v[2]; b.focus_mode = Control.FOCUS_NONE
 		b.custom_minimum_size = Vector2(38, 34)
 		b.add_theme_constant_override("icon_max_width", 16)
-		if v[0] == 4.0: b.text = "4"; b.add_theme_font_size_override("font_size", 10)
+		if v[0] >= 4.0: b.text = str(int(v[0])); b.add_theme_font_size_override("font_size", 10)
 		var val: float = v[0]
 		b.pressed.connect(func(): set_speed(val))
 		sp.add_child(b); speed_btns.append(b)
@@ -263,6 +272,9 @@ func _process(dt: float) -> void:
 	var prog := clampf((game.clock - Cfg.DAY_OPEN) / float(Cfg.DAY_CLOSE - Cfg.DAY_OPEN), 0, 1)
 	(day_prog.get_child(0) as Control).anchor_right = prog
 	money_lbl.text = Cfg.fmt_money(game.money)
+	for ev in game.neighbor_events:
+		var bar = event_bars.get(ev["id"])
+		if bar and is_instance_valid(bar): (bar as Control).anchor_right = clampf((ev["expires"] - game.abs_minutes()) / 60.0, 0.0, 1.0)
 	var profit: int = game.stats["revenue"] - game.stats["purchases"] - game.stats["other"]
 	money_delta.text = "bugün %s%s" % ["+" if profit >= 0 else "", Cfg.fmt_money(profit)]
 	rating_lbl.text = "%.1f" % game.rating
@@ -272,7 +284,7 @@ func _process(dt: float) -> void:
 	for f in game.fixtures: qn += f.queue.size()
 	inside_lbl.text = "%d%s" % [game.customers_inside(), ("  · kuyruk %d" % qn) if qn > 0 else ""]
 	for i in speed_btns.size():
-		var on: bool = (game.paused and i == 0) or (not game.paused and [0.0, 1.0, 2.0, 4.0][i] == game.speed)
+		var on: bool = (game.paused and i == 0) or (not game.paused and [0.0, 1.0, 2.0, 4.0, 8.0, 16.0][i] == game.speed)
 		speed_btns[i].add_theme_stylebox_override("normal", UIKit.sb(Cfg.INK if on else Color(1, 1, 1, 0), 10, Color(0, 0, 0, 0), 0, 0, Vector4(6, 4, 6, 4)))
 		speed_btns[i].add_theme_color_override("icon_normal_color", Color.WHITE if on else Cfg.INK2)
 		speed_btns[i].add_theme_color_override("font_color", Color.WHITE if on else Cfg.INK2)
@@ -549,7 +561,7 @@ func _p_products() -> void:
 # ---------------------------------------------------------------- supply
 func _p_supply() -> void:
 	var cap := game.depot_capacity()
-	var body := _frame("Tedarik", "Depo: %d / %d birim · yolda %d. Toptancı minibüsü ~50 oyun dakikasında gelir." % [game.backstock_total(), cap, game.incoming_total()], "truck", Cfg.BLUE, 640)
+	var body := _frame("Tedarik", "Depo: %d / %d birim · yolda %d. Toptancı her sabah açılışta bir kez gelir; verdiğin siparişler ertesi sabah teslim edilir. Oto: her akşam 18:00'de yarının ihtiyacını sipariş eder. Acil sipariş 1 saatte gelir ama %%25 pahalıdır." % [game.backstock_total(), cap, game.incoming_total()], "truck", Cfg.BLUE, 720)
 	body.add_child(UIKit.bar(float(game.backstock_total() + game.incoming_total()) / maxf(1, cap), Cfg.BLUE, 0, 8))
 	for p in game.unlocked_products():
 		var pid: String = p["id"]
@@ -560,12 +572,17 @@ func _p_supply() -> void:
 		nv.add_child(UIKit.label(p["name"], 15, Cfg.INK, "body", 800))
 		nv.add_child(UIKit.label("depoda %d · rafta %d · yolda %d" % [game.backstock[pid], game.shelf_stock(pid), game.incoming(pid)], 11, Cfg.INK3, "body", 700))
 		row.add_child(nv)
-		for q in [6, 12, 24]:
+		for q in [12, 24, 48]:
 			var b := UIKit.button("+%d" % q, "", false, true)
-			b.tooltip_text = "₺%d" % (q * p["cost"])
+			b.tooltip_text = "₺%d · yarın sabahki teslimatla gelir" % (q * p["cost"])
 			var qq: int = q
 			b.pressed.connect(func(): game.order(pid, qq))
 			row.add_child(b)
+		var ub := UIKit.button("Acil +12", "", false, true)
+		ub.tooltip_text = "₺%d · 1 saat içinde ayrı minibüsle gelir (%%25 pahalı)" % int(round(12 * p["cost"] * 1.25))
+		ub.add_theme_color_override("font_color", Cfg.TERRA)
+		ub.pressed.connect(func(): game.order(pid, 12, false, true))
+		row.add_child(ub)
 		var tg := CheckButton.new(); tg.text = "Oto"; tg.button_pressed = game.auto[pid]; tg.focus_mode = Control.FOCUS_NONE
 		tg.add_theme_font_size_override("font_size", 12)
 		tg.toggled.connect(func(on): game.auto[pid] = on)
@@ -954,6 +971,8 @@ func _key(k: InputEventKey) -> void:
 		KEY_1: set_speed(1.0)
 		KEY_2: set_speed(2.0)
 		KEY_3: set_speed(4.0)
+		KEY_4: set_speed(8.0)
+		KEY_5: set_speed(16.0)
 		KEY_B: toggle_panel("build")
 		KEY_P: toggle_panel("products")
 		KEY_T: toggle_panel("supply")
@@ -1618,3 +1637,44 @@ func _toast(text: String) -> void:
 	var vs := root.get_viewport_rect().size / root.get_viewport().get_final_transform().get_scale()
 	toast.position = Vector2((vs.x - toast.size.x) * 0.5, 110)
 	var tw := toast.create_tween(); tw.tween_interval(1.8); tw.tween_property(toast, "modulate:a", 0.0, 0.4); tw.tween_callback(toast.queue_free)
+
+# ================================================================== mahalle olayları
+func _render_events() -> void:
+	UIKit.clear(events_box)
+	event_bars.clear()
+	for ev in game.neighbor_events:
+		var c := PanelContainer.new()
+		var st := UIKit.sb(Color(1.0, 0.98, 0.95, 0.97), 16, Cfg.MUSTARD, 0, 12, Vector4(14, 12, 14, 12))
+		st.border_width_top = 5; st.border_color = Cfg.MUSTARD
+		c.add_theme_stylebox_override("panel", st)
+		c.mouse_filter = Control.MOUSE_FILTER_STOP
+		var v := UIKit.vbox(6)
+		var h := UIKit.hbox(8)
+		var ib := PanelContainer.new(); ib.add_theme_stylebox_override("panel", UIKit.sb(Cfg.MUSTARD, 10, Color(0, 0, 0, 0), 0, 0, Vector4(6, 6, 6, 6)))
+		ib.add_child(UIKit.icon(ev["icon"], 18, Color.WHITE)); h.add_child(ib)
+		var tl := UIKit.label(ev["title"], 18, Cfg.INK, "display"); tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		h.add_child(tl)
+		var tag := UIKit.label("MAHALLE", 11, Cfg.TEAL, "body", 900); tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		h.add_child(tag)
+		v.add_child(h)
+		v.add_child(UIKit.wrap(UIKit.label(ev["text"], 13, Cfg.INK2, "body", 700), 410))
+		var track := ColorRect.new(); track.color = Color(0.12, 0.16, 0.27, 0.08); track.custom_minimum_size = Vector2(0, 4)
+		var fill := ColorRect.new(); fill.color = Cfg.TERRA; fill.anchor_bottom = 1.0; fill.anchor_right = 1.0
+		track.add_child(fill); v.add_child(track)
+		event_bars[ev["id"]] = fill
+		var bh := UIKit.hbox(6)
+		var eid: int = ev["id"]
+		for i in ev["choices"].size():
+			var ch: Dictionary = ev["choices"][i]
+			var txt: String = ch["label"] + ((" · " + ch["hint"]) if ch.get("hint", "") != "" else "")
+			var b := UIKit.button(txt, "", ch.get("primary", false), true)
+			b.disabled = ch.get("disabled", false)
+			var ii: int = i
+			b.pressed.connect(func(): game.answer_event(eid, ii))
+			bh.add_child(b)
+		v.add_child(bh)
+		c.add_child(v)
+		events_box.add_child(c)
+		c.modulate.a = 0.0
+		c.create_tween().tween_property(c, "modulate:a", 1.0, 0.25)

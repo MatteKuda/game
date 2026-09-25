@@ -53,7 +53,7 @@ Mac ve Linux için de aynı adımları izle; 2. adımda kendi işletim sistemini
 | `M` · `G` | Akış ısı haritası · Güvenlik katmanı (kamera ve güvenlik görevlisinin görmediği kör noktalar kırmızı) |
 | `PageUp` `PageDown` (ya da `]` `[`) | AVM'de kat değiştir. Dock'taki kat düğmesi de aynı işi yapar |
 | `R` | Yerleştirirken döndür. `Shift`+tık: arka arkaya yerleştir. Sağ tık / `Esc`: iptal |
-| `Boşluk` · `1` `2` `3` | Duraklat · 1× / 2× / 4× hız |
+| `Boşluk` · `1` `2` `3` `4` `5` | Duraklat · 1× / 2× / 4× / 8× / 16× hız |
 | `C` | Kesik duvar görünümünü aç/kapat |
 | `Esc` | Açık paneli / seçimi kapatır; hiçbiri yoksa menüyü açar (Kaydet, Yükle, Ayarlar) |
 | Dokunmatik ekran | Tek parmakla kaydır, iki parmakla yakınlaştır ve döndür |
@@ -122,7 +122,8 @@ Dört aşamanın dördü de oynanabilir: **Büfe → Mahalle Marketi → Süperm
 - **Ortak sistemler:**
   - 15 ürün, 26 eşya ve 6 müşteri arketipi.
   - Personel rolleri: kasiyer, reyon görevlisi, temizlik, güvenlik, fırıncı ve teknisyen.
-  - Tedarik ve toptancı minibüsü.
+  - Tedarik: toptancı günde bir kez, sabah 07:05'te gelir. Saat 18:00'de o günkü satışa göre ertesi sabahın siparişi kendiliğinden verilir. Gün içinde lazım olursa **Acil +12** (%25 fazlasına, 1 saatte gelir) var. Depolar büyük: büfe deposu 240, market depo odası 600 ürün alır.
+  - **Mahalle olayları:** günde 2–3 kez ekranın üstünde bir kart çıkar ve senden karar ister. Toptancı fırsatı (%30–40 indirimli parti), apartmana toplu sipariş (%20 fazlası ödenir), derbi akşamı (kola/cips talebi 2,5 kat, afiş asarsan +%30 müşteri), zabıta denetimi (çöp ve boş raf cezası ya da puan) ve muhtarın övgüsü.
   - Gün sonu raporu: hırsızlık, kayma, yorgunluk ve AVM satırlarıyla, tavsiyelerle birlikte.
   - 9 yükseltme; uyarılar, ısı haritası, fare üstü bilgiler.
 - **Kayıt ve ayarlar:**

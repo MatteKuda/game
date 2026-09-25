@@ -80,6 +80,31 @@ func _ready() -> void:
 		var c: PackedStringArray = args["cam"].split(",")
 		game.rig.focus(float(c[0]), float(c[1]), float(c[2]))
 	if args.has("menu"): hud.open_menu(args["menu"])
+	if args.has("nev"):
+		for i in 2:
+			var ev := NeighborEvents.roll(game)
+			if not ev.is_empty(): game.neighbor_events.append(ev)
+		game.events_changed.emit()
+	if args.has("econ"):
+		if args.has("stocker"): game.hire({"role": "stocker", "name": "Can", "wage": 260, "skill": 1.0}, true)
+		var vans := 0
+		var last_state: String = game.van["state"]
+		var evs := []
+		for d in int(args["econ"]):
+			for i in 16000:
+				if game.day_ended_flag: break
+				game.tick(1.0 / 30.0)
+				if last_state == "idle" and game.van["state"] == "arriving": vans += 1; print("  VAN day ", game.day, " ", Cfg.clock_str(game.clock), " cargo=", game.van["cargo"].reduce(func(a, o): return a + int(o["qty"]), 0))
+				last_state = game.van["state"]
+				for ev in game.neighbor_events.duplicate():
+					evs.append(ev["kind"])
+					var c: int = 0 if not ev["choices"][0].get("disabled", false) else ev["choices"].size() - 1
+					game.answer_event(ev["id"], c)
+			var st: Dictionary = game.stats
+			print("ECON day ", game.day, " money=", int(game.money), " rev=", st["revenue"], " served=", st["served"], " happy_total=", game.totals["happy"], " rating=", snappedf(game.rating, 0.01), " backstock=", game.backstock_total(), "/", game.depot_capacity(), " missed=", st["missed"])
+			if game.day_ended_flag: game.start_next_day()
+		print("ECON vans=", vans, " events=", evs)
+		hud.modal.visible = false
 	if args.has("dbgunit"):
 		var un: Node3D = game.mall_shell.unit_nodes[int(args["dbgunit"])]
 		for ch in un.get_children():

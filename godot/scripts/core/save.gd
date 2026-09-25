@@ -57,7 +57,7 @@ static func serialize(game) -> Dictionary:
 		"stage": game.stage, "day": game.day, "money": game.money, "rating": game.rating,
 		"prices": game.prices, "auto": game.auto, "backstock": game.backstock, "backstock_fresh": game.backstock_fresh,
 		"orders": game.orders, "upgrades": game.upgrades.keys(), "totals": game.totals, "history": game.history,
-		"evening_bakery": game.evening_bakery, "fixtures": fx, "staff": st,
+		"evening_bakery": game.evening_bakery, "fixtures": fx, "staff": st, "last_sold": game.last_sold,
 		"camera": [game.rig.target.x, game.rig.target.z],
 	}
 	if game.mall != null:
@@ -93,6 +93,8 @@ static func apply(game, d: Dictionary) -> void:
 	game.orders = []
 	for o in d.get("orders", []): game.orders.append({"pid": o["pid"], "qty": int(o["qty"]), "eta": float(o["eta"])})
 	game.evening_bakery = bool(d.get("evening_bakery", false))
+	game.last_sold = {}
+	for k in d.get("last_sold", {}): game.last_sold[k] = int(d["last_sold"][k])
 	for k in d.get("totals", {}): game.totals[k] = int(d["totals"][k])
 	game.history = []
 	for h in d.get("history", []): game.history.append(h)
