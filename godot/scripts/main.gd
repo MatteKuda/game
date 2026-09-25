@@ -8,6 +8,7 @@ var args_extra := {}
 
 func _ready() -> void:
 	Settings.load_settings()
+	for a in OS.get_cmdline_user_args(): if a.begins_with("--lang="): Loc.set_lang(a.substr(7))
 	Settings.ensure_buses()
 	add_child(GameAudio.new())
 	game = Game.new()
