@@ -11,6 +11,9 @@ var van: Node3D
 var neighbor: Node3D # closed shop to the left of the büfe (removed on expansion)
 var backyard: Node3D # yard behind the büfe (removed on expansion)
 var blocked: Array[Vector2i] = [] # street tiles occupied by props
+var right_a: Node3D # eczane/berber block (removed for the Süpermarket)
+var right_b: Node3D # kırtasiye block (removed for the AVM)
+var left_a: Node3D # çay ocağı block (removed for the AVM)
 
 func build() -> void:
 	# ground & street
@@ -124,16 +127,19 @@ func _back_row() -> void:
 
 func _right_block() -> void:
 	var a := _apartment(Vector3(31.2, 0, 16.0), 9.6, 10.0, 3, Color("e8bf6a"), 3.2, 3)
+	right_a = a
 	_shopfront(a, -2.3, 4.6, "ECZANE", Color("2fae7a"), Color("2fae7a"))
 	_shopfront(a, 2.4, 4.4, "BERBER", Color("2f6fb5"), Color("d6333a"))
 	# barber pole
 	var pole := Art.cyl(a, 0.08, 0.08, 0.9, Art.shader_mat("stripes", {"color_a": Color("d6333a"), "color_b": Color("ffffff"), "count": 6.0}), Vector3(0.1, 1.6, 0.25))
 	pole.rotation.z = 0.0
 	var b := _apartment(Vector3(41.0, 0, 16.0), 9.6, 10.0, 4, Color("c9785c"), 3.2, 4)
+	right_b = b
 	_shopfront(b, 0.0, 8.0, "KIRTASİYE", Color("7a5ae0"), Color("f2b33d"))
 
 func _left_block() -> void:
 	var a := _apartment(Vector3(4.6, 0, 16.0), 8.8, 10.0, 2, Color("7fae9c"), 3.2, 5)
+	left_a = a
 	_shopfront(a, -1.6, 5.0, "ÇAY OCAĞI", Color("8a5a35"), Color("c9714f"))
 	_shopfront(a, 2.6, 3.4, "TERZİ", Color("b0546a"), Color("fbf4e8"))
 
@@ -291,6 +297,11 @@ func update(dt: float, night: float, van_x: float, van_visible: bool) -> void:
 	van.visible = van_visible
 	van.position = Vector3(van_x, 0.0, 20.7)
 
-func remove_for_market() -> void:
-	if neighbor: neighbor.queue_free(); neighbor = null
-	if backyard: backyard.queue_free(); backyard = null
+func remove_for_stage(n: int) -> void:
+	if n >= 1:
+		if neighbor: neighbor.queue_free(); neighbor = null
+		if backyard: backyard.queue_free(); backyard = null
+	if n >= 2 and right_a: right_a.queue_free(); right_a = null
+	if n >= 3:
+		if right_b: right_b.queue_free(); right_b = null
+		if left_a: left_a.queue_free(); left_a = null

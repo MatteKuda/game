@@ -15,20 +15,40 @@ const PRODUCTS := [
 	{"id": "elma", "name": "Elma", "brand": "BAHÇE", "display": "produce", "cost": 12, "base": 22, "color": Color("9ccc3a"), "accent": Color("d6452e"), "shape": "fruit", "stage": 1},
 	{"id": "sut", "name": "Süt", "brand": "YAYLA", "display": "fridge", "cost": 18, "base": 32, "color": Color("f7f7f2"), "accent": Color("33a4d8"), "shape": "carton", "stage": 1},
 	{"id": "deterjan", "name": "Deterjan", "brand": "PARLAK", "display": "shelf", "cost": 38, "base": 65, "color": Color("3fb6a8"), "accent": Color("ffffff"), "shape": "jug", "stage": 1},
+	{"id": "makarna", "name": "Makarna", "brand": "BURGU", "display": "shelf", "cost": 11, "base": 22, "color": Color("f2d04b"), "accent": Color("2e5fa8"), "shape": "bag", "stage": 2},
+	{"id": "cay", "name": "Çay", "brand": "KARADENİZ", "display": "shelf", "cost": 45, "base": 85, "color": Color("2f7a3a"), "accent": Color("f2b33d"), "shape": "box", "stage": 2},
+	{"id": "peynir", "name": "Beyaz Peynir", "brand": "YAYLA", "display": "fridge", "cost": 60, "base": 110, "color": Color("faf6e8"), "accent": Color("3f8f3a"), "shape": "wedge", "stage": 2},
+	{"id": "su", "name": "Su", "brand": "PINAR BAŞI", "display": "fridge", "cost": 4, "base": 10, "color": Color("7fc4ea"), "accent": Color("ffffff"), "shape": "bottle", "stage": 2},
 ]
+
+## baked in-house at the Fırın Tezgâhı: unit cost of flour & fuel
+const BAKED := {"simit": 2.0, "ekmek": 2.5}
 
 const FIXTURES := [
 	{"id": "raf", "name": "Ahşap Raf", "desc": "Kuru gıda için iki bölmeli sıcak ahşap raf.", "kind": "display", "cat": "Teşhir", "w": 2, "d": 1, "cost": 600, "stage": 0, "display": "shelf", "slots": 2, "cap": 12},
 	{"id": "dolap", "name": "İçecek Dolabı", "desc": "Işıklı cam kapaklı soğutucu. Soğuk ürünler burada durur.", "kind": "display", "cat": "Teşhir", "w": 1, "d": 1, "cost": 1200, "stage": 0, "display": "fridge", "slots": 2, "cap": 10},
 	{"id": "sepet", "name": "Fırın Sepeti", "desc": "İki katlı hasır sepet: simit ve ekmek sabahın yıldızı.", "kind": "display", "cat": "Teşhir", "w": 1, "d": 1, "cost": 350, "stage": 0, "display": "basket", "slots": 2, "cap": 10},
-	{"id": "kasa", "name": "Kasa Tezgâhı", "desc": "Müşteriler burada öder. Kasiyer arkasında durur, kuyruk kapıya doğru uzar.", "kind": "register", "cat": "Kasa & Depo", "w": 2, "d": 1, "cost": 1500, "stage": 0, "max": [1, 3]},
+	{"id": "kasa", "name": "Kasa Tezgâhı", "desc": "Müşteriler burada öder. Kasiyer arkasında durur, kuyruk kapıya doğru uzar.", "kind": "register", "cat": "Kasa & Depo", "w": 2, "d": 1, "cost": 1500, "stage": 0, "max": [1, 3, 4, 4]},
 	{"id": "depo", "name": "Depo Rafı", "desc": "Yedek stok burada tutulur. +80 birim depo kapasitesi.", "kind": "depot", "cat": "Kasa & Depo", "w": 2, "d": 1, "cost": 800, "stage": 0, "depot": 80},
-	{"id": "saksi", "name": "Saksı Bitki", "desc": "Çevresindeki alışverişi daha keyifli yapar, kuyrukta sabrı artırır.", "kind": "plant", "cat": "Ortam", "w": 1, "d": 1, "cost": 150, "stage": 0},
-	{"id": "cop", "name": "Çöp Kovası", "desc": "Yakınına (3 m) yere çöp atılmaz.", "kind": "bin", "cat": "Ortam", "w": 1, "d": 1, "cost": 120, "stage": 0},
+	{"id": "saksi", "name": "Saksı Bitki", "desc": "Çevresindeki alışverişi daha keyifli yapar, kuyrukta sabrı artırır.", "kind": "plant", "cat": "Ortam", "w": 1, "d": 1, "cost": 150, "stage": 0, "zone": "any"},
+	{"id": "cop", "name": "Çöp Kovası", "desc": "Yakınına (3 m) yere çöp atılmaz.", "kind": "bin", "cat": "Ortam", "w": 1, "d": 1, "cost": 120, "stage": 0, "zone": "any"},
 	{"id": "gondol", "name": "Orta Gondol", "desc": "Üç bölmeli metal gondol reyon. Market düzeninin omurgası.", "kind": "display", "cat": "Teşhir", "w": 3, "d": 1, "cost": 1400, "stage": 1, "display": "shelf", "slots": 3, "cap": 14},
 	{"id": "manav", "name": "Manav Tezgâhı", "desc": "Eğimli kasalarda taze meyve ve sebze.", "kind": "display", "cat": "Teşhir", "w": 2, "d": 1, "cost": 1100, "stage": 1, "display": "produce", "slots": 2, "cap": 16},
 	{"id": "acik", "name": "Açık Soğutucu", "desc": "Kapısız, üç bölmeli geniş soğutucu. Hızlı alışveriş.", "kind": "display", "cat": "Teşhir", "w": 3, "d": 1, "cost": 3200, "stage": 1, "display": "fridge", "slots": 3, "cap": 10},
+	{"id": "kamera", "name": "Güvenlik Kamerası", "desc": "Tavana asılı dönen kamera. Görüş konisindeki hırsızlar fark edilir (6 m). Yüksek raflar görüşü keser.", "kind": "camera", "cat": "Güvenlik & Personel", "w": 1, "d": 1, "cost": 900, "stage": 1, "zone": "any", "noblock": true, "radius": 6.0},
+	{"id": "alarm", "name": "Alarm Kapısı", "desc": "Kapının yanına kurulur. Ödenmemiş ürünle geçenlerde öter (%85).", "kind": "gate", "cat": "Güvenlik & Personel", "w": 1, "d": 1, "cost": 1600, "stage": 1},
+	{"id": "cay_ocagi", "name": "Çay Ocağı (Mola)", "desc": "Yorulan personel burada çay içip dinlenir. Molasız personel yavaşlar.", "kind": "break", "cat": "Güvenlik & Personel", "w": 2, "d": 1, "cost": 700, "stage": 0},
+	{"id": "bantkasa", "name": "Bantlı Kasa", "desc": "Yürüyen bantlı kasa. Ödeme %35 daha hızlı, uzun kuyruk için ideal.", "kind": "register", "cat": "Kasa & Depo", "w": 3, "d": 1, "cost": 4200, "stage": 2, "service": 0.65, "max": [0, 0, 5, 6]},
+	{"id": "selfkasa", "name": "Self-Servis Kasa", "desc": "Kasiyer gerektirmez ama yavaştır ve kayıp riskini artırır.", "kind": "register", "cat": "Kasa & Depo", "w": 1, "d": 1, "cost": 3000, "stage": 2, "service": 1.35, "self": true, "max": [0, 0, 6, 8]},
+	{"id": "levha", "name": "Reyon Levhası", "desc": "Tavandan asılı kategori levhası. Yakınındaki (5 m) rafları bulmak kolaylaşır.", "kind": "sign", "cat": "Ortam", "w": 1, "d": 1, "cost": 250, "stage": 2, "noblock": true, "radius": 5.0},
+	{"id": "firin", "name": "Fırın Tezgâhı", "desc": "Fırıncı burada sıcak simit ve ekmek pişirir: ucuz maliyet, mutlu müşteri.", "kind": "oven", "cat": "Teşhir", "w": 2, "d": 1, "cost": 5200, "stage": 2},
+	{"id": "araba", "name": "Alışveriş Arabası Parkı", "desc": "Haftalık alışverişçiler araba alır; yoksa listeleri kısalır.", "kind": "carts", "cat": "Kasa & Depo", "w": 2, "d": 1, "cost": 1100, "stage": 2},
+	{"id": "masa", "name": "Yemek Masası", "desc": "Yemek katı için 4 kişilik masa. Kirlenince temizlik görevlisi toplar.", "kind": "table", "cat": "AVM", "w": 2, "d": 2, "cost": 700, "stage": 3, "zone": "mall", "seats": 4},
+	{"id": "oyunalani", "name": "Çocuk Oyun Alanı", "desc": "Kaydırak ve top havuzu. Aileler uzun kalır, oyuncakçı mutlu olur.", "kind": "play", "cat": "AVM", "w": 3, "d": 3, "cost": 6000, "stage": 3, "zone": "mall"},
+	{"id": "bank", "name": "Dinlenme Bankı", "desc": "Yorulan ziyaretçiler oturur, AVM keyfi artar.", "kind": "bench", "cat": "AVM", "w": 2, "d": 1, "cost": 400, "stage": 3, "zone": "mall"},
 ]
+
+static func zone(d: Dictionary) -> String: return d.get("zone", "store")
 
 static func bell(h: float, c: float, w: float) -> float:
 	return exp(-((h - c) * (h - c)) / (2.0 * w * w))
@@ -36,25 +56,35 @@ static func bell(h: float, c: float, w: float) -> float:
 ## hour curve = base + sum(amp * bell(h, c, w))
 const ARCHETYPES := [
 	{"id": "ogrenci", "name": "Öğrenci", "blurb": "Az parası var, atıştırmalık ve soğuk içecek peşinde. Sabırsız.", "stage": 0,
-		"budget": [25, 60], "wants": {"cips": 5, "cikolata": 4, "kola": 5, "biskuvi": 2, "simit": 2}, "list": [1, 2],
+		"budget": [25, 60], "wants": {"cips": 5, "cikolata": 4, "kola": 5, "biskuvi": 2, "simit": 2, "su": 2}, "list": [1, 2],
 		"patience": 22.0, "tol": 0.12, "speed": 1.55, "litter": 0.012, "impulse": 0.45, "body": "rogue",
 		"tops": [Color("6c63ff"), Color("2ec4b6"), Color("ff6b6b"), Color("ffb400")], "bottoms": [Color("2b3a67"), Color("3d405b"), Color("264653")],
 		"curve": [0.25, [8.0, 0.8, 0.8], [16.0, 1.4, 1.6]]},
 	{"id": "emekli", "name": "Emekli", "blurb": "Fiyata çok duyarlı. Sabah ekmeğini ve ayranını alır, beklemeye razıdır.", "stage": 0,
-		"budget": [30, 90], "wants": {"ekmek": 6, "simit": 3, "ayran": 4, "biskuvi": 3, "sut": 3, "domates": 3}, "list": [1, 3],
+		"budget": [30, 90], "wants": {"ekmek": 6, "simit": 3, "ayran": 4, "biskuvi": 3, "sut": 3, "domates": 3, "cay": 2, "peynir": 2}, "list": [1, 3],
 		"patience": 48.0, "tol": 0.06, "speed": 0.95, "litter": 0.0, "impulse": 0.12, "body": "mage",
 		"tops": [Color("9c6644"), Color("6b705c"), Color("a5a58d"), Color("7f5539")], "bottoms": [Color("4a4e69"), Color("5e503f")],
 		"curve": [0.2, [8.5, 1.4, 1.6], [13.0, 1.5, 0.5]]},
 	{"id": "calisan", "name": "Beyaz Yaka", "blurb": "Aceleci ama cömert. Kuyrukta beklemeyi hiç sevmez.", "stage": 0,
-		"budget": [60, 180], "wants": {"kola": 4, "ayran": 3, "simit": 4, "cips": 2, "cikolata": 2, "biskuvi": 1}, "list": [1, 3],
+		"budget": [60, 180], "wants": {"kola": 4, "ayran": 3, "simit": 4, "cips": 2, "cikolata": 2, "biskuvi": 1, "su": 3}, "list": [1, 3],
 		"patience": 16.0, "tol": 0.35, "speed": 1.45, "litter": 0.002, "impulse": 0.3, "body": "rogue",
 		"tops": [Color("f1faee"), Color("a8dadc"), Color("e9ecef"), Color("cdb4db")], "bottoms": [Color("1d3557"), Color("343a40"), Color("22223b")],
 		"curve": [0.15, [8.0, 0.7, 1.4], [12.5, 0.8, 1.0], [18.5, 1.0, 1.5]]},
 	{"id": "aile", "name": "Aile Alışverişçisi", "blurb": "Uzun listeyle gelir, sepeti doldurur. Taze ürün ve temiz mağaza ister.", "stage": 1,
-		"budget": [120, 320], "wants": {"ekmek": 3, "sut": 4, "domates": 4, "elma": 4, "deterjan": 2, "biskuvi": 2, "ayran": 2, "cikolata": 1}, "list": [3, 5],
+		"budget": [120, 320], "wants": {"ekmek": 3, "sut": 4, "domates": 4, "elma": 4, "deterjan": 2, "biskuvi": 2, "ayran": 2, "cikolata": 1, "makarna": 2, "peynir": 2}, "list": [3, 5],
 		"patience": 34.0, "tol": 0.15, "speed": 1.1, "litter": 0.001, "impulse": 0.35, "body": "barbarian",
 		"tops": [Color("e76f51"), Color("f4a261"), Color("8ecae6"), Color("b5838d")], "bottoms": [Color("3a5a40"), Color("6d597a"), Color("1d3557")],
 		"curve": [0.2, [11.0, 1.8, 1.0], [18.0, 1.5, 1.3]]},
+	{"id": "firsatci", "name": "Fırsatçı", "blurb": "Kimse bakmıyorsa cebine bir şey atar ve kapıya yönelir. Kamera, alarm ve güvenlik onu caydırır.", "stage": 1,
+		"budget": [0, 10], "wants": {"deterjan": 4, "cikolata": 3, "kola": 2, "peynir": 4, "cay": 3, "cips": 2}, "list": [1, 3],
+		"patience": 30.0, "tol": 0.0, "speed": 1.35, "litter": 0.004, "impulse": 0.0, "body": "hooded", "thief": true,
+		"tops": [Color("2f3440"), Color("3d3a4a"), Color("4a4f3a")], "bottoms": [Color("22252c"), Color("2b3a55")],
+		"curve": [0.06, [20.0, 2.0, 0.1]]},
+	{"id": "haftalik", "name": "Haftalık Alışverişçi", "blurb": "Arabayla gelir, 5–8 kalemlik uzun liste. Reyon levhası ve araba parkı ister.", "stage": 2,
+		"budget": [250, 600], "wants": {"makarna": 3, "cay": 2, "peynir": 3, "su": 3, "sut": 3, "ekmek": 2, "deterjan": 2, "domates": 2, "elma": 2, "biskuvi": 1, "ayran": 1}, "list": [5, 8],
+		"patience": 40.0, "tol": 0.12, "speed": 1.1, "litter": 0.001, "impulse": 0.4, "body": "mage", "cart": true,
+		"tops": [Color("5a7d9a"), Color("c97b63"), Color("8a9a5b"), Color("e0c38c")], "bottoms": [Color("2b3a55"), Color("4a4e69")],
+		"curve": [0.1, [11.0, 2.0, 0.9], [18.5, 1.5, 1.1]]},
 ]
 
 static func curve(a: Dictionary, h: float) -> float:
@@ -67,6 +97,8 @@ static func curve(a: Dictionary, h: float) -> float:
 const STAGES := [
 	{"name": "Mahalle Büfesi", "short": "Büfe", "rent": 250, "utilities": 0, "max_inside": 11},
 	{"name": "Mahalle Marketi", "short": "Market", "rent": 700, "utilities": 150, "max_inside": 28},
+	{"name": "Süpermarket", "short": "Süpermarket", "rent": 1800, "utilities": 500, "max_inside": 48},
+	{"name": "Köşebaşı AVM", "short": "AVM", "rent": 0, "utilities": 2600, "max_inside": 52},
 ]
 
 const UPGRADES := [
@@ -75,22 +107,49 @@ const UPGRADES := [
 	{"id": "tente", "name": "Yeni Tente & Vitrin", "desc": "Çizgili tente ve dolu vitrin; dükkân daha davetkâr görünür.", "cost": 1200, "stage": 0, "effect": "+%10 çekim"},
 	{"id": "etiket", "name": "Elektronik Raf Etiketi", "desc": "Fiyatlar raflarda anında güncellenir, müşteri fiyata güvenir.", "cost": 3500, "stage": 1, "effect": "Fiyat toleransı +%5"},
 	{"id": "isik", "name": "Sıcak Raf Aydınlatması", "desc": "Ürünler parlar, reyonlar davetkâr olur.", "cost": 2800, "stage": 1, "effect": "Ortam +, anlık alım +%20"},
+	{"id": "otopark", "name": "Otopark Anlaşması", "desc": "Karşı otoparkla anlaşma: arabalı haftalık alışverişçiler gelir.", "cost": 9000, "stage": 2, "effect": "Haftalık alışverişçi ×1.6"},
+	{"id": "sadakat", "name": "Sadakat Kartı", "desc": "Puan kazanan müşteri sadık kalır, kuyrukta daha sabırlıdır.", "cost": 7500, "stage": 2, "effect": "Sabır +%20, puan dalgalanması azalır"},
+	{"id": "klima", "name": "Merkezi Klima", "desc": "AVM içi serin ve ferah. Ziyaretçiler daha uzun kalır.", "cost": 18000, "stage": 3, "effect": "AVM ziyaretçisi +%10, keyif +"},
+	{"id": "dijital", "name": "Dijital Yönlendirme Ekranları", "desc": "Kiracıların reklamı her katta.", "cost": 14000, "stage": 3, "effect": "Kiracı satışları +%15"},
+]
+
+const CAMPAIGNS := [
+	{"id": "brosur", "name": "Broşür Dağıtımı", "desc": "Kapının önünde bir tanıtımcı gün boyu broşür dağıtır.", "cost": 500, "stage": 0, "effect": "Bugün +%35 müşteri", "icon": "megaphone"},
+	{"id": "indirim", "name": "Günün İndirimleri", "desc": "Seçtiğin en fazla 3 üründe %15 indirim. Rafta kırmızı etiket, daha çok talep.", "cost": 0, "stage": 0, "effect": "Seçili ürünlere talep ×1.8, fiyat −%15", "icon": "tag"},
+	{"id": "kasaonu", "name": "Kasa Önü Standı", "desc": "Kasaların yanına renkli şekerleme standı.", "cost": 300, "stage": 0, "effect": "Anlık alım ×2", "icon": "cart"},
+	{"id": "tadim", "name": "Tadım Günü", "desc": "Fırın önünde ücretsiz tadım masası.", "cost": 1200, "stage": 2, "effect": "Memnuniyet +, fırın ürünleri talebi ×1.5", "icon": "food"},
 ]
 
 const EXPANSIONS := [
 	{"to": 1, "cost": 12000, "title": "Yan Dükkânı Devral",
 		"pitch": "Soldaki kapalı dükkânın kepengi aylardır inik. Duvarı yıkıp büfeyi Mahalle Marketi'ne dönüştür: iki kat alan, ikinci kapı, manav tezgâhı, gondol reyonlar ve aile alışverişçileri.",
 		"goals": [["rating", "Mağaza puanı", 3.6], ["served", "Mutlu ayrılan müşteri", 200], ["cash", "Kasada nakit", 12000]],
-		"unlocks": "Manav tezgâhı · Orta gondol · Açık soğutucu · 3 kasa · Süt, deterjan, domates, elma · Aile alışverişçileri · 2. kapı"},
+		"unlocks": "Manav tezgâhı · Orta gondol · Açık soğutucu · 3 kasa · Süt, deterjan, domates, elma · Aile alışverişçileri · Temizlik & güvenlik personeli · Kamera ve alarm kapısı · 2. kapı"},
+	{"to": 2, "cost": 38000, "title": "Eczane Bloğunu Al: Süpermarket",
+		"pitch": "Sağdaki eczane ve berber taşınıyor. Binayı al, arka depoyu aç: 24×12 m'lik bir süpermarket. Bantlı kasalar, kendi fırının, reyon levhaları ve arabalı haftalık alışveriş.",
+		"goals": [["rating", "Mağaza puanı", 3.8], ["served", "Mutlu ayrılan müşteri", 700], ["cash", "Kasada nakit", 38000]],
+		"unlocks": "Bantlı kasa · Self-servis kasa · Fırın tezgâhı & fırıncı · Reyon levhası · Araba parkı · Makarna, çay, peynir, su · Haftalık alışverişçi · 3. kapı"},
+	{"to": 3, "cost": 90000, "title": "Bütün Bloğu Al: Köşebaşı AVM",
+		"pitch": "Bloğun tamamı satılık. Süpermarket zemin katta kalsın; etrafına iki katlı bir alışveriş merkezi kur: kiracı mağazalar, yürüyen merdivenler, yemek katı, çocuk oyun alanı ve etkinlik takvimi.",
+		"goals": [["rating", "Mağaza puanı", 4.0], ["served", "Mutlu ayrılan müşteri", 1800], ["cash", "Kasada nakit", 90000]],
+		"unlocks": "11 kiracı birimi · 2 kat · Yürüyen merdiven & cam asansör · Yemek katı & masalar · Çocuk oyun alanı · Etkinlik takvimi · Tesis arızaları"},
 ]
 
-const ROLE_LABEL := {"owner": "Dükkân Sahibi", "cashier": "Kasiyer", "stocker": "Reyon Görevlisi"}
+const ROLE_LABEL := {"owner": "Dükkân Sahibi", "cashier": "Kasiyer", "stocker": "Reyon Görevlisi", "cleaner": "Temizlik Görevlisi", "security": "Güvenlik Görevlisi", "baker": "Fırıncı"}
 const ROLE_DESC := {
 	"owner": "Kasaya bakar. Kuyruk yokken ve yardımcı yoksa rafları kendisi doldurur; o sırada kasa boş kalır.",
 	"cashier": "Boştaki kasaya geçer ve ödemeleri alır.",
 	"stocker": "Depodan koli taşıyıp azalan rafları doldurur, boşta kalınca çöp toplar.",
+	"cleaner": "Islak zemini paspaslayıp uyarı levhası koyar, çöpleri ve AVM'de kirli masaları toplar.",
+	"security": "Devriye gezer. Şüpheliyi gördüğünde peşine düşer, alarm çalınca kapıda yakalar.",
+	"baker": "Fırın tezgâhında sıcak simit ve ekmek pişirir; toptancıdan almaktan ucuzdur.",
 }
-const ROLE_WAGE := {"owner": 0, "cashier": 300, "stocker": 260}
+const ROLE_WAGE := {"owner": 0, "cashier": 300, "stocker": 260, "cleaner": 230, "security": 340, "baker": 380}
+const ROLE_STAGE := {"owner": 0, "cashier": 0, "stocker": 0, "cleaner": 1, "security": 1, "baker": 2}
+const SHIFT_LABEL := {"full": "Tam gün 07–22", "morning": "Sabah 07–15", "evening": "Akşam 14–22"}
+const SHIFT_SHORT := {"full": "Tam", "morning": "Sabah", "evening": "Akşam"}
+const SHIFT_HOURS := {"full": [420, 1320], "morning": [420, 900], "evening": [840, 1320]}
+const SHIFT_WAGE := {"full": 1.0, "morning": 0.6, "evening": 0.6}
 
 static var _pmap := {}
 static var _fmap := {}

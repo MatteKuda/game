@@ -21,6 +21,13 @@ var queue: Array = [] # Customers (registers)
 var queue_slots: Array[Vector2i] = []
 var cashier = null # Staff
 var highlight := 0.0
+var lvl := 0 # floor
+var claimed := 0 # staff id working on it (tables, ovens)
+var dirty := false # food-court table needs clearing
+var baking := false
+var seats_used: Array = [] # visitor or null per seat
+var covers := {} # camera: tile indices within the view cone
+var alarm_t := 0.0
 
 static func footprint(d: Dictionary, x: int, z: int, r: int) -> Dictionary:
 	var odd := r % 2 == 1
@@ -42,9 +49,10 @@ static func footprint(d: Dictionary, x: int, z: int, r: int) -> Dictionary:
 			for i in fd: access.append(Vector2i(x - 1, z + i)); back.append(Vector2i(x + fw, z + i))
 	return {"fw": fw, "fd": fd, "tiles": tiles, "access": access, "back": back}
 
-func setup(d: Dictionary, x: int, z: int, r: int) -> void:
+func setup(d: Dictionary, x: int, z: int, r: int, l := 0) -> void:
 	uid = _next_uid; _next_uid += 1
 	def = d
+	lvl = l
 	model = Props.build(d)
 	add_child(model["root"])
 	Art.stylize(model["root"], true)
@@ -67,15 +75,21 @@ func setup(d: Dictionary, x: int, z: int, r: int) -> void:
 	status.position.y = float(model["height"]) + 0.45
 	status.visible = false
 	add_child(status)
+	for i in (model.get("seats", []) as Array).size(): seats_used.append(null)
 	place(x, z, r)
 
 func place(x: int, z: int, r: int) -> void:
 	gx = x; gz = z; rot = r
 	fp = footprint(def, x, z, r)
-	position = Vector3(x + fp["fw"] * 0.5, 0.02, z + fp["fd"] * 0.5)
+	position = Vector3(x + fp["fw"] * 0.5, lvl * Cfg.FLOOR_H + 0.02, z + fp["fd"] * 0.5)
 	rotation.y = r * PI / 2.0
 
-func center() -> Vector3: return Vector3(gx + fp["fw"] * 0.5, 0.0, gz + fp["fd"] * 0.5)
+func center() -> Vector3: return Vector3(gx + fp["fw"] * 0.5, lvl * Cfg.FLOOR_H, gz + fp["fd"] * 0.5)
+func noblock() -> bool: return def.get("noblock", false)
+func seat_world(i: int) -> Vector3:
+	var seats: Array = model.get("seats", [])
+	if i >= seats.size(): return center()
+	return global_transform * (seats[i] as Vector3)
 func is_display() -> bool: return def["kind"] == "display"
 func cap() -> int: return int(def.get("cap", 0))
 func access() -> Array[Vector2i]: return fp["access"]
@@ -118,10 +132,12 @@ func refresh(game) -> void:
 			plate.material_override = Art.mat(Color("d9d4ca")); lab.text = "—"; lab.modulate = Cfg.INK3
 		else:
 			var price: int = game.effective_price(pid)
+			var sale: bool = game.is_discounted(pid)
 			var ratio := float(s["stock"]) / maxf(1.0, cap())
 			var col := Color("fbf6ee")
 			var txt := Cfg.INK
 			if int(s["stock"]) == 0: col = Cfg.BAD; txt = Color.WHITE
+			elif sale: col = Color("d6333a"); txt = Color.WHITE
 			elif ratio < 0.34: col = Color("f6b24a")
 			plate.material_override = Art.mat(col, 0.6)
 			lab.text = "₺%d" % price

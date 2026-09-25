@@ -39,6 +39,8 @@ func focus(x: float, z: float, d := -1.0) -> void:
 	if d > 0.0: g_dist = d
 	_clamp()
 
+func set_floor_y(y: float) -> void: g_target.y = y
+
 func _clamp() -> void:
 	g_target.x = clampf(g_target.x, bounds.position.x, bounds.end.x)
 	g_target.z = clampf(g_target.z, bounds.position.y, bounds.end.y)

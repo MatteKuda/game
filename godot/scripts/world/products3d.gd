@@ -44,6 +44,10 @@ static func mesh(pid: String) -> ArrayMesh:
 			parts.append([Art.prim("box", 0.09, 0.18, 0.09), T.call(0, 0.09, 0), c])
 			parts.append([Art.prim("prism", 0.09, 0.05, 0.09), T.call(0, 0.205, 0), c])
 			parts.append([Art.prim("box", 0.092, 0.06, 0.092), T.call(0, 0.1, 0), a])
+		"wedge": # white cheese block in brine paper
+			parts.append([Art.prim("box", 0.16, 0.09, 0.11), T.call(0, 0.045, 0), c])
+			parts.append([Art.prim("box", 0.165, 0.03, 0.115), T.call(0, 0.02, 0), a])
+			parts.append([Art.prim("box", 0.08, 0.04, 0.005), T.call(0, 0.055, 0.058), Color("ffffff")])
 		"jug":
 			parts.append([Art.prim("box", 0.13, 0.22, 0.09), T.call(0, 0.11, 0), c])
 			parts.append([Art.prim("cyl", 0.025, 0.025, 0.04), T.call(-0.03, 0.24, 0), a])

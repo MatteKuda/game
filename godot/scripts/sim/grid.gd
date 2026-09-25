@@ -6,6 +6,8 @@ const R_VOID := 0
 const R_OUT := 1 # near sidewalk
 const R_IN := 2 # shop interior
 const R_FAR := 3 # far sidewalk (ambient walkers)
+const R_MALL := 4 # AVM corridors / food court
+const R_UNIT0 := 10 # AVM tenant units: R_UNIT0 + unit index
 
 var w := Cfg.MAP_W
 var h := Cfg.MAP_H
@@ -18,8 +20,10 @@ var extra_cost := PackedFloat32Array()
 var door_edges := {}
 var version := 0
 var layout: Dictionary
+var lvl := 0 # AVM floor index
 
-func _init() -> void:
+func _init(f := 0) -> void:
+	lvl = f
 	var n := w * h
 	region.resize(n); fixture.resize(n); reserved.resize(n); traffic.resize(n); occupancy.resize(n); extra_cost.resize(n)
 
@@ -28,6 +32,9 @@ func in_bounds(x: int, z: int) -> bool: return x >= 0 and z >= 0 and x < w and z
 
 func edge_key(ax: int, az: int, bx: int, bz: int) -> int:
 	return mini(idx(ax, az), idx(bx, bz)) * 2 + (0 if az == bz else 1)
+
+func add_door(ax: int, az: int, bx: int, bz: int) -> void:
+	door_edges[edge_key(ax, az, bx, bz)] = true
 
 func apply_layout(l: Dictionary) -> void:
 	layout = l
@@ -44,7 +51,17 @@ func apply_layout(l: Dictionary) -> void:
 	for dx in l["doors"]:
 		door_edges[edge_key(dx, r.end.y - 1, dx, r.end.y)] = true
 		reserved[idx(dx, r.end.y - 1)] = 1
+	for dx in l.get("back_doors", []):
+		door_edges[edge_key(dx, r.position.y, dx, r.position.y - 1)] = true
+		reserved[idx(dx, r.position.y)] = 1
 	version += 1
+
+## floor-1 grid of the AVM: everything void until the mall carves its regions
+func clear_all() -> void:
+	region.fill(R_VOID); door_edges.clear(); reserved.fill(0); fixture.fill(0)
+	version += 1
+
+func is_mall(x: int, z: int) -> bool: return in_bounds(x, z) and region[idx(x, z)] == R_MALL
 
 func interior() -> Rect2i: return layout["interior"]
 func front_z() -> int: return interior().end.y - 1

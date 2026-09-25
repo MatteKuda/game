@@ -14,6 +14,7 @@ var tente := false
 var cutaway := true
 var lamps: Array[OmniLight3D] = []
 var lamp_mats: Array[StandardMaterial3D] = []
+var banner: Node3D
 
 func build(l: Dictionary, st: int, upgrades: Dictionary) -> void:
 	for c in get_children(): c.queue_free()
@@ -139,6 +140,10 @@ func _front(x0: float, x1: float, z1: float, H: float, door_xs: Array) -> void:
 	var lb := Art.label(n, name, 150 if stage == 0 else 170, col, Vector3(cx - 0.35, 2.52 + bh * 0.5, 0.18), 0.0, "display", 18, Cfg.TERRA_DARK)
 	sign_letters.append(lb)
 	sign_sub = Art.label(n, sub, 70, Cfg.MUSTARD, Vector3(cx + W * 0.28 + 0.2, 2.5 + bh * 0.5, 0.18), 0.0, "display", 10, Cfg.TERRA_DARK)
+	# campaign banner (visible while a campaign runs)
+	banner = Node3D.new(); banner.position = Vector3(cx + W * 0.36, 2.2, 0.35); banner.visible = false; n.add_child(banner)
+	Art.box(banner, Vector3(1.3, 0.55, 0.04), Art.mat(Color("d6333a"), 0.6), Vector3.ZERO, 0.03)
+	Art.label(banner, "KAMPANYA!", 58, Color.WHITE, Vector3(0, 0, 0.03), 0.0, "display")
 	# awning
 	var aw := MeshInstance3D.new()
 	var pm := PlaneMesh.new(); pm.size = Vector2(W + 0.3, 1.5 if tente else 1.15); pm.subdivide_depth = 6
@@ -157,6 +162,9 @@ func _front(x0: float, x1: float, z1: float, H: float, door_xs: Array) -> void:
 		s.rotation.x = PI / 2
 		s.scale = Vector3(1, 1, 0.8)
 	walls.append({"node": base, "upper": up, "normal": Vector3(0, 0, 1), "sink": 0.0, "h": H, "front": true})
+
+func set_campaign(on: bool) -> void:
+	if banner: banner.visible = on
 
 func _door(parent: Node3D, x: float) -> void:
 	var frame := Art.mat(Color("2a3a4a"), 0.4, 0.5)

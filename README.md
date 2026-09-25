@@ -1,6 +1,6 @@
 # Tezgâh — Büfeden AVM'ye
 
-> **Yeni ana sürüm Godot'da:** [`godot/`](godot/README.md) klasörü. Masaüstünde normal bir oyun gibi çalışır, npm gerekmez; yeni görsel yön, Fredoka/Nunito tipografi ve animasyonlu karakterlerle geliyor. Kurulum adımları [godot/README.md](godot/README.md) içinde. Aşağıdaki metin, kökteki **web (Three.js) sürümünü** anlatır. Web sürümü dört aşamanın hepsini içeriyor ve Godot'ya aşama aşama taşınıyor.
+> **Yeni ana sürüm Godot'da:** [`godot/`](godot/README.md) klasörü. Masaüstünde normal bir oyun gibi çalışır, npm gerekmez; yeni görsel yön, Fredoka/Nunito tipografi ve animasyonlu karakterlerle geliyor. Kurulum adımları [godot/README.md](godot/README.md) içinde. Godot sürümünde artık dört aşamanın dördü de var (Büfe, Mahalle Marketi, Süpermarket, Köşebaşı AVM). Aşağıdaki metin, kökteki eski **web (Three.js) sürümünü** anlatır.
 
 ![Godot sürümü: Mahalle Marketi](godot/docs/market.jpg)
 

@@ -35,7 +35,9 @@ Mac ve Linux için de aynı adımları izle; 2. adımda kendi işletim sistemini
 | Orta tık + sürükle / `Q` `E` | Kamerayı döndür |
 | Tekerlek | Yakınlaş / uzaklaş. Uzaklaşınca cephe, tente ve tabela görünür |
 | `B` `P` `T` `H` `F` `U` | İnşa · Ürün & Fiyat · Tedarik · Personel · Finans · Gelişim |
-| `M` | Akış (müşteri trafiği) ısı haritası |
+| `K` `V` | Kampanyalar · AVM paneli (kiracılar, etkinlikler, tesis) |
+| `M` · `G` | Akış ısı haritası · Güvenlik katmanı (kamera ve güvenlik görevlisinin görmediği kör noktalar kırmızı) |
+| `PageUp` `PageDown` (ya da `]` `[`) | AVM'de kat değiştir. Dock'taki kat düğmesi de aynı işi yapar |
 | `R` | Yerleştirirken döndür. `Shift`+tık: arka arkaya yerleştir. Sağ tık / `Esc`: iptal |
 | `Boşluk` · `1` `2` `3` | Duraklat · 1× / 2× / 4× hız |
 | `C` | Kesik duvar görünümünü aç/kapat |
@@ -53,31 +55,58 @@ Hedef: Two Point serisinin sıcak, okunaklı "oyuncak ev" havası, ama kendi kim
 
 ## Bu sürümde neler var
 
-- **Büfe → Mahalle Marketi:** iki aşamanın ikisi de oynanabilir. Hedefler: 3,6★ puan, 200 mutlu müşteri, ₺12.000 nakit. Genişleyince yandaki kapalı dükkân yıkılır ve iç mekân 16×10 m olur.
-- **10 eşya:** ahşap raf, içecek dolabı, fırın sepeti, kasa, depo rafı, saksı, çöp kovası, gondol, manav tezgâhı, açık soğutucu. Hepsi yerleştirilebilir, taşınabilir, döndürülebilir ve satılabilir.
-  - Yerleştirme kurallarını ızgara ve yol bulma denetler: kapı önü boş kalmalı, rafın önü açık olmalı, kasiyerin duracağı yer olmalı, hiçbir şey ulaşılamaz hâle gelmemeli.
-- **11 ürün**, raflarda tek tek 3D olarak durur ve satıldıkça azalır. Fiyat etiketinin rengi stok durumuna göre değişir.
-- **4 müşteri arketipi:**
-  - Her birinin bütçesi, listesi, fiyat toleransı, sabrı ve saatlik talep eğrisi farklı.
-  - Müşteriler rafı arar, fiyata bakar, en kısa kuyruğa girer, öder ya da vazgeçer.
-  - Kasanın yanında anlık alım yapabilirler, yere çöp atabilirler.
-  - Tepkilerini başlarının üstündeki baloncuklarla gösterirler. Müşteriye tıklayınca "aklından geçenler" listesi açılır.
-- **Personel:** sahibi (Kemal Usta), kasiyer ve reyon görevlisi. Reyon görevlisi depodan koli taşıyıp rafları doldurur, boş kalınca çöp toplar. Reyon görevlisi yoksa sahip kasayı bırakıp rafa koşar.
-- **Tedarik:** elle ya da otomatik sipariş verilir, depo kapasitesi sınırlıdır. Toptancı minibüsü sokağa gelip mal indirir.
-- **Gün döngüsü:** 07:00–22:00 arası. Gün sonunda kira ve maaş ödenir, bir rapor ve otomatik öneriler çıkar.
-- **5 yükseltme:** Neon Tabela, Temassız POS, Yeni Tente, Elektronik Etiket, Raf Aydınlatması.
-- **Arayüz:** üst bilgi çubuğu, dock, 6 panel, inceleme kartları, uyarılar (tıklayınca kamera sorunun yerine gider), yerleştirme ipucu, fare üstü bilgi kutusu, akış ısı haritası, gün sonu raporu ve açılış ekranı.
+Dört aşamanın dördü de oynanabilir: **Büfe → Mahalle Marketi → Süpermarket → Köşebaşı AVM.** Her genişleme hedeflere bağlı (puan, mutlu müşteri, nakit) ve Gelişim panelinden (`U`) yapılır.
 
-## Henüz Godot'ya taşınmayanlar (açıkça)
+- **Büfe ve Mahalle Marketi:** 8×6 m'lik büfe, genişleyince 16×10 m'lik iki kapılı market. Yandaki kapalı dükkân yıkılır.
+- **Süpermarket (24×12 m, üç kapı):** eczane bloğu kalkar.
+  - **Bantlı kasa:** bant döner, ödeme %35 daha hızlı.
+  - **Self-servis kasa:** kasiyer istemez ama yavaş ve kayıp riski var.
+  - **Fırın tezgâhı ve fırıncı:** ucuz simit ve ekmek; "sıcacık" moral bonusu, fırın ağzı parlar.
+  - **Reyon levhaları:** levhasız reyonda müşteri rafı daha geç bulur.
+  - **Alışveriş arabası parkı:** haftalık alışverişçi araba iter; park yoksa listesi kısalır.
+- **Güvenlik ve hırsızlık:**
+  - Fırsatçı müşteri kimse bakmıyorsa ürünü cebine atar.
+  - Dönen tavan kamerasının görüş konisini yüksek raflar keser.
+  - Alarm kapısı kapıda öter, güvenlik görevlisi şüphelinin peşine düşer.
+  - `G` katmanı kör noktaları kırmızıyla gösterir.
+- **Islak zemin:** soğutucu sızdırır, müşteri içeceğini döker, üstünden geçen kayar. Temizlik görevlisi sarı uyarı levhası koyup paspaslar. Su birikintisine tıklayınca durumu görünür.
+- **Vardiya ve yorgunluk:**
+  - Vardiyalar: tam gün, sabah ya da akşam. Yarım vardiya %60 maaş alır.
+  - Enerji barı: yorgun personel yavaşlar ve çay ocağında mola verir.
+  - Personel panelinde her kişi için vardiya düğmeleri ve enerji çubuğu var.
+- **Kampanyalar (`K`):**
+  - Broşür Dağıtımı: kapıda tanıtımcı durur.
+  - Günün İndirimleri: en fazla 3 ürün seçilir, rafta kırmızı etiket çıkar.
+  - Kasa Önü Standı ve Tadım Günü.
+- **Köşebaşı AVM (iki kat):** süpermarket zemin katta kalır, bloğun tamamı alışveriş merkezi olur.
+  - **11 kiracı birimi, 10 kurgusal marka:** giyim, elektronik, kitabevi, oyuncakçı, kuaför, oyun salonu, spor ve üç yemek standı.
+  - **Teklifler ve sözleşme:** her sabah yeni teklifler gelir. Kira artı ciro payı alırsın.
+  - **Kiracı memnuniyeti gerekçeli:** "yürüyen merdivene uzak", "yanında gürültülü oyun salonu", "sadece 4 koltuk var" gibi. İki gün mutsuz kalan kiracı çıkar.
+  - **Kiracı vitrinleri:** marka renginde vitrin, tabela, kendi mobilyası ve tezgâhta çalışan personel. Boş birimde kepenk ve "KİRALIK" levhası var.
+  - **Katlar arası ulaşım:** yukarı ve aşağı yürüyen merdiven ile cam asansör. Ziyaretçiler katlar arasında yol bulur.
+  - **Arızalar:** merdiven ya da asansör arızalanabilir. Önüne "ARIZALI" bariyeri gelir; tıklayıp tamir ettirirsin.
+  - **Yemek katı:** masalar, sahne, çocuk oyun alanı ve banklar. Masalar kirlenir, temizlik görevlisi toplar.
+  - **4 etkinlik:** Akşam Konseri (sahnede grup çalar), İmza Günü, Bayram İndirimleri, Çocuk Şenliği. Her birinin kendi süslemesi var (bayrak dizisi, balonlar, pankart). Güvenliksiz kalabalıkta arbede çıkar.
+  - **Ziyaretçiler:** 4 arketip (genç, aile, profesyonel, emekli çift). Aileler çocuklarıyla gelir. Ziyaretçiye tıklayınca aklından geçenler görünür.
+  - **Görünüm:** kamera kat değiştirince üst kat gizlenir, uzaklaşınca tüm bina ve çatıdaki "KÖŞEBAŞI AVM" tabelası görünür. Kameraya bakan duvarlar ve vitrinler yakınlaşınca iner.
+- **Ortak sistemler:**
+  - 15 ürün, 21 eşya ve 6 müşteri arketipi.
+  - Personel rolleri: kasiyer, reyon görevlisi, temizlik, güvenlik ve fırıncı.
+  - Tedarik ve toptancı minibüsü.
+  - Gün sonu raporu: hırsızlık, kayma, yorgunluk ve AVM satırlarıyla, tavsiyelerle birlikte.
+  - 9 yükseltme; uyarılar, ısı haritası, fare üstü bilgiler.
 
-Web sürümünde (depo kökü, `npm run dev`) olup buraya henüz gelmeyenler:
+## Henüz olmayanlar (açıkça)
 
-- **Süpermarket ve AVM aşamaları.** Bantlı ve self-servis kasalar, fırın, reyon levhaları, kiracılar, katlar, yürüyen merdivenler, etkinlikler.
-- **Güvenlik ve hırsızlık**, **ıslak zemin**, **vardiya ve yorgunluk**, **kampanyalar**.
-- **Kayıt / yükleme** ve **ayarlar menüsü.** Oyun her açılışta baştan başlar.
-- **Müzik ve ses efektleri.** Şu an ses yok.
-- Depoda hazır bir `.exe` yok. Oyun editörden F5 ile çalışır. Tek dosyalık `.exe` istersen: editörde **Proje → Dışa Aktar** (Project → Export) menüsüne gir, Godot bir kez "Export Templates" indirmeni isteyecek, kabul et. Ardından hazır **Windows** ayarıyla **Proje Dışa Aktar**'a bas. `export/Tezgah.exe` oluşur. (Dışa aktarma ayarı depoda hazır, ancak bu adımı kendi ortamımda deneyemedim; editörden F5 ile çalıştırmayı test ettim.)
-- Denge sadece başsız testlerle ayarlandı, gerçek oyuncularla oynanmadı.
+- **Kayıt / yükleme** ve **ayarlar menüsü** yok. Oyun her açılışta baştan başlar. Web sürümünde vardı, Godot'ya taşınmadı.
+- **Müzik ve ses efektleri** yok.
+- Web sürümünde de olmayan, planlanan işler:
+  - AVM: merdiven, sinema, tuvalet ve bakım ekibi.
+  - Süpermarket: personel-only oda / soğuk oda, fırın ürünlerinde tazelik, "3 al 2 öde", fiziksel otopark alanı.
+- Depoda hazır bir `.exe` yok. Oyun editörden F5 ile çalışır.
+  - Tek dosyalık `.exe` istersen: editörde **Proje → Dışa Aktar** (Project → Export) menüsüne gir. Godot bir kez "Export Templates" indirmeni isteyecek, kabul et. Ardından hazır **Windows** ayarıyla **Proje Dışa Aktar**'a bas; `export/Tezgah.exe` oluşur.
+  - Dışa aktarma ayarı depoda hazır, ancak bu adımı kendi ortamımda deneyemedim. Editörden F5 ile çalıştırmayı test ettim.
+- Süpermarket ve AVM, betikli başsız simülasyonlarla ve ekran görüntüleriyle test edildi. Uzun oyun dengesi (kaç günde genişlenir, kira/etkinlik fiyatları) gerçek oyuncularla henüz denenmedi.
 
 ## Varlıklar ve lisanslar
 
@@ -90,11 +119,15 @@ Web sürümünde (depo kökü, `npm run dev`) olup buraya henüz gelmeyenler:
 ```
 godot/
   project.godot          ana sahne: scenes/main.tscn
-  scripts/core/          cfg.gd (sabitler, palet), db.gd (ürünler, eşyalar, arketipler, aşamalar)
-  scripts/sim/           grid.gd (A*, erişim), fixture.gd, agent.gd, customer.gd, staff.gd
+  scripts/core/          cfg.gd (sabitler, palet), db.gd (ürünler, eşyalar, arketipler, aşamalar, kampanyalar),
+                         mall_db.gd (AVM birimleri, kiracılar, ziyaretçiler, etkinlikler, merdiven/asansör)
+  scripts/sim/           grid.gd (A*, kapı kenarları, katlar), fixture.gd, agent.gd (katlar arası bacaklar),
+                         customer.gd, staff.gd (vardiya, görevler), mall.gd (kiracı, etkinlik, arıza), visitor.gd
   scripts/game.gd        simülasyon döngüsü (1/30 s sabit adım), ekonomi, yerleştirme, gün, genişleme
   scripts/world/         art.gd (malzemeler, fontlar, yuvarlatılmış kutu), props.gd (eşya modelleri),
-                         products3d.gd, character.gd, shop.gd, street.gd, sky.gd, camera_rig.gd, overlays.gd
+                         products3d.gd, character.gd, shop.gd, street.gd, sky.gd, camera_rig.gd, overlays.gd,
+                         mall_shell.gd (AVM binası: katlar, vitrinler, yürüyen merdiven, asansör, sahne, süslemeler)
   scripts/ui/            ui_kit.gd (tema), thumbs.gd (3D küçük resimler), hud.gd
-  shaders/               checker, wall_paint, brick, paving, asphalt, stripes, character (yeniden boyama)
+  shaders/               checker, wall_paint, brick, paving, asphalt, stripes, terrazzo, marble, escalator,
+                         belt, shutter, character (yeniden boyama)
 ```

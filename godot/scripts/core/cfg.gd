@@ -22,7 +22,12 @@ const DAY_CLOSE := 22 * 60
 const STAGE_LAYOUTS := [
 	{"interior": Rect2i(18, 10, 8, 6), "doors": [22, 23]},
 	{"interior": Rect2i(10, 6, 16, 10), "doors": [13, 14, 22, 23]},
+	{"interior": Rect2i(10, 4, 24, 12), "doors": [13, 14, 22, 23, 30, 31]},
+	{"interior": Rect2i(10, 4, 24, 12), "doors": [13, 14, 22, 23, 30, 31], "back_doors": [21, 22]},
 ]
+
+## vertical distance between AVM floors
+const FLOOR_H := 4.4
 
 const NAMES := [
 	"Ayşe", "Mehmet", "Zeynep", "Emre", "Elif", "Can", "Fatma", "Hasan", "Deniz", "Selin",

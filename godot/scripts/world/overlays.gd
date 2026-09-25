@@ -74,30 +74,66 @@ func set_queue_line(tiles: Array) -> void:
 		var d := Art.cyl(queue_line, 0.09, 0.09, 0.02, Art.unshaded(Cfg.MUSTARD, 0.9), Vector3(t.x + 0.5, 0.06, t.y + 0.5), 12)
 		if i == 0: d.scale = Vector3(1.8, 1, 1.8)
 
-func set_marks(tiles: Array) -> void:
+func set_marks(tiles: Array, y := 0.0) -> void:
 	# tiles: [[Vector2i, Color]]
 	for c in marks.get_children(): c.queue_free()
 	for e in tiles:
 		var t: Vector2i = e[0]
 		var c: Color = e[1]
-		Art.quad(marks, Vector2(0.94, 0.94), Art.unshaded(c, c.a, true), Vector3(t.x + 0.5, 0.05, t.y + 0.5), true)
+		Art.quad(marks, Vector2(0.94, 0.94), Art.unshaded(c, c.a, true), Vector3(t.x + 0.5, y + 0.05, t.y + 0.5), true)
 
-func update_heat(g: Grid) -> void:
+func update_heat(g: Grid, y := 0.0) -> void:
 	var cells := []
 	var mx := 4.0
+	var ok := func(i: int) -> bool: return g.region[i] == Grid.R_IN or g.region[i] == Grid.R_MALL
 	for i in g.traffic.size():
-		if g.region[i] == Grid.R_IN and g.traffic[i] > mx: mx = g.traffic[i]
+		if ok.call(i) and g.traffic[i] > mx: mx = g.traffic[i]
 	for i in g.traffic.size():
-		if g.region[i] == Grid.R_IN and g.traffic[i] > 0.3: cells.append(i)
+		if ok.call(i) and g.traffic[i] > 0.3: cells.append(i)
 	var mm := heat.multimesh
 	mm.instance_count = cells.size()
 	for k in cells.size():
 		var i: int = cells[k]
 		var v := sqrt(g.traffic[i] / mx)
-		mm.set_instance_transform(k, Transform3D(Basis(), Vector3(i % g.w + 0.5, 0.07, i / g.w + 0.5)))
+		mm.set_instance_transform(k, Transform3D(Basis(), Vector3(i % g.w + 0.5, y + 0.07, i / g.w + 0.5)))
 		var c := Color("3aa6d9").lerp(Color("f2b33d"), clampf(v * 1.6, 0, 1)).lerp(Color("e5484d"), clampf(v * 2.0 - 1.0, 0, 1))
 		c.a = 0.25 + v * 0.45
 		mm.set_instance_color(k, c)
+
+## camera / staff coverage: red = blind spot, violet = camera, green = staff eyes
+func update_security(mask: PackedByteArray, g: Grid, y := 0.0) -> void:
+	var cells := []
+	for i in mask.size(): if mask[i] > 0: cells.append(i)
+	var mm := heat.multimesh
+	mm.instance_count = cells.size()
+	for k in cells.size():
+		var i: int = cells[k]
+		mm.set_instance_transform(k, Transform3D(Basis(), Vector3(i % g.w + 0.5, y + 0.07, i / g.w + 0.5)))
+		var c: Color = [Color(0, 0, 0, 0), Color(0.9, 0.2, 0.24, 0.6), Color(0.48, 0.35, 0.88, 0.2), Color(0.18, 0.7, 0.48, 0.2)][mask[i]]
+		mm.set_instance_color(k, c)
+
+func puddle_mesh() -> Node3D:
+	var n := Node3D.new()
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.55, 0.78, 0.95, 0.6)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.roughness = 0.02; m.metallic_specular = 1.0
+	for i in 4:
+		var s := Art.cyl(n, 0.3 - i * 0.04, 0.3 - i * 0.04, 0.01, m, Vector3(randf_range(-0.15, 0.15), 0.005, randf_range(-0.15, 0.15)), 20)
+		s.scale = Vector3(randf_range(0.9, 1.4), 1, randf_range(0.7, 1.2))
+	return n
+
+## the classic yellow A-frame "DİKKAT ISLAK ZEMİN"
+func wet_sign_mesh() -> Node3D:
+	var n := Node3D.new()
+	var y := Art.mat(Color("f2c200"), 0.5)
+	for s in [-1, 1]:
+		var p := Art.box(n, Vector3(0.36, 0.62, 0.02), y, Vector3(0, 0.3, s * 0.1), 0.02)
+		p.rotation.x = s * 0.3
+		var l := Art.label(n, "DİKKAT\nISLAK\nZEMİN", 26, Color("1f2a44"), Vector3(0, 0.3, s * 0.12), 0.0, "display")
+		l.rotation = Vector3(s * 0.3, 0 if s > 0 else PI, 0)
+	Art.stylize(n, true)
+	return n
 
 func _process(dt: float) -> void:
 	for i in range(floaters.size() - 1, -1, -1):

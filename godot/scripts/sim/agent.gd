@@ -24,6 +24,11 @@ var look_at_pt = null # Vector3 or null
 var removed := false
 var crowd_t := 0.0
 var person_name := ""
+var lvl := 0 # floor index (AVM)
+var legs: Array = [] # [{kind: "walk", lvl, goal} | {kind: "ride", conn}]
+var ride := {} # {conn, t, from: Vector3, to: Vector3}
+var dest := {} # {tile, lvl}
+var hidden_agent := false
 
 func init_agent(look: Dictionary, nm: String) -> void:
 	id = _next_id; _next_id += 1
@@ -48,8 +53,12 @@ func think(kind: String, dur := 2.2) -> void:
 	bubble.texture = _bubble_tex[kind]
 	bubble.visible = true
 
+func grid_of(game) -> Grid: return game.floors[lvl] if lvl < game.floors.size() else game.grid
+func riding() -> bool: return not ride.is_empty()
+
 func go_to(game, t: Vector2i) -> bool:
-	var g: Grid = game.grid
+	var g: Grid = grid_of(game)
+	if legs.is_empty(): dest = {"tile": t, "lvl": lvl}
 	var from := tile()
 	if not g.walkable(from.x, from.y): unstick(game)
 	var p := g.find_path(tile(), t, true)
@@ -63,9 +72,27 @@ func go_to(game, t: Vector2i) -> bool:
 	return true
 
 func same_goal(t: Vector2i) -> bool: return has_goal and goal == t
+func same_dest(t: Vector2i, l := 0) -> bool: return not dest.is_empty() and dest["tile"] == t and dest["lvl"] == l
+
+## go anywhere, switching floors via escalator / lift when needed
+func go_to_any(game, t: Vector2i, l := 0, prefer_lift := false) -> bool:
+	legs = []
+	if l == lvl or riding():
+		dest = {"tile": t, "lvl": l}
+		if riding():
+			legs = [{"kind": "walk", "lvl": l, "goal": t}]
+			return true
+		return go_to(game, t)
+	var conn = game.pick_connector(lvl, l, position, prefer_lift)
+	if conn == null:
+		path = []; goal = t; has_goal = true
+		return false
+	legs = [{"kind": "ride", "conn": conn}, {"kind": "walk", "lvl": l, "goal": t}]
+	dest = {"tile": t, "lvl": l}
+	return go_to(game, conn["board"])
 
 func unstick(game) -> void:
-	var g: Grid = game.grid
+	var g: Grid = grid_of(game)
 	var t := tile()
 	if not g.in_bounds(t.x, t.y): return
 	for r in range(1, 6):
@@ -77,15 +104,18 @@ func unstick(game) -> void:
 
 ## returns true when the final goal is reached
 func move(dt: float, game) -> bool:
+	if riding(): return _step_ride(dt, game)
 	if not has_goal: return true
-	var g: Grid = game.grid
-	if grid_version != g.version: go_to(game, goal)
+	var g: Grid = grid_of(game)
+	if grid_version != g.version:
+		var keep := legs
+		go_to(game, goal)
+		legs = keep
 	if path.is_empty():
 		moving = 0.0
 		return false
 	if path_idx >= path.size():
-		moving = 0.0
-		return true
+		return _next_leg(game)
 	var wp: Vector2i = path[path_idx]
 	var last := path_idx == path.size() - 1
 	var j := jitter * (0.5 if last else 1.0)
@@ -96,20 +126,72 @@ func move(dt: float, game) -> bool:
 	var d := sqrt(dx * dx + dz * dz)
 	var sp := speed * speed_mul
 	var occ := g.occupancy[g.idx(wp.x, wp.y)]
-	if occ >= 2 and g.is_interior(wp.x, wp.y):
+	if occ >= 2 and (g.is_interior(wp.x, wp.y) or g.region[g.idx(wp.x, wp.y)] >= Grid.R_MALL):
 		sp *= 0.5; crowd_t += dt
 	var step := sp * dt
 	if d <= step or d < 0.02:
 		position.x = tx; position.z = tz
 		path_idx += 1
 		if path_idx >= path.size():
-			moving = 0.0
-			return true
+			return _next_leg(game)
 	else:
 		position.x += dx / d * step
 		position.z += dz / d * step
 		facing = lerp_angle(facing, atan2(dx, dz), minf(1.0, dt * 12.0))
 	moving = sp / 1.4
+	return false
+
+func _next_leg(game) -> bool:
+	moving = 0.0
+	if legs.is_empty(): return true
+	var leg: Dictionary = legs.pop_front()
+	if leg["kind"] == "ride":
+		var c: Dictionary = leg["conn"]
+		if not game.connector_working(c["id"]):
+			var d := dest
+			legs = []
+			if not d.is_empty(): go_to_any(game, d["tile"], d["lvl"], true)
+			return false
+		ride = {"conn": c, "t": 0.0,
+			"from": Vector3(c["board"].x + 0.5, c["board_lvl"] * Cfg.FLOOR_H + 0.02, c["board"].y + 0.5),
+			"to": Vector3(c["land"].x + 0.5, c["land_lvl"] * Cfg.FLOOR_H + 0.02, c["land"].y + 0.5)}
+		game.on_ride(self, c)
+		return false
+	lvl = leg["lvl"]
+	position.y = lvl * Cfg.FLOOR_H + 0.02
+	go_to(game, leg["goal"])
+	return false
+
+func _step_ride(dt: float, game) -> bool:
+	var r := ride
+	var c: Dictionary = r["conn"]
+	r["t"] += dt / float(c["time"])
+	var k := minf(1.0, r["t"])
+	var a: Vector3 = r["from"]
+	var b: Vector3 = r["to"]
+	if c["kind"] == "escalator":
+		var p := a.lerp(b, k)
+		p.y = a.y + (b.y - a.y) * clampf((k - 0.1) / 0.8, 0.0, 1.0)
+		position = p
+		facing = lerp_angle(facing, atan2(b.x - a.x, b.z - a.z), minf(1.0, dt * 10.0))
+	else:
+		var cx := a.x + 0.5
+		var cz := a.z - 1.0
+		if k < 0.15:
+			var q := k / 0.15
+			position = Vector3(lerpf(a.x, cx, q), a.y, lerpf(a.z, cz, q))
+		elif k < 0.85:
+			var q2 := smoothstep(0.0, 1.0, (k - 0.15) / 0.7)
+			position = Vector3(cx, lerpf(a.y, b.y, q2), cz)
+		else:
+			var q3 := (k - 0.85) / 0.15
+			position = Vector3(lerpf(cx, b.x, q3), b.y, lerpf(cz, b.z, q3))
+	moving = 0.0
+	if k >= 1.0:
+		ride = {}
+		lvl = c["land_lvl"]
+		position = b
+		return _next_leg(game)
 	return false
 
 func sync_view(dt: float, t: float) -> void:

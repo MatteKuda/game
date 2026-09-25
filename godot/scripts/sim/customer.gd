@@ -5,7 +5,7 @@ extends Agent
 const SKIN := [Color("f6d2b8"), Color("e8b894"), Color("d29a74"), Color("b57b55"), Color("8d5a3b"), Color("f1c7a5")]
 const HAIR := [Color("2b1d16"), Color("4a2f1f"), Color("7a4b2a"), Color("b88a4a"), Color("1a1a1a"), Color("8e3b24")]
 const GREY := [Color("d9d6d0"), Color("bcb7ae"), Color("e8e4dc")]
-const INSIDE := ["decide", "to_shelf", "browse", "to_queue", "queue", "paying"]
+const INSIDE := ["decide", "to_cart", "to_shelf", "browse", "to_queue", "queue", "paying", "to_exit", "caught"]
 
 var arch = null # Dictionary or null (ambient walker)
 var shopper := false
@@ -24,6 +24,13 @@ var door_x := 22
 var thoughts: Array = []
 var flags := {}
 var impulse_checked := {}
+var stolen: Array = []
+var suspect := false
+var has_cart := false
+var slip_t := 0.0
+var search_t := 0.0
+
+func thief() -> bool: return arch != null and arch.get("thief", false)
 
 static func random_look(a) -> Dictionary:
 	var old: bool = a != null and a["id"] == "emekli"
@@ -55,16 +62,16 @@ func setup_customer(a, is_shopper: bool, game) -> void:
 		for i in n:
 			if pool.is_empty(): break
 			var tot := 0.0
-			for e in pool: tot += e[1]
+			for e in pool: tot += e[1] * game.demand_mul(e[0])
 			var r := randf() * tot
 			var k := 0
 			while k < pool.size() - 1:
-				r -= pool[k][1]
+				r -= pool[k][1] * game.demand_mul(pool[k][0])
 				if r <= 0.0: break
 				k += 1
 			var pid: String = pool[k][0]
 			pool.remove_at(k)
-			wants.append({"pid": pid, "qty": 2 if a["id"] == "aile" and randf() < 0.4 else 1, "status": "pending", "tried": {}})
+			wants.append({"pid": pid, "qty": 2 if (a["id"] == "aile" or a["id"] == "haftalik") and randf() < 0.4 else 1, "status": "pending", "tried": {}})
 
 func spent() -> int:
 	var s := 0
@@ -80,6 +87,11 @@ func log_thought(icon: String, text: String, game, show := true) -> void:
 
 func update(dt: float, game) -> void:
 	var v := view
+	if slip_t > 0.0:
+		slip_t -= dt; v.play("fall"); moving = 0.0
+		if slip_t <= 0.0: v.play("idle")
+		return
+	if inside() and state != "caught": _check_puddle(game)
 	match state:
 		"walkby", "exit":
 			v.play("walk")
@@ -89,23 +101,41 @@ func update(dt: float, game) -> void:
 			if move(dt, game):
 				var crowd: bool = game.customers_inside() >= game.max_inside()
 				if crowd or not game.is_open():
-					log_thought("crowd", "İçerisi çok kalabalık, vazgeçtim." if crowd else "Dükkân kapalı.", game)
-					game.stats["lost"] += 1
-					if crowd: game.stats["lost_crowd"] += 1
+					if not thief():
+						log_thought("crowd", "İçerisi çok kalabalık, vazgeçtim." if crowd else "Dükkân kapalı.", game)
+						game.stats["lost"] += 1
+						if crowd: game.stats["lost_crowd"] += 1
 					leave_street(game)
 				else:
-					game.stats["visitors"] += 1
-					v.ensure_basket()
-					state = "decide"
-					go_to(game, Vector2i(door_x, game.grid.front_z()))
+					if not thief(): game.stats["visitors"] += 1
+					var station = null
+					if arch.get("cart", false):
+						for f in game.fixtures:
+							if f.def["kind"] == "carts": station = f; break
+					if station != null:
+						state = "to_cart"
+						go_to(game, game.nearest_access(station, position))
+					else:
+						v.ensure_basket()
+						if arch.get("cart", false):
+							wants = wants.slice(0, 3); mood -= 6; flags["nocart"] = true
+						state = "decide"
+						go_to(game, Vector2i(door_x, game.grid.front_z()))
+		"to_cart":
+			v.play("walk")
+			if move(dt, game):
+				has_cart = true; v.set_cart(true)
+				next_want(game)
 		"decide":
 			v.play("walk")
-			if move(dt, game): next_want(game)
+			if move(dt, game):
+				if flags.has("nocart"): log_thought("box", "Araba yok, bu sepete her şey sığmaz. Listemi kısalttım.", game)
+				next_want(game)
 		"to_shelf":
 			v.play("walk")
 			_inside_tick(dt, game)
 			if move(dt, game):
-				state = "browse"; timer = randf_range(0.8, 1.5)
+				state = "browse"; timer = randf_range(0.8, 1.5) + search_t; search_t = 0.0
 				look_at_pt = shelf.center() if shelf else null
 		"browse":
 			v.play("reach")
@@ -134,10 +164,12 @@ func update(dt: float, game) -> void:
 					flags["wait_warn"] = true; log_thought("wait", "Bu kuyruk hiç ilerlemiyor…", game); mood -= 8
 				if wait > pat:
 					_abandon(game); return
-				var staffed: bool = reg.cashier != null and reg.cashier.at_register(reg)
+				var self_s: bool = reg.def.get("self", false)
+				var staffed: bool = self_s or (reg.cashier != null and reg.cashier.at_register(reg))
 				if idx == 0 and staffed:
 					state = "paying"
-					timer = (2.0 + 0.55 * basket.size()) * (0.65 if game.upgrades.has("pos") else 1.0) / reg.cashier.skill
+					var sk: float = 1.0 if self_s else reg.cashier.eff_skill()
+					timer = (2.0 + 0.55 * basket.size()) * (0.65 if game.upgrades.has("pos") else 1.0) * float(reg.def.get("service", 1.0)) / sk
 				elif idx == 0 and not staffed and not flags.has("nocashier"):
 					flags["nocashier"] = true; log_thought("nocashier", "Kasada kimse yok!", game)
 			else:
@@ -147,6 +179,9 @@ func update(dt: float, game) -> void:
 			v.play("pay")
 			timer -= dt
 			if timer <= 0.0:
+				if register and register.def.get("self", false) and basket.size() > 2 and randf() < 0.08:
+					var b: Dictionary = basket.pop_back()
+					game.record_shrink(b["pid"])
 				game.sale(self, spent())
 				if register: register.queue.erase(self)
 				if wait < arch["patience"] * 0.3: mood += 6
@@ -154,11 +189,56 @@ func update(dt: float, game) -> void:
 		"leaving":
 			v.play("walk")
 			if move(dt, game): leave_street(game)
+		"to_exit":
+			v.play("walk")
+			_inside_tick(dt, game)
+			if move(dt, game):
+				var res: String = game.thief_at_door(self)
+				if res == "caught": be_caught(game)
+				elif res == "alarm":
+					state = "flee"; speed_mul = 1.7
+					go_to(game, Vector2i(exit_x, Cfg.SIDEWALK_Z0 + 1))
+				else:
+					game.record_theft(self); leave_street(game)
+		"flee":
+			v.play("walk")
+			if move(dt, game): removed = true
+		"caught":
+			v.play("angry"); moving = 0.0
+			timer -= dt
+			if timer <= 0.0:
+				speed_mul = 0.8; state = "leaving"
+				go_to(game, Vector2i(door_x, game.grid.interior().end.y))
+
+func be_caught(game) -> void:
+	state = "caught"; timer = 2.2; path = []; has_goal = false
+	for pid in stolen: game.backstock[pid] = int(game.backstock.get(pid, 0)) + 1
+	game.stats["caught"] += 1
+	stolen.clear()
+	view.set_basket_items([])
+	log_thought("angry", "Yakalandım…", game)
+	game.float_text(position + Vector3(0, view.head_y + 0.6, 0), "Yakalandı!", Cfg.TEAL)
+
+func _check_puddle(game) -> void:
+	var p = game.puddle_at(tile(), lvl)
+	if p == null or p["dry"] > 0.0: return
+	var key := "slip%d" % p["id"]
+	if flags.has(key): return
+	flags[key] = true
+	if randf() < 0.4:
+		slip_t = 1.7; mood -= 16
+		game.stats["slips"] += 1
+		log_thought("slip", "Kaydım! Kimse paspas yapmıyor mu?", game)
+		game.alert("slip", "slip", "Bir müşteri ıslak zeminde kaydı! Temizlik görevlisi paspas yapıp uyarı levhası koyar.", "bad", p["node"].position, 40.0)
 
 func _inside_tick(dt: float, game) -> void:
 	var t := tile()
-	if arch and randf() < arch["litter"] * dt and not game.bin_near(t): game.drop_litter(t)
-	if not flags.has("dirty") and game.litter_near(t, 1.6):
+	if arch and randf() < arch["litter"] * dt and not game.bin_near(t, lvl): game.drop_litter(t, lvl)
+	for b in basket:
+		if ["kola", "ayran", "sut", "su"].has(b["pid"]):
+			if randf() < 0.0008 * dt: game.spill_at(t, lvl, "Bir müşteri içeceğini döktü")
+			break
+	if not flags.has("dirty") and game.litter_near(t, 1.6, lvl):
 		flags["dirty"] = true; mood -= 7; log_thought("dirty", "Yerler çok kirli…", game)
 	if not flags.has("ambiance") and game.plant_near(t):
 		flags["ambiance"] = true; mood += 4 + (2 if game.upgrades.has("isik") else 0)
@@ -177,7 +257,7 @@ func next_want(game) -> void:
 				if s["pid"] == w["pid"]: cands.append(f); break
 		if cands.is_empty():
 			w["status"] = "oos" if not w["tried"].is_empty() else "notfound"
-			if w["status"] == "notfound":
+			if w["status"] == "notfound" and not thief():
 				mood -= 13
 				log_thought("notfound", "%s arıyordum, satılmıyor mu?" % DB.product(w["pid"])["name"], game)
 				game.stats["missed"][w["pid"]] = int(game.stats["missed"].get(w["pid"], 0)) + 1
@@ -189,6 +269,12 @@ func next_want(game) -> void:
 			var d := position.distance_to(f.center()) + (0.0 if stocked else 8.0)
 			if d < best_d: best_d = d; best = [w, f]
 	if best == null:
+		if thief():
+			if stolen.size() > 0:
+				state = "to_exit"; go_to(game, Vector2i(door_x, game.grid.front_z()))
+			else:
+				state = "leaving"; go_to(game, Vector2i(door_x, game.grid.interior().end.y))
+			return
 		if basket.size() > 0: pick_register(game)
 		else:
 			log_thought("angry" if mood < 40 else "wallet", "Eli boş çıkıyorum.", game)
@@ -198,6 +284,10 @@ func next_want(game) -> void:
 	var bf: Fixture = best[1]
 	shelf = bf
 	bw["tried"][bf.uid] = true
+	if game.stage >= 2 and not thief() and not game.sign_near(bf):
+		search_t = 2.4; mood -= 3
+		if not flags.has("lost"):
+			flags["lost"] = true; log_thought("notfound", "Reyonu bulmak zor, levha yok mu?", game)
 	var acc: Array = []
 	for t in bf.access():
 		if game.grid.walkable(t.x, t.y): acc.append(t)
@@ -205,7 +295,7 @@ func next_want(game) -> void:
 	var target = acc[randi() % mini(2, acc.size())] if acc.size() > 0 else null
 	if target == null or not go_to(game, target):
 		bw["status"] = "notfound"
-		mood -= 10; log_thought("notfound", "Rafa ulaşamıyorum, yol kapalı!", game)
+		if not thief(): mood -= 10; log_thought("notfound", "Rafa ulaşamıyorum, yol kapalı!", game)
 		next_want(game)
 		return
 	state = "to_shelf"
@@ -230,13 +320,17 @@ func _evaluate_shelf(game) -> void:
 					for s in o.slots:
 						if s["pid"] == w["pid"] and s["stock"] > 0: other = true
 			if not other:
-				w["status"] = "oos"; mood -= 16
-				log_thought("empty", "%s bitmiş!" % p["name"], game)
-				game.stats["missed"][w["pid"]] = int(game.stats["missed"].get(w["pid"], 0)) + 1
+				w["status"] = "oos"
+				if not thief():
+					mood -= 16
+					log_thought("empty", "%s bitmiş!" % p["name"], game)
+					game.stats["missed"][w["pid"]] = int(game.stats["missed"].get(w["pid"], 0)) + 1
 			continue
+		if thief():
+			_try_steal(game, w, slot, f); continue
 		var price: int = game.effective_price(w["pid"])
 		var tol: float = arch["tol"] + game.tolerance_bonus()
-		if price > p["base"] * (1.0 + tol):
+		if price > p["base"] * (1.0 + tol) and not game.is_discounted(w["pid"]):
 			w["status"] = "expensive"; mood -= 12
 			log_thought("price", "%s ₺%d? Çok pahalı!" % [p["name"], price], game)
 			game.stats["expensive"][w["pid"]] = int(game.stats["expensive"].get(w["pid"], 0)) + 1
@@ -250,11 +344,34 @@ func _evaluate_shelf(game) -> void:
 			w["status"] = "budget"; mood -= 6; log_thought("wallet", "Param yetmiyor.", game)
 			continue
 		w["status"] = "got"; mood += 6
-		if price <= p["base"] * 0.9 and randf() < 0.5:
+		if game.is_discounted(w["pid"]):
+			mood += 4
+			if randf() < 0.6: log_thought("cheap", "%s indirimde, iyi denk geldi!" % p["name"], game)
+		elif price <= p["base"] * 0.9 and randf() < 0.5:
 			mood += 4; log_thought("cheap", "%s ucuzmuş!" % p["name"], game)
+		if (w["pid"] == "simit" or w["pid"] == "ekmek") and game.has_oven() and not flags.has("fresh"):
+			flags["fresh"] = true; mood += 5; log_thought("happy", "Ekmek sıcacık, fırından yeni çıkmış!", game)
 		game.stock_changed(f)
-	view.set_basket_items(basket.map(func(b): return b["pid"]))
+	view.set_basket_items(basket.map(func(b): return b["pid"]) + stolen)
 	next_want(game)
+
+func _try_steal(game, w: Dictionary, slot: Dictionary, f: Fixture) -> void:
+	var watch: Dictionary = game.watch_info(tile(), lvl)
+	if watch["staff"] != null:
+		w["status"] = "skipped"
+		if not flags.has("nervous"):
+			flags["nervous"] = true; log_thought("sneak", "Burada göz var… başka rafa bakayım.", game, false)
+		return
+	if watch["camera"] and randf() < 0.5:
+		w["status"] = "skipped"; log_thought("sneak", "Kamera var, riskli.", game, false)
+		return
+	slot["stock"] -= 1
+	stolen.append(w["pid"]); w["status"] = "stolen"
+	game.stock_changed(f)
+	if watch["camera"]:
+		suspect = true
+		think("sneak", 6.0)
+		game.suspect_seen(self, "Kamera bir müşterinin ürünü cebine attığını kaydetti!")
 
 func _check_impulse(game) -> void:
 	var t := tile()
@@ -293,7 +410,10 @@ func pick_register(game) -> void:
 		log_thought("nocashier", "Kasa yok! Nasıl ödeyeceğim?", game)
 		_return_items(game); finish_visit(game, false)
 		return
-	regs.sort_custom(func(a, b): return (0 if a.cashier else 50) + a.queue.size() < (0 if b.cashier else 50) + b.queue.size())
+	var score := func(f) -> float:
+		var sv: float = f.def.get("service", 1.0)
+		return (0.0 if (f.def.get("self", false) or f.cashier) else 50.0) + f.queue.size() * sv + (4.0 if f.def.get("self", false) and basket.size() > 5 else 0.0)
+	regs.sort_custom(func(a, b): return score.call(a) < score.call(b))
 	var reg: Fixture = regs[0]
 	if register and register != reg: register.queue.erase(self)
 	register = reg
@@ -318,11 +438,12 @@ func _abandon(game) -> void:
 
 func finish_visit(game, paid: bool) -> void:
 	mood = clampf(mood, 0.0, 100.0)
-	game.record_visit(self, paid)
+	if not thief(): game.record_visit(self, paid)
 	if paid and mood >= 60: log_thought("happy", "Güzel dükkân, yine gelirim!", game)
 	elif paid and mood < 40: log_thought("angry", "Aldım ama memnun kalmadım.", game)
 	state = "leaving"
 	register = null
+	if has_cart: has_cart = false; view.set_cart(false)
 	go_to(game, Vector2i(door_x, game.grid.interior().end.y))
 
 func leave_street(game) -> void:
@@ -340,6 +461,10 @@ func status_label() -> String:
 		"to_queue": return "Kasaya gidiyor"
 		"queue": return "Kuyrukta (%d. sırada)" % (queue_idx + 1)
 		"paying": return "Ödeme yapıyor"
+		"to_cart": return "Araba alıyor"
+		"to_exit": return "Ödemeden kapıya gidiyor!" if suspect else "Kapıya yöneliyor"
+		"flee": return "Kaçıyor!"
+		"caught": return "Güvenliğe yakalandı"
 	return "Ayrılıyor"
 
 func face_mood() -> String:

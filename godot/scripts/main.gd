@@ -4,6 +4,7 @@ extends Node
 var game: Game
 var hud: Hud
 var thumbs: Thumbs
+var args_extra := {}
 
 func _ready() -> void:
 	game = Game.new()
@@ -53,7 +54,93 @@ func _ready() -> void:
 			if game.day_ended_flag: game.start_next_day()
 			game.tick(1.0 / 30.0)
 		print("MARKET day=", game.day, " money=", game.money, " rev=", game.stats["revenue"], " served=", game.stats["served"], " rating=", game.rating)
+	args_extra = args
+	if args.has("stage"): _stage_test(int(args["stage"]), float(args.get("ssim", "0")))
+	if args.has("floor"): game.set_view_floor(int(args["floor"]))
+	if args.has("overlay"): game.set_overlay(args["overlay"])
+	if args.has("event"): game.mall.schedule(args["event"], "today")
+	if args.has("hour"): game.clock = float(args["hour"]) * 60.0
+	if args.has("panel2"): hud.open_panel(args["panel2"])
+	if args.has("selunit"):
+		var u: Dictionary = game.mall.units[int(args["selunit"])]
+		game.set_view_floor(u["def"]["floor"])
+		game.select({"kind": "unit", "obj": u})
+	if args.has("cam"):
+		var c: PackedStringArray = args["cam"].split(",")
+		game.rig.focus(float(c[0]), float(c[1]), float(c[2]))
 	if args.has("itest"): _itest()
+
+## scripted stage-2/3 setup for headless balance runs and screenshots
+func _stage_test(n: int, secs: float) -> void:
+	game.money += 400000; game.rating = 4.2
+	for st in range(1, n + 1): game.apply_stage(st)
+	for f in game.fixtures.duplicate(): game.remove_fixture(f)
+	var add := func(id: String, x: int, z: int, r: int, prods: Array, l := 0):
+		var d := DB.fixture(id)
+		if game.view_floor != l: game.set_view_floor(l)
+		var v := game.validate(d, x, z, r, null)
+		if not v["ok"]:
+			var gg: Grid = game.floor_grid(l)
+			var occ := []
+			for t in Fixture.footprint(d, x, z, r)["tiles"]: occ.append(gg.fixture[gg.idx(t.x, t.y)])
+			print("PLACE FAIL ", id, " @", x, ",", z, " ", v["reason"], " occ=", occ); return
+		var f := game.add_fixture(d, x, z, r, l)
+		for i in mini(prods.size(), f.slots.size()):
+			f.slots[i]["pid"] = prods[i]; f.slots[i]["stock"] = f.cap()
+	# back wall: cold + fresh + bakery
+	add.call("acik", 11, 4, 0, ["sut", "ayran", "peynir"])
+	add.call("acik", 14, 4, 0, ["kola", "su", "ayran"])
+	add.call("manav", 17, 4, 0, ["domates", "elma"])
+	add.call("firin", 24, 4, 0, ["simit", "ekmek"])
+	add.call("depo", 27, 4, 0, [])
+	add.call("depo", 29, 4, 0, [])
+	add.call("cay_ocagi", 32, 4, 0, [])
+	# aisles
+	for x in [12, 16, 24, 28]:
+		add.call("gondol", x, 7, 0, ["cips", "biskuvi", "makarna"])
+		add.call("gondol", x, 10, 0, ["cikolata", "cay", "deterjan"])
+	add.call("levha", 13, 8, 0, [])
+	add.call("levha", 25, 8, 0, [])
+	add.call("kamera", 20, 8, 0, [])
+	add.call("kamera", 31, 11, 0, [])
+	# checkout line
+	add.call("bantkasa", 15, 13, 0, [])
+	add.call("bantkasa", 25, 13, 0, [])
+	add.call("selfkasa", 20, 13, 0, [])
+	add.call("alarm", 15, 15, 0, [])
+	add.call("araba", 32, 14, 0, [])
+	add.call("saksi", 10, 15, 0, [])
+	add.call("cop", 33, 15, 0, [])
+	for r in [["cashier", "Elif", 300], ["cashier", "Deniz", 300], ["stocker", "Can", 260], ["cleaner", "Nermin", 230], ["security", "Tarık", 340], ["baker", "Hatice", 380]]:
+		game.hire({"role": r[0], "name": r[1], "wage": r[2], "skill": 1.0}, true)
+	for i in int(args_extra.get("stockers", "0")):
+		game.hire({"role": "stocker", "name": "Reyon %d" % (i + 2), "wage": 260, "skill": 1.0}, true)
+	if n >= 3:
+		for u in game.mall.units:
+			if not u["offers"].is_empty(): game.mall.lease(u, 0)
+		for p in [[14, 7], [17, 7], [20, 9], [25, 9], [28, 7], [31, 7], [14, 10], [28, 10]]:
+			add.call("masa", p[0], p[1], 0, [], 1)
+		add.call("oyunalani", 9, 5, 0, [], 1)
+		add.call("bank", 31, 5, 0, [], 1)
+		add.call("bank", 3, 5, 0, [], 1)
+		add.call("cop", 22, 6, 0, [], 1)
+		add.call("saksi", 11, 12, 0, [], 1)
+		game.hire({"role": "cleaner", "name": "Songül", "wage": 230, "skill": 1.0}, true)
+		game.set_view_floor(0)
+	for pid in game.backstock: game.backstock[pid] = 6 if game.is_stocked(pid) else 0
+	game.refresh_all()
+	var day0: int = game.day
+	for i in int(secs * 30):
+		if game.day_ended_flag:
+			print("DAY ", game.day, " money=", game.money, " rev=", game.stats["revenue"], " served=", game.stats["served"], " rating=", snappedf(game.rating, 0.01), " stats=", game.stats)
+			if game.mall: print("  MALL ", game.mall.history.back() if not game.mall.history.is_empty() else {}, " visitors_now=", game.mall.visitors.size(), " mood=", snappedf(game.mall.mood, 0.01))
+			game.start_next_day()
+		game.tick(1.0 / 30.0)
+	print("STAGE", n, " after ", secs, "s day=", game.day - day0, " clock=", game.clock, " money=", game.money, " customers=", game.customers.size(), " staff=", game.staff.size(), " fixtures=", game.fixtures.size(), " stats=", game.stats)
+	if game.mall:
+		print("  mall visitors=", game.mall.visitors.size(), " mood=", game.mall.mood, " stats=", game.mall.stats)
+		for u in game.mall.units:
+			if not u["tenant"].is_empty(): print("  unit ", u["def"]["id"], " ", u["tenant"]["def"]["brand"], " sat=", u["tenant"]["sat"], " sales=", u["tenant"]["sales"], " vis=", u["tenant"]["visitors"])
 
 ## scripted input test: real mouse/keyboard events through the viewport
 func _itest() -> void:
