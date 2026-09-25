@@ -95,20 +95,20 @@ Durum etiketleri: ✅ uygulandı · 🟡 kısmen · ⬜ planlandı
 
 | Konu | Durum | Sonra |
 |---|---|---|
-| Kayıt ve yükleme | ✅ Günlük otomatik kayıt + 3 yuva (Godot: `user://` içinde JSON) | Dosyaya dışa aktarma, kayıt sürümleme ve göç |
-| Ayarlar | ✅ Kalite, ses kanalları, arayüz ölçeği, kesik duvar | Tuş atama, renk körlüğü paleti |
-| Ses | ✅ Üretken müzik + ortam, 4 kanal | Kiracıya özel vitrin sesleri, etkinlik müziği |
-| Dokunmatik | ✅ Kaydır, kıstır, çevir, dokunarak yerleştir, alttan açılan paneller | Dikey telefon düzeni, dokunmatik için büyük tablo görünümleri |
-| Varlık hattı | Prosedürel (kod) | Aynı `FixtureModel` arayüzüyle glTF yükleyici |
-| Performans | Statik birleştirme, AVM'de ~120 ajan akıcı | `InstancedMesh` karakterler, uzak ajanlar için LOD, görünmeyen katta soyut sim |
-| Test | Başsız tarayıcıda senaryolu simülasyon (elle) | Vitest ile sim birim testleri, CI'da gece dengesi raporu |
+| Kayıt ve yükleme | ✅ Günlük otomatik kayıt + 3 yuva, gün ortası kayıt, sürüm göçü, `.bak` yedeği, atomik yazma | Dosyaya dışa aktarma |
+| Ayarlar ve erişilebilirlik | ✅ Kalite, pencere boyutu, VSync, kare sınırı, ses kanalları, arayüz ölçeği, yazı boyutu, renk körü paleti, tuş atama | Altyazı/okuma hızı, tek elle oynanış |
+| Oyun kolu, Steam, Deck | ✅ Kol imleci + eşleme, isteğe bağlı GodotSteam köprüsü (başarım, durum), Deck varsayılanları | Gerçek cihazda test, kola özel arayüz ipuçları |
+| Ses | ✅ Üretken müzik, ortam, yağmur/rüzgâr/gök gürültüsü, kedi, radyo cıngılı | Kiracıya özel vitrin sesleri, etkinlik müziği |
+| Dokunmatik | ✅ Kaydır, kıstır, çevir, dokunarak yerleştir, alttan açılan paneller | Dikey telefon düzeni |
+| Derleme | ✅ Windows, Windows Demo, Linux profilleri; Linux derlemesi başsız test edildi | Windows'ta gerçek çalıştırma, imza, GitHub Releases |
+| Performans | Sim ≈26× gerçek zaman (tek çekirdek, 30 gün) | GPU ölçümü, uzak ajanlar için LOD |
+| Test | Denge botu (`--bot=GÜN`), senaryolu başsız testler | Gerçek oyuncu testi, CI'da gece dengesi raporu |
 
 ## Sıradaki işler (öneri)
 
-Oda sistemi, tazelik ve AVM tesisleri (tuvalet, teknisyen, merdiven) Godot sürümünde tamamlandı. Sırada:
-
-1. **Oyun testi ve denge:** gerçek oyuncularla hedef süreler (Büfe → Market ~45 dk, Market → Süpermarket ~2 saat, Süpermarket → AVM ~3 saat).
-2. **AVM tahliye tatbikatı / yangın alarmı:** güvenlik ve kapı düzeninin sınavı.
-3. **Kiracıya özel sesler ve etkinlik müziği.**
-4. **Aynı oyunda birden çok şube** (şu an her mahalle ayrı oyun).
-5. **Windows için hazır `.exe` sürümü** (GitHub Releases üzerinden).
+1. **Gerçek oyuncu testi:** botun gösterdiği tempo (Market ≈9. gün, Süpermarket ≈28. gün) oyuncularla doğrulanmalı. Market aşamasındaki puan düşüşüne bakılmalı.
+2. **Windows'ta çalıştırma ve GPU ölçümü**, özellikle AVM'nin kalabalık saatleri.
+3. **Steam:** gerçek app id, başarım simgeleri, kolla oynanış ve Deck doğrulaması.
+4. **AVM tahliye tatbikatı / yangın alarmı:** güvenlik ve kapı düzeninin sınavı.
+5. **Kiracıya özel sesler ve etkinlik müziği.**
+6. **Mağaza görselleri:** kapsüller oyun içi çekimden üretildi; yayın öncesi bir sanatçının elden geçirmesi ve yüksek çözünürlüklü hero görseli.

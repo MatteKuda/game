@@ -2059,7 +2059,7 @@ func _menu_slots(v: VBoxContainer, saving: bool) -> void:
 func _seg(opts: Array, cur: int, cb: Callable) -> HBoxContainer:
 	var h := UIKit.hbox(3)
 	for i in opts.size():
-		var b := Button.new(); b.focus_mode = Control.FOCUS_NONE; b.text = str(opts[i])
+		var b := Button.new(); b.focus_mode = Control.FOCUS_NONE; b.text = Loc.t(str(opts[i]))
 		b.add_theme_font_override("font", Art.body_font(800)); b.add_theme_font_size_override("font_size", 13)
 		var on := i == cur
 		b.add_theme_stylebox_override("normal", UIKit.sb(Cfg.TERRA if on else Color(0.12, 0.16, 0.27, 0.07), 9, Color(0, 0, 0, 0), 0, 0, Vector4(12, 6, 12, 6)))

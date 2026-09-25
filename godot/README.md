@@ -58,6 +58,9 @@ Mac ve Linux için de aynı adımları izle; 2. adımda kendi işletim sistemini
 | `C` | Kesik duvar görünümünü aç/kapat |
 | `Esc` | Açık paneli / seçimi kapatır; hiçbiri yoksa menüyü açar (Kaydet, Yükle, Ayarlar) |
 | Dokunmatik ekran | Tek parmakla kaydır, iki parmakla yakınlaştır ve döndür |
+| Oyun kolu | Sol çubuk kamera, sağ çubuk imleç, A tıkla, B geri, X inşa, Y ürünler, LB/RB çevir, LT/RT yakınlaş, Start menü (ayrıntı: `docs/STEAM.md`) |
+
+Klavye tuşlarının hepsi **Ayarlar → Kontroller ve tuş atama**'dan değiştirilebilir. Ctrl+Z, Ctrl+D ve Esc sabittir.
 
 ## Görsel yön
 
@@ -149,22 +152,33 @@ Dört aşamanın dördü de oynanabilir: **Büfe → Mahalle Marketi → Süperm
 - **Kayıt ve ayarlar:**
   - Oyun her sabah otomatik kaydedilir. Açılış ekranında "Devam et" düğmesi çıkar.
   - Menüden (`Esc`) 3 kayıt yuvasına kaydedip yükleyebilirsin. Yüklenen oyun o günün sabahından başlar.
-  - Ayarlar: grafik kalitesi (Düşük / Orta / Yüksek), arayüz boyutu, tam ekran, kesik duvar, 4 ses kanalı (ana, müzik, efekt, ortam). Ayarlar kalıcıdır.
+  - Menüden (`Esc`) 3 yuvaya kaydedilen oyun **günün o anından** devam eder: saat, günün istatistikleri, kampanyalar, personelin yorgunluğu ve yoldaki minibüs saklanır. İçerideki müşteriler saklanmaz.
+  - Kayıt önce geçici dosyaya yazılır, doğrulanır, sonra yerine konur; bir önceki kayıt `.bak` olarak durur. Dosya bozulursa yedekten açılır, eski sürüm kayıtları otomatik yükseltilir.
+  - Ayarlar: grafik kalitesi, pencere boyutu, kare sınırı (30/60/120/sınırsız), VSync, arayüz boyutu, tam ekran, kesik duvar, 4 ses kanalı. Ayarlar kalıcıdır.
+  - **Erişilebilirlik:** yazı boyutu (Normal / Büyük / Çok büyük), renk körü dostu renkler (yeşil/kırmızı yerine mavi/turuncu; yerleştirme önizlemesi dahil), tuş atama.
   - Kayıtlar Windows'ta `%APPDATA%\Godot\app_userdata\Tezgâh` klasöründe durur.
 - **Ses:** tüm sesler kodla sentezleniyor, hiçbir ses dosyası yok.
-  - Efektler: yazar kasa, kapı zili, alarm, kayma, yerleştirme, uyarı ve arayüz sesleri.
+  - Efektler: yazar kasa, kapı çıngırağı, alarm, kayma, yerleştirme, uyarı ve arayüz sesleri, güvenlik düdüğü, veresiye defterine yazarken kalem, genişlemede fanfar.
+  - Kedi kapıda miyavlar, uyurken mırlar. Radyo anonsları cızırtı ve üç notalı istasyon cıngılıyla başlar.
   - Müzik: gündüz ve akşam için iki ayrı parça, saate göre yumuşakça geçer.
-  - Ortam: sokak uğultusu ve kuş sesi; dükkân doldukça kalabalık uğultusu artar.
+  - Ortam: sokak uğultusu ve kuş sesi; dükkân doldukça kalabalık uğultusu artar. Yağmurda yağmur ve ara sıra gök gürültüsü, karda rüzgâr, bulutlu havada hafif esinti duyulur.
+- **Puan kırılımı:** üst bardaki puana tıkla: bugün müşterileri neyin mutlu ya da mutsuz ettiği, kaç kez olduğu ve ne yapılacağı. Her yeni aşamada o aşamanın kısa rehberi açılır.
+- **Krizler (Mahalle Marketi'nden sonra):** elektrik kesintisi (jeneratör kirala ya da soğuk ürünlerin bir kısmı bozulsun), patlayan su borusu (tesisatçı ya da paspas), nakliyeci grevi (kendi kamyonetinle al ya da teslimat öğleden sonraya kalsın). Kırmızı kartla gelir; cevap verilmezse "bekle" seçilmiş sayılır.
+- **Dekorasyon:** ayaklı lamba, çiçek standı, akvaryum, AVM'ye süs havuzu. Hepsi bitki gibi çevresini keyifli yapar ve kuyruk sabrını artırır.
+- **İkinci rakip:** kariyerde UCUZA kapandıktan birkaç gün sonra boş dükkânı **NOKTA 7/24** kiralar. Atıştırmalık ve içeceklerde ucuzdur, öğrencileri ve çalışanları çeker. O da kapatılabilir ya da satın alınabilir.
+- **Şubeler (AVM'den sonra):** Gelişim panelinden Kampüs Yolu, Moda Sahili ve Çarşı'da şube açılır. Her şubenin yönü (ucuzluk / denge / kalite), müdürü ve büyüklüğü seçilir. Her akşam kasasını gün sonu özetine bildirir. Senaryosu kazanılmış mahallede şube %25 ucuz ve daha kalabalıktır.
+- **Demo:** "Windows Demo" dışa aktarım profili kariyeri Mahalle Marketi'nde durdurur, mahallelerden yalnızca Moda açıktır. İstek listesi düğmesi mağaza sayfasına gider.
+- **Steam:** isteğe bağlı GodotSteam eklentisiyle başarımlar ve arkadaş listesinde durum. Steam Deck'te ilk açılışta arayüz ve yazı büyür. Kurulum ve mağaza metinleri: `docs/STEAM.md`, `docs/STEAM_PAGE.md`, görseller `docs/store/`.
 
 ## Sınırlar (açıkça)
 
 - İngilizce çeviri arayüzü, uyarıları, müşteri düşüncelerini, verileri ve radyoyu kapsıyor; dükkân tabelaları, ürün ambalajları gibi 3B yazılar bilerek Türkçe kaldı. Bazı fare üstü bilgilerde Türkçe parça kalabilir.
-- "Şubeler" tek bir oyunda birden çok dükkânı aynı anda yönetmek değil: her mahalle ayrı bir oyun olarak başlar.
-- Kayıt gün içindeki anı saklamaz: yüklenen oyun o günün 07:00'sinden başlar, o an içerideki müşteriler kaydedilmez.
-- Depoda hazır bir `.exe` yok. Oyun editörden F5 ile çalışır.
-  - Tek dosyalık `.exe` istersen: editörde **Proje → Dışa Aktar** (Project → Export) menüsüne gir. Godot bir kez "Export Templates" indirmeni isteyecek, kabul et. Ardından hazır **Windows** ayarıyla **Proje Dışa Aktar**'a bas; `export/Tezgah.exe` oluşur.
-  - Dışa aktarma ayarı depoda hazır, ancak bu adımı kendi ortamımda deneyemedim. Editörden F5 ile çalıştırmayı test ettim.
-- Denge betikli simülasyonlarla ayarlandı: her aşama için hazır bir düzenle günlerce oynatıp kâr, puan, kayıp ve bayat ekmek sayılarına baktım. Gerçek oyuncularla oyun testi yapılmadı; bunu benim yapmam mümkün değil. Genişleme hedeflerinin (özellikle AVM için 4,0★) zorluğu oynayarak ayarlanmalı.
+- Şubeler uzaktan yönetilen bir katmandır: şubelerin içi oynanmaz, her akşam bir hesap özeti gelir.
+- Kayıtta o an içerideki müşteriler saklanmaz; yüklenince dükkân boş başlar, saat ve günün sayıları kaldığı yerden devam eder.
+- **Derleme:** depoda `.exe` yok (klasör `.gitignore`'da). Editörde **Proje → Dışa Aktar**'da üç hazır profil var: Windows, Windows Demo, Linux. Bu ortamda üçü de komut satırından dışa aktarıldı (Windows ≈110 MB). Linux derlemesi başsız (headless) çalıştırıldı, bir günü sorunsuz oynadı, İngilizce çeviri dosyaları da derlemede. **Windows `.exe`'si hiç çalıştırılmadı** (burada Windows yok).
+- **Performans:** yalnızca CPU tarafı ölçüldü. 2,1 GHz'lik bir Xeon çekirdeğinde 30 oyun günü (süpermarkete kadar) 515 saniyede simüle edildi; bu, 1× hızın yaklaşık 26 katı. Ekran kartı performansı ölçülmedi: buradaki görüntüler yazılımsal Vulkan'la (llvmpipe) çekiliyor. Gerçek bir makinede FPS'e ve özellikle AVM'nin kalabalık saatlerine bakılmalı. Eski kartlarda "Düşük" kalite ve kare sınırı var.
+- **Denge:** `--bot=GÜN` ile çalışan otomatik bir "ortalama oyuncu" (`scripts/tools/autoplayer.gd`) kariyeri oynuyor. Son koşuda Mahalle Marketi 9. günde (≈1 saat), Süpermarket 28. günde açıldı. Bot, büfede asıl puan kaybının boş raflar olduğunu gösterdi: otomatik sipariş depoyu ilk ürünlerle doldurup sonrakileri aç bırakıyordu (düzeltildi), depo akşamdan boşalınca artık uyarı çıkıyor. Market aşamasında botun puanı 2–3 arasında kalıyor; nedeni büyük ölçüde botun sıkışık yerleşimi ve az kasası (dar koridor, kuyruktan vazgeçme). Gerçek oyuncularla test yapılmadı; hedeflerin zorluğu oynayarak ayarlanmalı.
+- Steam, GodotSteam, oyun kolu ve Steam Deck bu ortamda yok: köprü kodu derleniyor ve eklenti yokken sessiz kalıyor, ama gerçek bir Steam girişi, başarım eşitleme ve kolla oynanış denenmedi.
 
 ## Varlıklar ve lisanslar
 
@@ -186,7 +200,11 @@ godot/
   scripts/world/         art.gd (malzemeler, fontlar, yuvarlatılmış kutu), props.gd (eşya modelleri),
                          products3d.gd, character.gd, shop.gd, street.gd, sky.gd, camera_rig.gd, overlays.gd,
                          mall_shell.gd (AVM binası: katlar, vitrinler, yürüyen merdiven, asansör, sahne, süslemeler)
-  scripts/ui/            ui_kit.gd (tema), thumbs.gd (3D küçük resimler), hud.gd
+  scripts/core/          keys.gd (tuş atama, kol eşlemesi), pad_cursor.gd (kol imleci), steam_bridge.gd (isteğe bağlı Steam),
+                         demo.gd (demo sınırları), glossary.gd (kültürel kelimeler), loc.gd (çeviri), progress.gd (başarımlar)
+  scripts/sim/           rival.gd (UCUZA, NOKTA 7/24), branches.gd (şubeler), neighbor_events.gd (olaylar, krizler)
+  scripts/tools/         autoplayer.gd (denge botu: --bot=GÜN)
+  scripts/ui/            ui_kit.gd (tema), thumbs.gd (3D küçük resimler), hud.gd, hud_extra.gd
   shaders/               checker, wall_paint, brick, paving, asphalt, stripes, terrazzo, marble, escalator,
                          belt, shutter, character (yeniden boyama)
 ```
