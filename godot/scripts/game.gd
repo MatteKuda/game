@@ -1072,7 +1072,7 @@ func deli_staffed(f: Fixture) -> bool:
 
 func record_visit(c: Customer, paid: bool) -> void:
 	stats["mood_n"] += 1; stats["mood_sum"] += c.mood
-	rating += (c.mood / 20.0 - rating) * (0.03 if upgrades.has("sadakat") else 0.045)
+	rating += (c.mood / 20.0 - rating) * (0.017 if upgrades.has("sadakat") else 0.025) # ~40 recent shoppers
 	if paid:
 		stats["served"] += 1; totals["served"] += 1
 		if c.mood >= 60: stats["happy"] += 1; totals["happy"] += 1

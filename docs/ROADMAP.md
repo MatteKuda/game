@@ -106,7 +106,7 @@ Durum etiketleri: ✅ uygulandı · 🟡 kısmen · ⬜ planlandı
 
 ## Sıradaki işler (öneri)
 
-1. **Gerçek oyuncu testi:** botun gösterdiği tempo (Market ≈9. gün, Süpermarket ≈28. gün) oyuncularla doğrulanmalı. Market aşamasındaki puan düşüşüne bakılmalı.
+1. **Gerçek oyuncu testi:** botun gösterdiği tempo (Market ≈9.–11. gün, Süpermarket ≈28. gün, Moda 22. günde kazanıldı) oyuncularla doğrulanmalı. Market aşamasındaki puan düşüşüne bakılmalı.
 2. **Windows'ta çalıştırma ve GPU ölçümü**, özellikle AVM'nin kalabalık saatleri.
 3. **Steam:** gerçek app id, başarım simgeleri, kolla oynanış ve Deck doğrulaması.
 4. **AVM tahliye tatbikatı / yangın alarmı:** güvenlik ve kapı düzeninin sınavı.
