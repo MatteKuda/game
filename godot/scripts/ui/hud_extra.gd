@@ -313,3 +313,83 @@ static func _verdict(r: Dictionary, g: Game) -> PanelContainer:
 	if r["units"] <= 2: return UIKit.chip("Durgun, rafı meşgul ediyor", Cfg.MUSTARD, Cfg.INK, 10)
 	if r["profit"] > 0: return UIKit.chip("Kazandırıyor", Cfg.GOOD, Color.WHITE, 10)
 	return UIKit.chip("Normal", Color(0.12, 0.16, 0.27, 0.08), Cfg.INK2, 10)
+
+# ================================================================== rating breakdown
+const MOOD_TIPS := {
+	"Raf boş": "Reyon görevlisi al, depoyu dolu tut (Tedarik, T).",
+	"Aradığı ürün satılmıyor": "Analiz sekmesinde en çok sorulanları rafa koy.",
+	"Fiyat pahalı": "Ürün & Fiyat'ta kırmızı arketipler var mı bak.",
+	"Kuyrukta uzun bekleme": "Ek kasa, kasiyer ya da Temassız POS.",
+	"Kuyruktan vazgeçti": "Kasa sayısını artır, kasiyer vardiyalarını kontrol et.",
+	"Kirli zemin": "Çöp kovası ve temizlik görevlisi.",
+	"Islak zeminde kayma": "Temizlik görevlisi ve uyarı levhası.",
+	"Dar koridorlar": "Raflar arasında en az bir kare boşluk bırak.",
+	"Levha yok, reyon zor bulunuyor": "Reyon levhası as (İnşa → Ortam).",
+	"Bayat ekmek": "Akşam indirimini aç ya da daha az ekmek al.",
+	"Bütçe yetmedi": "Ucuz ürün çeşidi ekle ya da veresiyeyi aç.",
+	"Rafa giden yol kapalı": "Rafın önünü aç.",
+	"Şarküteride usta yok": "Şarküteri Ustası al.",
+	"Araba parkı yok": "Alışveriş Arabası Parkı kur.",
+}
+
+static func rating(h, body: VBoxContainer) -> void:
+	var g: Game = h.game
+	var st: Dictionary = g.stats
+	var avg: float = float(st["mood_sum"]) / maxf(1.0, float(st["mood_n"]))
+	body.add_child(UIKit.wrap(UIKit.label("Mağaza puanı, ayrılan her müşterinin keyfine göre yavaş yavaş değişir: keyfi 80 olan müşteri puanı 4★'a, 50 olan 2,5★'a doğru çeker. Aşağıda bugün müşterilerin keyfini neyin artırıp neyin düşürdüğü var.", 12, Cfg.INK2, "body", 700), 560))
+	var grid := GridContainer.new(); grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 8); grid.add_theme_constant_override("v_separation", 8)
+	grid.add_child(_stat_card("Şu anki puan", "%.2f★" % g.rating, Cfg.INK, 170))
+	grid.add_child(_stat_card("Bugünkü ortalama keyif", "%d → %.1f★" % [int(avg), avg / 20.0] if int(st["mood_n"]) > 0 else "—", Cfg.GOOD if avg >= 70 else (Cfg.WARN if avg >= 50 else Cfg.BAD), 170))
+	grid.add_child(_stat_card("Ayrılan müşteri", str(st["mood_n"]), Cfg.INK, 170))
+	body.add_child(grid)
+	var rows: Array = []
+	var why: Dictionary = st.get("mood_why", {})
+	for k in why: rows.append([k, float(why[k][0]), int(why[k][1])])
+	var neg := rows.filter(func(r): return r[1] < 0.0)
+	var pos := rows.filter(func(r): return r[1] > 0.0)
+	neg.sort_custom(func(a, b): return a[1] < b[1])
+	pos.sort_custom(func(a, b): return a[1] > b[1])
+	body.add_child(UIKit.section("Keyfi düşürenler"))
+	if neg.is_empty(): body.add_child(UIKit.label("Bugün şikâyet yok.", 13, Cfg.GOOD, "body", 800))
+	var mx := 1.0
+	for r in rows: mx = maxf(mx, absf(r[1]))
+	for r in neg.slice(0, 8):
+		var hb := UIKit.hbox(8)
+		var l := UIKit.label(r[0], 13, Cfg.INK, "body", 800); l.custom_minimum_size.x = 210; hb.add_child(l)
+		var b := UIKit.bar(absf(r[1]) / mx, Cfg.BAD, 120, 8); b.size_flags_vertical = Control.SIZE_SHRINK_CENTER; hb.add_child(b)
+		hb.add_child(UIKit.label("%d kez" % r[2], 12, Cfg.INK3, "body", 800))
+		var tip := UIKit.label(MOOD_TIPS.get(r[0], ""), 11, Cfg.TEAL, "body", 800); tip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hb.add_child(tip)
+		body.add_child(hb)
+	body.add_child(UIKit.section("Keyfi artıranlar"))
+	if pos.is_empty(): body.add_child(UIKit.label("Henüz yok.", 13, Cfg.INK3, "body", 800))
+	for r in pos.slice(0, 6):
+		var hb2 := UIKit.hbox(8)
+		var l2 := UIKit.label(r[0], 13, Cfg.INK, "body", 800); l2.custom_minimum_size.x = 210; hb2.add_child(l2)
+		var b2 := UIKit.bar(absf(r[1]) / mx, Cfg.GOOD, 120, 8); b2.size_flags_vertical = Control.SIZE_SHRINK_CENTER; hb2.add_child(b2)
+		hb2.add_child(UIKit.label("%d kez" % r[2], 12, Cfg.INK3, "body", 800))
+		body.add_child(hb2)
+	if not g.history.is_empty():
+		body.add_child(UIKit.section("Son günlerin puanı"))
+		var hh := UIKit.hbox(10)
+		for e in g.history.slice(-7):
+			hh.add_child(UIKit.label("G%d %.1f" % [e["day"], float(e["rating"])], 12, Cfg.INK2, "body", 800))
+		body.add_child(hh)
+
+# ================================================================== stage guides
+const STAGE_GUIDE := [
+	[],
+	[["build", "Manav tezgâhı, gondol ve açık soğutucu açıldı. Yeni alanı İnşa (B) ile doldur."],
+	 ["sneak", "Fırsatçılar geliyor: kör noktalara kamera, kapıya alarm. G tuşu kör noktaları gösterir."],
+	 ["staff", "Temizlik ve güvenlik görevlisi alınabilir. Islak zemin artık sık olacak."],
+	 ["rival", "İki gün sonra karşıya UCUZA açılıyor; Mahalle panelinden (N) takip et."]],
+	[["layers", "Süpermarkette levhasız reyon bulunmuyor: her koridora bir Reyon Levhası as."],
+	 ["food", "Fırın ve fırıncı, şarküteri ve usta, dondurma dolabı: kârlı ama personel ister."],
+	 ["box", "Odalar: depo odası (+600), soğuk oda (bozulmayı durdurur), mola odası."],
+	 ["cart", "Haftalık alışverişçiler araba ister; Otopark Anlaşması onları çoğaltır."]],
+	[["mall", "Kiracı birimlerini AVM panelinden (V) doldur; her kiracının istediği farklı."],
+	 ["floors", "Üst kata PageUp ile çık. Yürüyen merdivenler bozulabilir, teknisyen al."],
+	 ["food", "Yemek katına masa, oyun alanı ve tuvalet koy; kirli masa keyfi düşürür."],
+	 ["star", "Etkinlik takviminden konser, imza günü, bayram indirimi planla."]],
+]

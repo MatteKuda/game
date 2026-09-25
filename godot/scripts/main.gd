@@ -47,6 +47,7 @@ func _ready() -> void:
 		for i in int(float(args["sim"]) * 30):
 			if game.day_ended_flag: break
 			game.tick(1.0 / 30.0)
+	if args.has("moodtest"): print("MOODWHY ", game.stats["mood_why"]); get_tree().quit()
 	if args.has("saveslot"):
 		print("MIDSAVE clock=", game.clock, " rev=", game.stats["revenue"], " ok=", SaveGame.save(game, int(args["saveslot"])))
 		if DisplayServer.get_name() == "headless": get_tree().quit()

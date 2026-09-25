@@ -86,6 +86,14 @@ func setup_customer(a, is_shopper: bool, game, res := {}) -> void:
 			pool.remove_at(k)
 			wants.append({"pid": pid, "qty": 2 if (a["id"] == "aile" or a["id"] == "haftalik") and randf() < 0.4 else 1, "status": "pending", "tried": {}})
 
+## change the mood and remember why, for the rating breakdown (Puan paneli)
+func _feel(game, d: float, why: String) -> void:
+	mood += d
+	var r: Dictionary = game.stats["mood_why"]
+	var e: Array = r.get(why, [0.0, 0])
+	e[0] = float(e[0]) + d; e[1] = int(e[1]) + 1
+	r[why] = e
+
 func spent() -> int:
 	var s := 0
 	for b in basket: s += int(b["price"])
@@ -151,7 +159,7 @@ func update(dt: float, game) -> void:
 					else:
 						v.ensure_basket()
 						if arch.get("cart", false):
-							wants = wants.slice(0, 3); mood -= 6; flags["nocart"] = true
+							wants = wants.slice(0, 3); _feel(game, -(6), "Araba parkı yok"); flags["nocart"] = true
 						state = "decide"
 						go_to(game, Vector2i(door_x, game.grid.front_z()))
 		"to_cart":
@@ -178,7 +186,7 @@ func update(dt: float, game) -> void:
 				if not game.deli_staffed(shelf):
 					deli_wait += dt; v.play("idle")
 					if deli_wait > 9.0:
-						deli_wait = 0.0; mood -= 8
+						deli_wait = 0.0; _feel(game, -(8), "Şarküteride usta yok")
 						log_thought("nocashier", "Şarküteride kimse yok, bekledim bekledim…", game)
 						for w in wants:
 							if w["status"] == "pending" and DB.product(w["pid"])["display"] == "deli":
@@ -210,7 +218,7 @@ func update(dt: float, game) -> void:
 				_check_impulse(game)
 				var pat: float = arch["patience"] * game.patience_mul()
 				if wait > pat * 0.55 and not flags.has("wait_warn"):
-					flags["wait_warn"] = true; log_thought("wait", "Bu kuyruk hiç ilerlemiyor…", game); mood -= 8
+					flags["wait_warn"] = true; log_thought("wait", "Bu kuyruk hiç ilerlemiyor…", game); _feel(game, -(8), "Kuyrukta uzun bekleme")
 				if wait > pat:
 					_abandon(game); return
 				var self_s: bool = reg.def.get("self", false)
@@ -222,10 +230,10 @@ func update(dt: float, game) -> void:
 					if not self_s:
 						var tr: String = reg.cashier.persona
 						if tr == "geveze":
-							timer *= 1.15; mood += 5
+							timer *= 1.15; _feel(game, (5), "Geveze kasiyer")
 							if randf() < 0.3: log_thought("happy", "%s hal hatır sordu, ne tatlı insan." % reg.cashier.person_name, game, false)
 						elif tr == "guleryuz":
-							mood += 6
+							_feel(game, (6), "Güler yüzlü kasiyer")
 							if randf() < 0.3: log_thought("happy", "Kasadaki %s hep gülümsüyor." % reg.cashier.person_name, game, false)
 				elif idx == 0 and not staffed and not flags.has("nocashier"):
 					flags["nocashier"] = true; log_thought("nocashier", "Kasada kimse yok!", game)
@@ -241,7 +249,7 @@ func update(dt: float, game) -> void:
 					game.record_shrink(b["pid"])
 				game.checkout(self)
 				if register: register.queue.erase(self)
-				if wait < arch["patience"] * 0.3: mood += 6
+				if wait < arch["patience"] * 0.3: _feel(game, (6), "Hızlı ödeme")
 				finish_visit(game, true)
 		"leaving":
 			v.play("walk")
@@ -285,7 +293,7 @@ func _check_puddle(game) -> void:
 	flags[key] = true
 	# the yellow warning sign makes people watch their step
 	if randf() < (0.07 if p.get("sign") != null else 0.4):
-		slip_t = 1.7; mood -= 16
+		slip_t = 1.7; _feel(game, -(16), "Islak zeminde kayma")
 		GameAudio.play("slip", -6.0, 0.5)
 		game.stats["slips"] += 1
 		log_thought("slip", "Kaydım! Kimse paspas yapmıyor mu?", game)
@@ -300,11 +308,11 @@ func _inside_tick(dt: float, game) -> void:
 			if randf() < 0.0008 * dt: game.spill_at(t, lvl, "Bir müşteri içeceğini döktü")
 			break
 	if not flags.has("dirty") and game.litter_near(t, 1.6, lvl):
-		flags["dirty"] = true; mood -= 7; log_thought("dirty", "Yerler çok kirli…", game)
+		flags["dirty"] = true; _feel(game, -(7), "Kirli zemin"); log_thought("dirty", "Yerler çok kirli…", game)
 	if not flags.has("ambiance") and game.plant_near(t):
-		flags["ambiance"] = true; mood += 4 + (2 if game.upgrades.has("isik") else 0)
+		flags["ambiance"] = true; _feel(game, (4 + (2 if game.upgrades.has("isik") else 0)), "Bitkiler ve ışık")
 	if crowd_t > 2.5 and not flags.has("crowd"):
-		flags["crowd"] = true; mood -= 6; log_thought("crowd", "Koridorlar çok dar, sıkıştım.", game)
+		flags["crowd"] = true; _feel(game, -(6), "Dar koridorlar"); log_thought("crowd", "Koridorlar çok dar, sıkıştım.", game)
 
 func next_want(game) -> void:
 	var best = null
@@ -320,7 +328,7 @@ func next_want(game) -> void:
 			w["status"] = "oos" if not w["tried"].is_empty() else "notfound"
 			if w["status"] == "notfound" and not thief():
 				# a regular's favourite or a staple hurts; an odd request the shop never carried barely does
-				mood -= 13 if DB.product(w["pid"]).get("staple", false) or not resident.is_empty() else 3
+				_feel(game, -(13 if DB.product(w["pid"]).get("staple", false) or not resident.is_empty() else 3), "Aradığı ürün satılmıyor")
 				log_thought("notfound", "%s arıyordum, satılmıyor mu?" % DB.product(w["pid"])["name"], game)
 				game.stats["missed"][w["pid"]] = int(game.stats["missed"].get(w["pid"], 0)) + 1
 			continue
@@ -348,7 +356,7 @@ func next_want(game) -> void:
 	deli_wait = 0.0
 	bw["tried"][bf.uid] = true
 	if game.stage >= 2 and not thief() and not game.sign_near(bf):
-		search_t = 2.4; mood -= 3
+		search_t = 2.4; _feel(game, -(3), "Levha yok, reyon zor bulunuyor")
 		if not flags.has("lost"):
 			flags["lost"] = true; log_thought("notfound", "Reyonu bulmak zor, levha yok mu?", game)
 	var acc: Array = []
@@ -358,7 +366,7 @@ func next_want(game) -> void:
 	var target = acc[randi() % mini(2, acc.size())] if acc.size() > 0 else null
 	if target == null or not go_to(game, target):
 		bw["status"] = "notfound"
-		if not thief(): mood -= 10; log_thought("notfound", "Rafa ulaşamıyorum, yol kapalı!", game)
+		if not thief(): _feel(game, -(10), "Rafa giden yol kapalı"); log_thought("notfound", "Rafa ulaşamıyorum, yol kapalı!", game)
 		next_want(game)
 		return
 	state = "to_shelf"
@@ -385,7 +393,7 @@ func _evaluate_shelf(game) -> void:
 			if not other:
 				w["status"] = "oos"
 				if not thief():
-					mood -= 16
+					_feel(game, -(16), "Raf boş")
 					log_thought("empty", "%s bitmiş!" % p["name"], game)
 					game.stats["missed"][w["pid"]] = int(game.stats["missed"].get(w["pid"], 0)) + 1
 			continue
@@ -394,13 +402,13 @@ func _evaluate_shelf(game) -> void:
 		var price: int = game.effective_price(w["pid"])
 		var tol: float = arch["tol"] + game.tolerance_bonus()
 		if price > game.ref_price(w["pid"]) * (1.0 + tol) and not game.is_discounted(w["pid"]):
-			w["status"] = "expensive"; mood -= 12
+			w["status"] = "expensive"; _feel(game, -(12), "Fiyat pahalı")
 			log_thought("price", "%s ₺%d? Çok pahalı!" % [p["name"], price], game)
 			game.stats["expensive"][w["pid"]] = int(game.stats["expensive"].get(w["pid"], 0)) + 1
 			continue
 		var fresh: float = game.slot_fresh(slot) if DB.BAKERY.has(w["pid"]) else 1.0
 		if fresh < 0.3 and not game.evening_sale(w["pid"]):
-			mood -= 8
+			_feel(game, -(8), "Bayat ekmek")
 			if randf() < 0.5:
 				w["status"] = "stale"; log_thought("dirty", "%s bayatlamış, almadım." % p["name"], game)
 				game.stats["missed"][w["pid"]] = int(game.stats["missed"].get(w["pid"], 0)) + 1
@@ -422,16 +430,16 @@ func _evaluate_shelf(game) -> void:
 			game.stats["multi"] += 1
 			if randf() < 0.5: log_thought("cheap", "3 al 2 öde! %s stok yaptım." % p["name"], game)
 		if took == 0:
-			w["status"] = "budget"; mood -= 6; log_thought("wallet", "Param yetmiyor.", game)
+			w["status"] = "budget"; _feel(game, -(6), "Bütçe yetmedi"); log_thought("wallet", "Param yetmiyor.", game)
 			continue
-		w["status"] = "got"; mood += 6
+		w["status"] = "got"; _feel(game, (6), "Aradığını buldu")
 		if game.is_discounted(w["pid"]):
-			mood += 4
+			_feel(game, (4), "İndirim")
 			if randf() < 0.6: log_thought("cheap", "%s indirimde, iyi denk geldi!" % p["name"], game)
 		elif price <= game.ref_price(w["pid"]) * 0.9 and randf() < 0.5:
-			mood += 4; log_thought("cheap", "%s ucuzmuş!" % p["name"], game)
+			_feel(game, (4), "Ucuz fiyat"); log_thought("cheap", "%s ucuzmuş!" % p["name"], game)
 		if DB.BAKERY.has(w["pid"]) and fresh >= 0.75 and not flags.has("fresh"):
-			flags["fresh"] = true; mood += 5; log_thought("happy", "%s sıcacık, fırından yeni çıkmış!" % p["name"], game)
+			flags["fresh"] = true; _feel(game, (5), "Sıcak ekmek"); log_thought("happy", "%s sıcacık, fırından yeni çıkmış!" % p["name"], game)
 		elif game.evening_sale(w["pid"]) and randf() < 0.5:
 			log_thought("cheap", "Akşam indirimi, %s ucuzladı!" % p["name"].to_lower(), game, false)
 		game.stock_changed(f)
@@ -533,7 +541,7 @@ func _return_items(game) -> void:
 
 func _abandon(game) -> void:
 	if register: register.queue.erase(self)
-	mood = minf(mood, 15.0) - 10.0
+	_feel(game, (minf(mood, 15.0) - 10.0) - mood, "Kuyruktan vazgeçti")
 	log_thought("angry", "Yeter! Sepeti bırakıp gidiyorum.", game)
 	view.play("angry")
 	game.stats["abandoned"] += 1

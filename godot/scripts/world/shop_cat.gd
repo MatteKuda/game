@@ -175,7 +175,7 @@ func _cheer(game) -> void:
 		cheer_cd[id] = true
 		var aid: String = c.arch["id"]
 		var bonus := 6.0 if aid in ["ogrenci", "aile"] else (3.0 if aid != "calisan" else 2.0)
-		c.mood += bonus
+		c._feel(game, bonus, "Dükkân kedisi")
 		var lines := ["%s ne tatlı! Başını okşadım." % cat_name, "Kedili dükkân, ne güzel.", "%s bana baktı, gün güzel başladı." % cat_name, "Pisi pisi! Sonra alışveriş."]
 		if state == "sleep": lines = ["%s mışıl mışıl uyuyor, sessiz olayım." % cat_name]
 		c.log_thought("happy", lines.pick_random(), game, randf() < 0.5)

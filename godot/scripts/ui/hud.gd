@@ -136,6 +136,7 @@ func setup(g: Game, t: Thumbs) -> void:
 	game.changed.connect(func(): panel_sig = "")
 	game.placing_changed.connect(_render_place_hint)
 	game.stage_changed.connect(func(): panel_sig = ""; _render_dock_state())
+	game.expanded.connect(_stage_guide)
 	game.floor_changed.connect(_render_dock_state)
 	game.mall_changed.connect(func(): panel_sig = ""; insp_sig = "")
 	_show_welcome()
@@ -229,6 +230,9 @@ func _build_top() -> void:
 	money_delta = UIKit.label("bugün ₺0", 12, Color(1, 1, 1, 0.85), "body", 800); mv.add_child(money_delta)
 	mh.add_child(mv); mp.add_child(mh); tr.add_child(mp)
 	var rp := _pill(Color("fffaf2"))
+	rp.mouse_filter = Control.MOUSE_FILTER_STOP
+	rp.tooltip_text = Loc.t("Puanı ne etkiliyor? Tıkla")
+	rp.gui_input.connect(func(e): if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT: toggle_panel("rating"))
 	var rv := UIKit.vbox(0)
 	var rh := UIKit.hbox(6)
 	rating_box = UIKit.stars(3.0, 18); rh.add_child(rating_box)
@@ -524,6 +528,30 @@ func _scenario_result(res: String) -> void:
 	c.add_child(v); modal.add_child(c)
 	c.reset_size(); c.position = (root.get_viewport_rect().size - c.size) * 0.5
 
+## a short "what's new" card after each expansion
+func _stage_guide(n: int) -> void:
+	if n <= 0 or n >= HudExtra.STAGE_GUIDE.size(): return
+	UIKit.clear(modal); modal.visible = true
+	var dim := ColorRect.new(); dim.color = Color(0.12, 0.16, 0.27, 0.45); dim.set_anchors_preset(Control.PRESET_FULL_RECT); modal.add_child(dim)
+	var c := PanelContainer.new()
+	c.add_theme_stylebox_override("panel", UIKit.sb(Color("fffaf2"), 24, Color(0, 0, 0, 0), 0, 24, Vector4(28, 24, 28, 24)))
+	c.custom_minimum_size = Vector2(560, 0)
+	var v := UIKit.vbox(10)
+	v.add_child(UIKit.label("YENİ AŞAMA", 13, Cfg.VIOLET, "body", 900))
+	v.add_child(UIKit.label(DB.STAGES[n]["name"], 34, Cfg.INK, "display"))
+	for it in HudExtra.STAGE_GUIDE[n]:
+		var h := UIKit.hbox(10)
+		var ib := PanelContainer.new(); ib.add_theme_stylebox_override("panel", UIKit.sb(Color(0.88, 0.4, 0.24, 0.12), 10, Color(0, 0, 0, 0), 0, 0, Vector4(6, 6, 6, 6)))
+		ib.add_child(UIKit.icon(it[0], 20, Cfg.TERRA)); ib.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		h.add_child(ib)
+		h.add_child(UIKit.wrap(UIKit.label(it[1], 14, Cfg.INK, "body", 700), 460))
+		v.add_child(h)
+	var b := UIKit.button("Anladım", "check", true)
+	b.pressed.connect(func(): modal.visible = false)
+	v.add_child(b)
+	c.add_child(v); modal.add_child(c)
+	c.reset_size(); c.position = (root.get_viewport_rect().size - c.size) * 0.5
+
 var _quest_sig := ""
 func _render_quests() -> void:
 	var sig := ""
@@ -601,6 +629,7 @@ func _sig_panel() -> String:
 			var s3 := str(game.candidates.size())
 			for s in game.staff: s3 += s.activity + str(s.get_instance_id()) + s.shift + str(int(s.energy / 10)) + str(s.present)
 			return s3 + str(int(game.money / 100)) + str(hire_shift)
+		"rating": return str(game.stats["mood_n"]) + str(int(game.rating * 100))
 		"finance": return "%d|%d|%d|%s|%d" % [game.stats["revenue"], game.stats["purchases"], game.history.size(), str(game.loan), int(game.money / 500)]
 		"hood":
 			var s5: String = hood_tab + game.neighborhood.mode + str(game.neighborhood.limit) + str(game.neighborhood.total_debt()) + str(game.stats["credit_paid"]) + str(int(game.money / 200))
@@ -676,6 +705,9 @@ func _render_panel() -> void:
 		"hood":
 			var body := _frame("Mahalle", "Komşular, veresiye defteri, görevler ve karşıdaki rakip.", "people", Color("b0546a"), 760)
 			HudExtra.hood(self, body)
+		"rating":
+			var body2 := _frame("Puan", "Müşterileri ne mutlu ediyor, ne kızdırıyor?", "star", Cfg.MUSTARD.darkened(0.2), 720)
+			HudExtra.rating(self, body2)
 	_place_panel(panel_id == "build")
 
 # ---------------------------------------------------------------- build

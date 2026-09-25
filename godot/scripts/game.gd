@@ -10,6 +10,7 @@ signal placing_changed()
 signal stage_changed()
 signal floor_changed()
 signal mall_changed()
+signal expanded(stage: int)
 
 var grid := Grid.new(0)
 var floors: Array = [] # Array[Grid] — index = floor
@@ -111,7 +112,7 @@ static func new_stats() -> Dictionary:
 		"theft": 0, "theft_count": 0, "shrink": 0, "theft_seen": 0, "alarms": 0, "caught": 0, "caught_guard": 0,
 		"slips": 0, "spills": 0, "mall_income": 0, "mall_visitors": 0,
 		"stale": 0, "stale_cost": 0, "spoiled": 0, "spoiled_cost": 0, "multi": 0, "endcap": 0, "wc": 0, "no_wc": 0,
-		"credit": 0, "credit_paid": 0, "credit_lost": 0, "buyers": {}, "oos_min": {}, "loan": 0, "rival_lost": 0}
+		"credit": 0, "credit_paid": 0, "credit_lost": 0, "buyers": {}, "oos_min": {}, "loan": 0, "rival_lost": 0, "mood_why": {}}
 
 func _ready() -> void:
 	stats = new_stats()
@@ -1798,6 +1799,7 @@ func expand() -> bool:
 	money -= e["cost"]; stats["other"] += int(e["cost"])
 	apply_stage(e["to"])
 	neighborhood.grow(self)
+	expanded.emit(e["to"])
 	var msg: String = ["", "Mahalle Marketi açıldı! Yeni reyonlar, manav ve aile alışverişçileri seni bekliyor.",
 		"Süpermarket açıldı! Bantlı kasalar, fırın, reyon levhaları ve araba parkı kilidi açıldı.",
 		"Köşebaşı AVM açıldı! Kiracı birimlerini AVM panelinden (V) doldur, üst kata PageUp ile çık."][e["to"]]

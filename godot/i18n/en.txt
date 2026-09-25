@@ -1226,3 +1226,69 @@ Yarın: %s · %s %d, %s. Salep aranır, sokak sakin olur. ⟶ Tomorrow: $1 · $2
 Kayıt yüklendi: %s, Gün %d, saat %s. ⟶ Save loaded: $1, Day $2, $3.
 Oyun her sabah otomatik kaydedilir. Gün içinde kaydedersen saat ve günün rakamları da saklanır; içerideki müşteriler saklanmaz. ⟶ The game autosaves every morning. Saving during the day also keeps the time and the day's figures; shoppers inside are not kept.
 Kayıt bozuk ya da okunamadı. ⟶ The save is damaged or unreadable.
+# ------------------------------------------------------------------ rating & stage guides
+Puan ⟶ Rating
+Müşterileri ne mutlu ediyor, ne kızdırıyor? ⟶ What makes shoppers happy, and what annoys them?
+Puanı ne etkiliyor? Tıkla ⟶ What affects the rating? Click
+Mağaza puanı, ayrılan her müşterinin keyfine göre yavaş yavaş değişir: keyfi 80 olan müşteri puanı 4★'a, 50 olan 2,5★'a doğru çeker. Aşağıda bugün müşterilerin keyfini neyin artırıp neyin düşürdüğü var. ⟶ The shop rating moves slowly with the mood of every shopper who leaves: a mood of 80 pulls it towards 4★, 50 towards 2.5★. Below is what raised and lowered moods today.
+Şu anki puan ⟶ Current rating
+Bugünkü ortalama keyif ⟶ Average mood today
+%d → %.1f★ ⟶ $1 → $2★
+Ayrılan müşteri ⟶ Shoppers who left
+Keyfi düşürenler ⟶ What lowered moods
+Keyfi artıranlar ⟶ What raised moods
+Bugün şikâyet yok. ⟶ No complaints today.
+Henüz yok. ⟶ Nothing yet.
+%d kez ⟶ $1 times
+Son günlerin puanı ⟶ Rating over recent days
+Araba parkı yok ⟶ No trolley bay
+Şarküteride usta yok ⟶ Nobody at the deli
+Kuyrukta uzun bekleme ⟶ Long wait in the queue
+Geveze kasiyer ⟶ Chatty cashier
+Güler yüzlü kasiyer ⟶ Cheerful cashier
+Hızlı ödeme ⟶ Quick checkout
+Islak zeminde kayma ⟶ Slipped on a wet floor
+Kirli zemin ⟶ Dirty floor
+Bitkiler ve ışık ⟶ Plants and lighting
+Dar koridorlar ⟶ Narrow aisles
+Aradığı ürün satılmıyor ⟶ Product not sold here
+Levha yok, reyon zor bulunuyor ⟶ No signs, hard to find the aisle
+Rafa giden yol kapalı ⟶ Path to the shelf blocked
+Raf boş ⟶ Empty shelf
+Fiyat pahalı ⟶ Too expensive
+Bayat ekmek ⟶ Stale bread
+Bütçe yetmedi ⟶ Couldn't afford it
+Aradığını buldu ⟶ Found what they wanted
+İndirim ⟶ Discount
+Ucuz fiyat ⟶ Good price
+Sıcak ekmek ⟶ Hot bread
+Kuyruktan vazgeçti ⟶ Gave up in the queue
+Dükkân kedisi ⟶ Shop cat
+Reyon görevlisi al, depoyu dolu tut (Tedarik, T). ⟶ Hire a shelf stacker and keep the stockroom full (Supply, T).
+Analiz sekmesinde en çok sorulanları rafa koy. ⟶ Stock the most-asked-for products from the Analysis tab.
+Ürün & Fiyat'ta kırmızı arketipler var mı bak. ⟶ Check Products for red shopper types.
+Ek kasa, kasiyer ya da Temassız POS. ⟶ Another till, a cashier or Contactless POS.
+Kasa sayısını artır, kasiyer vardiyalarını kontrol et. ⟶ Add tills and check cashier shifts.
+Çöp kovası ve temizlik görevlisi. ⟶ Bins and a cleaner.
+Temizlik görevlisi ve uyarı levhası. ⟶ A cleaner and a warning sign.
+Raflar arasında en az bir kare boşluk bırak. ⟶ Leave at least one tile between shelves.
+Reyon levhası as (İnşa → Ortam). ⟶ Hang an aisle sign (Build → Ambience).
+Akşam indirimini aç ya da daha az ekmek al. ⟶ Turn on the evening discount or buy less bread.
+Ucuz ürün çeşidi ekle ya da veresiyeyi aç. ⟶ Add cheaper products or open the veresiye book.
+Rafın önünü aç. ⟶ Clear the front of the shelf.
+Şarküteri Ustası al. ⟶ Hire a Deli Master.
+Alışveriş Arabası Parkı kur. ⟶ Build a Trolley Bay.
+YENİ AŞAMA ⟶ NEW STAGE
+Anladım ⟶ Got it
+Manav tezgâhı, gondol ve açık soğutucu açıldı. Yeni alanı İnşa (B) ile doldur. ⟶ Produce stands, gondolas and open coolers are unlocked. Fill the new space with Build (B).
+Fırsatçılar geliyor: kör noktalara kamera, kapıya alarm. G tuşu kör noktaları gösterir. ⟶ Opportunists are coming: cameras on blind spots, an alarm at the door. G shows the blind spots.
+Temizlik ve güvenlik görevlisi alınabilir. Islak zemin artık sık olacak. ⟶ You can hire cleaners and guards now. Wet floors will be more common.
+İki gün sonra karşıya UCUZA açılıyor; Mahalle panelinden (N) takip et. ⟶ In two days UCUZA opens across the road; watch it in the Neighbourhood panel (N).
+Süpermarkette levhasız reyon bulunmuyor: her koridora bir Reyon Levhası as. ⟶ In a supermarket, aisles without signs get lost: hang an Aisle Sign in every aisle.
+Fırın ve fırıncı, şarküteri ve usta, dondurma dolabı: kârlı ama personel ister. ⟶ Oven and baker, deli and master, ice cream freezer: profitable, but they need staff.
+Odalar: depo odası (+600), soğuk oda (bozulmayı durdurur), mola odası. ⟶ Rooms: stockroom (+600), cold room (stops spoilage), break room.
+Haftalık alışverişçiler araba ister; Otopark Anlaşması onları çoğaltır. ⟶ Weekly shoppers want trolleys; the Car Park Deal brings more of them.
+Kiracı birimlerini AVM panelinden (V) doldur; her kiracının istediği farklı. ⟶ Fill the tenant units from the Mall panel (V); every tenant wants something different.
+Üst kata PageUp ile çık. Yürüyen merdivenler bozulabilir, teknisyen al. ⟶ PageUp goes upstairs. Escalators break down, so hire a technician.
+Yemek katına masa, oyun alanı ve tuvalet koy; kirli masa keyfi düşürür. ⟶ Give the food court tables, a play area and toilets; dirty tables hurt moods.
+Etkinlik takviminden konser, imza günü, bayram indirimi planla. ⟶ Plan concerts, book signings and holiday sales from the events calendar.
