@@ -38,7 +38,7 @@ func tick() -> void:
 	_last_hour = h
 	# a player notices the depot running dry before evening and adds a depot shelf
 	var dry: int = g.backstock.keys().filter(func(k): return g.is_stocked(k) and int(g.backstock[k]) == 0).size()
-	if h == 17 and dry >= 3 and g.depot_capacity() < 480 * (1 + g.stage) and g.money > 1500:
+	if h == 17 and dry >= 3 and g.depot_capacity() < 480 * (1 + g.stage) and g.money > 3500:
 		if place("depo") != null: note("built depot")
 		else: note("no room for depot")
 	# midday: products that ran out get a small urgent order (arrives within the hour)
@@ -49,7 +49,8 @@ func tick() -> void:
 	_hourly()
 
 func _hourly() -> void:
-	if g.can_expand() and g.money > g.expansion()["cost"] + 1500:
+	var timed: bool = not ["kariyer", "serbest"].has(g.scenario.get("id", "kariyer"))
+	if not timed and g.can_expand() and g.money > g.expansion()["cost"] + 1500:
 		var to: int = g.expansion()["to"]
 		g.expand()
 		stage_times[to] = [g.day, g.clock]

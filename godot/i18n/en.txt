@@ -944,12 +944,12 @@ Köşedeki küçük büfeden dört katlı AVM'ye. Asıl hikâye. ⟶ From the li
 Hedefleri tutarak büyü. ⟶ Grow by meeting the goals.
 Moda Sahili ⟶ Moda Seaside
 Batmak üzere ⟶ On the brink
-Eski sahibi borca girmiş bir mahalle marketi. Kasada ₺1.500, raflar yarı boş, komşular küs. ⟶ A local market whose old owner ran into debt. ₺1,500 in the till, shelves half empty, neighbours sulking.
-30 gün içinde puanı 3,8'e ve kasayı ₺25.000'e çıkar. Kasa −₺3.000'e düşerse iflas. ⟶ Within 30 days reach a 3.8 rating and ₺25,000 in the till. Drop below −₺3,000 and you're bankrupt.
+Eski sahibi borca girmiş bir mahalle marketi. Kasada ₺4.000, raflar yarı boş, komşular küs. ⟶ A local market whose old owner ran into debt. ₺4,000 in the till, shelves half empty, neighbours sulking.
+30 gün içinde puanı 3,6'ya ve kasayı ₺20.000'e çıkar. Kasa −₺3.000'e düşerse iflas. ⟶ Within 30 days reach a 3.6 rating and ₺20,000 in the till. Drop below −₺3,000 and you're bankrupt.
 Kampüs Yolu ⟶ Campus Road
 Öğrenci akını ⟶ Student rush
 Üniversitenin yolunda bir büfe. Dersten çıkan öğrenciler dalga dalga gelir; bütçeleri az, sabırları hiç yok. ⟶ A kiosk on the way to the university. Students pour in wave after wave between classes; small budgets, zero patience.
-12 günde 1.500 mutlu müşteri. ⟶ 1,500 happy customers in 12 days.
+12 günde 1.400 mutlu müşteri. ⟶ 1,400 happy customers in 12 days.
 Çarşı ⟶ Bazaar
 Rakip kapıda ⟶ Rival at the door
 Çarşının ortasında bir süpermarket devraldın; karşıda güçlü bir UCUZA şubesi var. ⟶ You've taken over a supermarket in the middle of the bazaar; a strong UCUZA branch sits opposite.

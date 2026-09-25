@@ -151,6 +151,9 @@ func _ready() -> void:
 			var ks := mw.keys(); ks.sort_custom(func(x, y): return float(mw[x][0]) < float(mw[y][0]))
 			print("  mood: ", ", ".join(ks.slice(0, 5).map(func(k): return "%s %d/%d" % [k, int(mw[k][0]), int(mw[k][1])])), " | missed ", st["missed"], " | depot %d/%d " % [game.backstock_total(), game.depot_capacity()], game.backstock.keys().filter(func(k): return game.is_stocked(k)).map(func(k): return "%s:%d" % [k, game.backstock[k]]))
 			bot.log.clear()
+			if not game.scenario.is_empty():
+				var res := Scenarios.check(game)
+				if res != "": print("BOT scenario ", res, " on day ", game.day); break
 			if game.day_ended_flag: game.start_next_day()
 		print("BOT stage_times=", bot.stage_times, " cpu_s=", (Time.get_ticks_msec() - t0) / 1000.0)
 		if DisplayServer.get_name() == "headless": get_tree().quit()

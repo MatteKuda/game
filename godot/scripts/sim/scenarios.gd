@@ -6,11 +6,11 @@ const LIST := [
 	{"id": "kariyer", "name": "Köşebaşı", "sub": "Kariyer", "icon": "store",
 		"desc": "Köşedeki küçük büfeden dört katlı AVM'ye. Asıl hikâye.", "goal": "Hedefleri tutarak büyü."},
 	{"id": "moda", "name": "Moda Sahili", "sub": "Batmak üzere", "icon": "chart", "days": 30,
-		"desc": "Eski sahibi borca girmiş bir mahalle marketi. Kasada ₺1.500, raflar yarı boş, komşular küs.",
-		"goal": "30 gün içinde puanı 3,8'e ve kasayı ₺25.000'e çıkar. Kasa −₺3.000'e düşerse iflas."},
+		"desc": "Eski sahibi borca girmiş bir mahalle marketi. Kasada ₺4.000, raflar yarı boş, komşular küs.",
+		"goal": "30 gün içinde puanı 3,6'ya ve kasayı ₺20.000'e çıkar. Kasa −₺3.000'e düşerse iflas."},
 	{"id": "kampus", "name": "Kampüs Yolu", "sub": "Öğrenci akını", "icon": "school", "days": 12,
 		"desc": "Üniversitenin yolunda bir büfe. Dersten çıkan öğrenciler dalga dalga gelir; bütçeleri az, sabırları hiç yok.",
-		"goal": "12 günde 1.500 mutlu müşteri."},
+		"goal": "12 günde 1.400 mutlu müşteri."},
 	{"id": "carsi", "name": "Çarşı", "sub": "Rakip kapıda", "icon": "rival", "days": 28,
 		"desc": "Çarşının ortasında bir süpermarket devraldın; karşıda güçlü bir UCUZA şubesi var.",
 		"goal": "28 gün içinde UCUZA'yı kapattır ya da satın al."},
@@ -31,9 +31,10 @@ static func apply(g, id: String) -> void:
 		"moda":
 			g.apply_stage(1)
 			furnish(g, 1)
-			g.money = 1500.0; g.rating = 2.3
-			for pid in g.backstock: g.backstock[pid] = 0
-			for pid in ["ekmek", "sut", "kola", "cips"]: g.backstock[pid] = 12
+			g.money = 4000.0; g.rating = 2.3
+			# the depot has a little of everything on the shelves, a bit more of the staples
+			for pid in g.backstock: g.backstock[pid] = 8 if g.is_stocked(pid) else 0
+			for pid in ["ekmek", "sut", "kola", "cips"]: g.backstock[pid] = 16
 			for f in g.fixtures:
 				for sl in f.slots: sl["stock"] = int(sl["stock"]) / 2
 			for r in g.neighborhood.residents: r["loyalty"] = randf_range(20.0, 40.0)
@@ -114,8 +115,8 @@ static func goal_rows(g) -> Array:
 	var d := get_def(id)
 	var left: int = int(d.get("days", 0)) - (g.day - int(g.scenario.get("start", 1)))
 	match id:
-		"moda": return [["rating", "Mağaza puanı", g.rating, 3.8], ["cash", "Kasada nakit", g.money, 25000.0], ["days", "Kalan gün", float(left), 0.0]]
-		"kampus": return [["served", "Mutlu müşteri", float(g.totals["happy"]), 1500.0], ["days", "Kalan gün", float(left), 0.0]]
+		"moda": return [["rating", "Mağaza puanı", g.rating, 3.6], ["cash", "Kasada nakit", g.money, 20000.0], ["days", "Kalan gün", float(left), 0.0]]
+		"kampus": return [["served", "Mutlu müşteri", float(g.totals["happy"]), 1400.0], ["days", "Kalan gün", float(left), 0.0]]
 		"carsi": return [["rival", "Mahallede payın", g.rival.share(g) * 100.0, 75.0], ["days", "Kalan gün", float(left), 0.0]]
 	return []
 
@@ -127,10 +128,10 @@ static func check(g) -> String:
 	var used: int = g.day - int(g.scenario.get("start", 1)) + 1
 	match id:
 		"moda":
-			if g.rating >= 3.8 and g.money >= 25000: return "win"
+			if g.rating >= 3.6 and g.money >= 20000: return "win"
 			if g.money < -3000: return "lose"
 		"kampus":
-			if int(g.totals["happy"]) >= 1500: return "win"
+			if int(g.totals["happy"]) >= 1400: return "win"
 		"carsi":
 			if g.rival.closed: return "win"
 	if used >= int(d["days"]): return "lose"
