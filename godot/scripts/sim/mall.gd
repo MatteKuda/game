@@ -323,7 +323,7 @@ func update(dt: float) -> void:
 		var v = visitors[i]
 		if v.removed:
 			visitors.remove_at(i)
-			if game.selection.get("obj") == v: game.select({})
+			if game.is_selected(v): game.select({})
 			v.dispose()
 	_hour_acc += dt * Cfg.MIN_PER_SEC
 	for c in connectors:
@@ -339,7 +339,7 @@ func update(dt: float) -> void:
 				if not c["broken"] and randf() < (0.02 if c["def"]["kind"] == "escalator" else 0.012) * maint:
 					c["broken"] = true
 					var b: Rect2i = c["def"]["blocked"]
-					game.alert("broke" + c["def"]["id"], "wrench", ("%s arızalandı! Teknisyen yolda." if game.has_role("technician") else "%s arızalandı! Ziyaretçiler dolaşmak zorunda. Tıklayıp tamir ettir ya da teknisyen al.") % c["def"]["name"], "bad", Vector3(b.get_center().x, c["def"]["from"][0] * Cfg.FLOOR_H, b.get_center().y), 0.0)
+					game.alert("broke" + c["def"]["id"], "wrench", ("%s arızalandı! Teknisyen yolda." if game.has_role("technician") else "%s arızalandı! Ziyaretçiler dolaşmak zorunda. Tıklayıp tamir ettir ya da teknisyen al.") % c["def"]["name"], "bad", Vector3(Cfg.rc(b).x, c["def"]["from"][0] * Cfg.FLOOR_H, Cfg.rc(b).y), 0.0)
 					game.mall_changed.emit()
 		if not event.is_empty() and visitors.size() > 32 and not game.has_role("security") and randf() < 0.4:
 			var v = visitors.pick_random()

@@ -79,6 +79,17 @@ func _ready() -> void:
 	if args.has("cam"):
 		var c: PackedStringArray = args["cam"].split(",")
 		game.rig.focus(float(c[0]), float(c[1]), float(c[2]))
+	if args.has("menu"): hud.open_menu(args["menu"])
+	if args.has("dbgunit"):
+		var un: Node3D = game.mall_shell.unit_nodes[int(args["dbgunit"])]
+		for ch in un.get_children():
+			if ch is MeshInstance3D: print("MI ", ch.name, " aabb=", (ch as MeshInstance3D).get_aabb(), " gpos=", ch.global_position, " vis=", ch.is_visible_in_tree())
+			elif ch is Label3D: print("LB ", (ch as Label3D).text, " gpos=", ch.global_position)
+			else: print("N ", ch.get_class(), " gpos=", ch.global_position, " kids=", ch.get_child_count())
+	if args.has("dbgsides"):
+		for i in 30: await get_tree().process_frame
+		for sd in game.mall_shell.sides:
+			if sd["unit"] < 0: print("SIDE fl=", sd["floor"], " n=", sd["normal"], " mode=", sd["mode"], " sink=", snappedf(sd["sink"], 0.01), " scale=", (sd["node"] as Node3D).scale.y, " vis=", (sd["node"] as Node3D).is_visible_in_tree(), " kids=", (sd["node"] as Node3D).get_child_count())
 	if args.has("itest"): _itest()
 	if args.has("savetest"):
 		print("SAVING stage=", game.stage, " day=", game.day, " money=", game.money, " fixtures=", game.fixtures.size(), " staff=", game.staff.size(), " upgrades=", game.upgrades.keys())
@@ -87,7 +98,7 @@ func _ready() -> void:
 
 ## scripted stage-2/3 setup for headless balance runs and screenshots
 func _stage_test(n: int, secs: float) -> void:
-	game.money += 400000; game.rating = 4.2
+	game.money += 400000; game.rating = float(args_extra.get("rating0", "4.2"))
 	for st in range(1, n + 1): game.apply_stage(st)
 	for f in game.fixtures.duplicate(): game.remove_fixture(f)
 	var add := func(id: String, x: int, z: int, r: int, prods: Array, l := 0):

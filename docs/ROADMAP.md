@@ -4,6 +4,8 @@ Her aşama sadece daha büyük bir bina değildir. Her biri **yeni bir müşteri
 
 Durum etiketleri: ✅ uygulandı · 🟡 kısmen · ⬜ planlandı
 
+> Ana sürüm artık Godot (`godot/`). Aşağıdaki tablolar Godot sürümünün durumunu gösterir; eski web sürümünde olmayan birkaç sistem (odalar, tazelik, sinema, tuvalet, teknisyen, fiziksel otopark) yalnızca Godot sürümünde var.
+
 ---
 
 ## Aşama 1: Mahalle Büfesi ✅
@@ -36,12 +38,12 @@ Durum etiketleri: ✅ uygulandı · 🟡 kısmen · ⬜ planlandı
 | Reyon levhaları | ✅ | Levhanın 5 m yakınındaki raflar daha hızlı bulunur. Levhasız reyonda arama uzar |
 | Bantlı ve self-servis kasa | ✅ | Bant %35 hızlı. Self-servis kasiyer istemez ama yavaş ve kayıp riski taşır |
 | Güvenlik ve hırsızlık | ✅ | Fırsatçı, kamera (görüş konisi, yüksek raflar görüşü keser), alarm kapısı, güvenlik görevlisi, `G` katmanı |
-| Fırın ve fırıncı | ✅ | Ucuz üretim ve "sıcacık" moral bonusu. 🟡 Tazelik ve bayatlama yok |
+| Fırın ve fırıncı | ✅ | Ucuz üretim ve "sıcacık" moral bonusu. Tazelik, bayatlama, gece çöpe giden ekmek, akşam indirimi |
 | Vardiya ve yorgunluk | ✅ | Tam, sabah ve akşam vardiyası. Enerji barı, çay ocağında mola |
 | Alışveriş arabası | ✅ | Haftalık Alışverişçi araba iter. Park yoksa listesi kısalır |
-| Kampanyalar | ✅ | Broşür, Günün İndirimleri, Kasa Önü Standı, Tadım Günü. 🟡 "3 al 2 öde" ve gondol başı teşhir yok |
-| Oda sistemi | ⬜ | Personel-only depo odası, soğuk oda, mola odası. `doorEdges` altyapısı hazır |
-| Otopark | 🟡 | Yükseltme olarak var (müşteri artışı). Fiziksel otopark alanı yok |
+| Kampanyalar | ✅ | Broşür, Günün İndirimleri, 3 Al 2 Öde, Kasa Önü Standı, Tadım Günü. Gondol başı teşhir eşyası |
+| Oda sistemi | ✅ | Depo odası, soğuk oda (yoksa soğuk stok bozulur), mola odası. Personel kapıdan girip çıkar |
+| Otopark | ✅ | Yolun karşısında otopark; arabayla gelen haftalık alışverişçi yaya geçidinden geçer, arabalar yayaya yol verir |
 
 **Görsel imza:** tavandan asılı kategori levhaları, bantlı kasaların dönen bandı, parlayan fırın ağzı, kampanya günü kapıda tanıtımcı.
 
@@ -52,12 +54,12 @@ Durum etiketleri: ✅ uygulandı · 🟡 kısmen · ⬜ planlandı
 | Sistem | Durum | Not |
 |---|---|---|
 | Katlar | ✅ | Kat başına `Grid`. Kat seçici (`PageUp`/`PageDown`). Görünmeyen kat gizlenir, uzaktan bakınca tüm bina görünür |
-| Katlar arası ulaşım | ✅ | Yukarı / aşağı yürüyen merdiven, cam asansör. Ajanlar "yürü + bin" bacaklarıyla katlar arası yol bulur. 🟡 Merdiven yok |
+| Katlar arası ulaşım | ✅ | Yukarı / aşağı yürüyen merdiven, cam asansör. Ajanlar "yürü + bin" bacaklarıyla katlar arası yol bulur. Normal merdiven de var, hiç bozulmaz |
 | Kiracılar | ✅ | 11 birim, 10 kurgusal marka, günlük teklifler, kira + ciro payı, gerekçeli memnuniyet, mutsuz kiracı çıkar |
 | Yemek katı | ✅ | İki yemek standı, masa ve koltuk, masa kirlenmesi, ayakta kalan ziyaretçi |
-| Eğlence | 🟡 | Çocuk oyun alanı, oyun salonu (gürültülü kiracı). Sinema yok |
+| Eğlence | ✅ | Çocuk oyun alanı, oyun salonu (gürültülü kiracı), sinema (büyük birim, seyirci salona girer) |
 | Etkinlikler | ✅ | Konser, İmza Günü, Bayram İndirimleri, Çocuk Şenliği. Bugüne veya yarına planlanır, süslemeler görünür, güvenliksiz kalabalıkta arbede |
-| Tesis yönetimi | 🟡 | Yürüyen merdiven arızası ve tamir, elektrik ve bakım gideri, Merkezi Klima yükseltmesi. Tuvalet, bakım ekibi, tahliye yok |
+| Tesis yönetimi | ✅ | Arıza ve tamir, teknisyen (ücretsiz tamir, arızayı yarıya indirir), tuvalet ihtiyacı ve temizliği, Merkezi Klima. 🟡 Tahliye yok |
 
 **Görsel imza:** cam korkuluklu galeri ve kayan yürüyen merdiven bantları, cam asansör kabini, kiracı vitrinlerinin marka renkleri, konser sahnesi ve balonlar, gece yanan dev AVM tabelası.
 
@@ -67,7 +69,7 @@ Durum etiketleri: ✅ uygulandı · 🟡 kısmen · ⬜ planlandı
 
 | Konu | Durum | Sonra |
 |---|---|---|
-| Kayıt ve yükleme | ✅ Günlük otomatik kayıt + 3 yuva (`localStorage`) | Dosyaya dışa aktarma, kayıt sürümleme ve göç |
+| Kayıt ve yükleme | ✅ Günlük otomatik kayıt + 3 yuva (Godot: `user://` içinde JSON) | Dosyaya dışa aktarma, kayıt sürümleme ve göç |
 | Ayarlar | ✅ Kalite, ses kanalları, arayüz ölçeği, kesik duvar | Tuş atama, renk körlüğü paleti |
 | Ses | ✅ Üretken müzik + ortam, 4 kanal | Kiracıya özel vitrin sesleri, etkinlik müziği |
 | Dokunmatik | ✅ Kaydır, kıstır, çevir, dokunarak yerleştir, alttan açılan paneller | Dikey telefon düzeni, dokunmatik için büyük tablo görünümleri |
@@ -75,10 +77,12 @@ Durum etiketleri: ✅ uygulandı · 🟡 kısmen · ⬜ planlandı
 | Performans | Statik birleştirme, AVM'de ~120 ajan akıcı | `InstancedMesh` karakterler, uzak ajanlar için LOD, görünmeyen katta soyut sim |
 | Test | Başsız tarayıcıda senaryolu simülasyon (elle) | Vitest ile sim birim testleri, CI'da gece dengesi raporu |
 
-## Sıradaki 5 iş (öneri)
+## Sıradaki işler (öneri)
 
-1. **Oda sistemi:** personel-only depo odası ve soğuk oda. Depo raflarını satış alanından çıkarmak yerleşim bulmacasını derinleştirir.
-2. **Tazelik:** fırın ürünlerinde yaş, akşam indirim rafı, bayat ürün kaybı.
-3. **AVM tesisleri:** tuvalet ve temizlik ihtiyacı, bakım ekibi (arızaları oyuncu yerine çözer), merdiven.
-4. **Rakip dükkân:** karşı köşeye açılan zincir market. Fiyat savaşı ve sadakat kartının anlamı.
-5. **Oyun testi ve denge:** hedef süreler (Büfe → Market ~45 dk, Market → Süpermarket ~2 saat, Süpermarket → AVM ~3 saat), otomatik denge raporu.
+Oda sistemi, tazelik ve AVM tesisleri (tuvalet, teknisyen, merdiven) Godot sürümünde tamamlandı. Sırada:
+
+1. **Rakip dükkân:** karşı köşeye açılan zincir market. Fiyat savaşı ve sadakat kartının anlamı.
+2. **Oyun testi ve denge:** gerçek oyuncularla hedef süreler (Büfe → Market ~45 dk, Market → Süpermarket ~2 saat, Süpermarket → AVM ~3 saat).
+3. **AVM tahliye tatbikatı / yangın alarmı:** güvenlik ve kapı düzeninin sınavı.
+4. **Kiracıya özel sesler ve etkinlik müziği.**
+5. **Windows için hazır `.exe` sürümü** (GitHub Releases üzerinden).

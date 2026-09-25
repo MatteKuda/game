@@ -1308,7 +1308,7 @@ func _mall_tenants(body: VBoxContainer, m) -> void:
 		fb.pressed.connect(func():
 			var r: Rect2i = uu["def"]["rect"]
 			game.set_view_floor(uu["def"]["floor"])
-			game.rig.focus(r.get_center().x, r.get_center().y)
+			game.rig.focus(Cfg.rc(r).x, Cfg.rc(r).y)
 			game.select({"kind": "unit", "obj": uu}))
 		head.add_child(fb)
 		v.add_child(head)
@@ -1511,7 +1511,7 @@ func _render_menu() -> void:
 	var tl := UIKit.label(title, 30, Cfg.INK, "display"); tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(tl)
 	if menu_page != "main" and started:
-		var bk := UIKit.button("Geri", "arrowUp", false, true); bk.pressed.connect(func(): menu_page = "main"; _render_menu())
+		var bk := UIKit.button("Geri", "", false, true); bk.pressed.connect(func(): menu_page = "main"; _render_menu())
 		head.add_child(bk)
 	var x := Button.new(); x.flat = true; x.icon = UIKit.icon_tex("close"); x.focus_mode = Control.FOCUS_NONE
 	x.add_theme_constant_override("icon_max_width", 16); x.add_theme_color_override("icon_normal_color", Cfg.INK2)

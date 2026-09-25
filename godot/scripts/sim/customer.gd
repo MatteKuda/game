@@ -239,7 +239,8 @@ func _check_puddle(game) -> void:
 	var key := "slip%d" % p["id"]
 	if flags.has(key): return
 	flags[key] = true
-	if randf() < 0.4:
+	# the yellow warning sign makes people watch their step
+	if randf() < (0.07 if p.get("sign") != null else 0.4):
 		slip_t = 1.7; mood -= 16
 		GameAudio.play("slip", -6.0, 0.5)
 		game.stats["slips"] += 1

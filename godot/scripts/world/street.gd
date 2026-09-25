@@ -15,6 +15,7 @@ var right_a: Node3D # eczane/berber block (removed for the Süpermarket)
 var right_b: Node3D # kırtasiye block (removed for the AVM)
 var left_a: Node3D # çay ocağı block (removed for the AVM)
 var lot: Node3D # car park across the road (Otopark upgrade)
+var back_row: Array = [] # apartments behind the block
 var park_slots: Array = [] # [{x, state: free|arriving|parked|leaving, node, path, seg, reverse}]
 const CROSS_X0 := 30
 const CROSS_X1 := 34 # exclusive: walkable zebra tiles x 30..33, z 19..24
@@ -126,7 +127,7 @@ func _back_row() -> void:
 	var i := 0
 	while x < 60.0:
 		var w: float = [8.0, 10.0, 9.0, 11.0][i % 4]
-		_apartment(Vector3(x + w * 0.5, 0, 0.0), w - 0.4, 9.0, 4 + i % 3, cols[i % cols.size()], 0.0, 10 + i)
+		back_row.append(_apartment(Vector3(x + w * 0.5, 0, 0.0), w - 0.4, 9.0, 4 + i % 3, cols[i % cols.size()], 0.0, 10 + i))
 		x += w; i += 1
 
 func _right_block() -> void:
@@ -396,3 +397,5 @@ func remove_for_stage(n: int) -> void:
 	if n >= 3:
 		if right_b: right_b.queue_free(); right_b = null
 		if left_a: left_a.queue_free(); left_a = null
+		# the AVM's back wall sits on z=0: step the apartments (and their balconies) back behind it
+		for a in back_row: (a as Node3D).position.z = -2.2

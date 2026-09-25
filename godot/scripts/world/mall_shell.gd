@@ -55,7 +55,7 @@ func _floors() -> void:
 	# ground floor corridors (the supermarket floor is drawn by ShopShell)
 	for r in MallDB.F0_CORRIDORS:
 		var rr: Rect2i = r
-		Art.box(f0, Vector3(rr.size.x, 0.1, rr.size.y), _marble(), Vector3(rr.get_center().x, -0.03, rr.get_center().y), 0.0)
+		Art.box(f0, Vector3(rr.size.x, 0.1, rr.size.y), _marble(), Vector3(Cfg.rc(rr).x, -0.03, Cfg.rc(rr).y), 0.0)
 	# floor-1 slab: row runs that skip the escalator well and the lift shaft
 	var F := MallDB.FOOTPRINT
 	var holes := [MallDB.WELL, MallDB.SHAFT, MallDB.STAIR_WELL]
@@ -219,7 +219,7 @@ func _exterior() -> void:
 	Art.box(exterior, Vector3(F.size.x + 0.5, 0.5, 0.4), clad, Vector3(cx, top + 0.25, F.end.y), 0.05)
 	Art.box(exterior, Vector3(F.size.x + 0.5, 0.5, 0.4), clad, Vector3(cx, top + 0.25, F.position.y - 0.15), 0.05)
 	for x in [F.position.x - 0.15, F.end.x + 0.15]:
-		Art.box(exterior, Vector3(0.4, 0.5, F.size.y), clad, Vector3(x, top + 0.25, F.get_center().y), 0.05)
+		Art.box(exterior, Vector3(0.4, 0.5, F.size.y), clad, Vector3(x, top + 0.25, Cfg.rc(F).y), 0.05)
 	# big roof sign
 	# sits on the front parapet, leaning back slightly so it reads from the street camera
 	var s := Node3D.new(); s.position = Vector3(cx, top + 1.45, F.end.y + 0.05); s.rotation.x = -0.18; exterior.add_child(s)
@@ -274,7 +274,7 @@ func _connectors() -> void:
 	_stairs()
 	# glass lift in its shaft
 	var L := MallDB.SHAFT
-	var lc := Vector3(L.get_center().x, 0, L.get_center().y)
+	var lc := Vector3(Cfg.rc(L).x, 0, Cfg.rc(L).y)
 	var lg := Node3D.new(); f0.add_child(lg)
 	var shaft := Art.box(lg, Vector3(1.9, 2.0 * FH, 1.9), Art.glass(Color(0.8, 0.95, 0.96), 0.14), lc + Vector3(0, FH, 0), 0.0)
 	shaft.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -342,7 +342,7 @@ func _barrier(p: Vector3) -> Node3D:
 # ------------------------------------------------------------------ food-court stage
 func _stage() -> void:
 	var S := MallDB.STAGE
-	var s := Node3D.new(); s.position = Vector3(S.get_center().x, FH, S.get_center().y); f1.add_child(s)
+	var s := Node3D.new(); s.position = Vector3(Cfg.rc(S).x, FH, Cfg.rc(S).y); f1.add_child(s)
 	var w := float(S.size.x); var d := float(S.size.y)
 	Art.box(s, Vector3(w - 0.1, 0.4, d - 0.1), Art.mat(Cfg.INK, 0.5), Vector3(0, 0.2, 0), 0.06)
 	Art.box(s, Vector3(w - 0.05, 0.05, d - 0.05), Art.mat(Cfg.TERRA, 0.6), Vector3(0, 0.42, 0), 0.02)
@@ -422,8 +422,8 @@ func _rebuild_unit(u: Dictionary) -> void:
 	# floor
 	var fcol: Color = Color("efe7dc").lerp(col, 0.22) if not t.is_empty() else Color("dcd4c8")
 	var ft := Art.shader_mat("checker", {"color_a": fcol, "color_b": fcol.darkened(0.08), "grout": fcol.darkened(0.25), "tile": 0.6})
-	if fl == 0: Art.box(g, Vector3(r.size.x, 0.1, r.size.y), ft, Vector3(r.get_center().x, -0.03, r.get_center().y), 0.0)
-	else: Art.box(g, Vector3(r.size.x - 0.02, 0.02, r.size.y - 0.02), ft, Vector3(r.get_center().x, y0 + 0.025, r.get_center().y), 0.0)
+	if fl == 0: Art.box(g, Vector3(r.size.x, 0.1, r.size.y), ft, Vector3(Cfg.rc(r).x, -0.03, Cfg.rc(r).y), 0.0)
+	else: Art.box(g, Vector3(r.size.x - 0.02, 0.02, r.size.y - 0.02), ft, Vector3(Cfg.rc(r).x, y0 + 0.025, Cfg.rc(r).y), 0.0)
 	var F := MallDB.FOOTPRINT
 	var dir: Vector2i = d["dir"]
 	var edges := [
@@ -552,7 +552,7 @@ func _furnish(g: Node3D, u: Dictionary, t: Dictionary, y0: float) -> void:
 	var acc: Color = t["accent"]
 	var face := atan2(float(dir.x), float(dir.y))
 	# frame: origin at the back wall on the first span tile edge; local +z = toward the door, +x = along span
-	var back := Vector3(r.get_center().x, y0 + 0.05, r.get_center().y) - Vector3(dir.x, 0, dir.y) * ((r.size.x if dir.x != 0 else r.size.y) * 0.5)
+	var back := Vector3(Cfg.rc(r).x, y0 + 0.05, Cfg.rc(r).y) - Vector3(dir.x, 0, dir.y) * ((r.size.x if dir.x != 0 else r.size.y) * 0.5)
 	var ax := Vector3(1, 0, 0) if along_x else Vector3(0, 0, 1)
 	var origin := back - ax * span * 0.5
 	var zv := Vector3(dir.x, 0, dir.y)

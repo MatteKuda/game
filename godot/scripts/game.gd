@@ -647,7 +647,7 @@ func fire(s: Staff) -> void:
 	for f in fixtures: if f.cashier == s: f.cashier = null
 	staff.erase(s)
 	s.queue_free()
-	if selection.get("obj") == s: select({})
+	if is_selected(s): select({})
 	changed.emit()
 
 func find_restock_task(st: Staff, threshold: float) -> Variant:
@@ -703,6 +703,7 @@ func find_bake_task(st: Staff) -> Variant:
 	if o == null: return null
 	var want := func(pid: String) -> bool: return is_stocked(pid) and int(backstock.get(pid, 0)) < maxi(8, int(round(shelf_cap(pid) * 0.8)))
 	if not (want.call("simit") or want.call("ekmek")) or depot_capacity() - backstock_total() < 4: return null
+	if clock > 19 * 60: return null # no point baking what will be thrown away tonight
 	o.claimed = st.id; st.has_goal = false; st.dest = {}
 	return {"kind": "bake", "oven": o, "phase": "go"}
 
@@ -1152,7 +1153,7 @@ func tick(dt: float) -> void:
 		if c.removed:
 			if c.state == "flee" or (c.thief() and c.stolen.size() > 0): record_theft(c)
 			customers.remove_at(i)
-			if selection.get("obj") == c: select({})
+			if is_selected(c): select({})
 			c.queue_free()
 	# wet floors dry after mopping
 	for i in range(puddles.size() - 1, -1, -1):
@@ -1486,6 +1487,11 @@ func pick(screen: Vector2) -> Dictionary:
 				var c: Vector3 = f.center() + Vector3(0, float(f.model["height"]) * 0.55, 0)
 				if rig.cam.unproject_position(c).distance_to(screen) < 40.0: out["fixture"] = f
 	return out
+
+## selection can hold an agent/fixture or a plain dictionary (unit, connector, puddle)
+func is_selected(o) -> bool:
+	var s = selection.get("obj")
+	return s is Object and is_instance_valid(s) and s == o
 
 func select(sel: Dictionary) -> void:
 	selection = sel

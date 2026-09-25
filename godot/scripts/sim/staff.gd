@@ -398,7 +398,7 @@ func _do_task(dt: float, game) -> void:
 				if move(dt, game):
 					t["phase"] = "fix"; timer = 14.0 / eff_skill()
 					var b: Rect2i = C["def"]["blocked"]
-					look_at_pt = Vector3(b.get_center().x, position.y, b.get_center().y)
+					look_at_pt = Vector3(Cfg.rc(b).x, position.y, Cfg.rc(b).y)
 			else:
 				activity = "Tamir ediyor"; v.play("work")
 				timer -= dt

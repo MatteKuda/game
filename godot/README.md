@@ -13,6 +13,10 @@ Oyunun yeni ana sürümü. Masaüstünde normal bir oyun gibi çalışır; taray
 | ![Kampanya](docs/kampanya.jpg) | ![Vardiya](docs/vardiya.jpg) |
 | **Güvenlik katmanı (G): kırmızı = kör nokta** | **Mahalle Marketi** |
 | ![Güvenlik](docs/guvenlik.jpg) | ![Mahalle Marketi](docs/market.jpg) |
+| **Odalar: soğuk oda, depo odası, gondol başı teşhir** | **Otopark: arabayla gelen müşteri yaya geçidinden geçer** |
+| ![Odalar](docs/odalar.jpg) | ![Otopark](docs/otopark.jpg) |
+| **Sinema, tuvaletler ve cam asansör** | **Ayarlar menüsü** |
+| ![Sinema](docs/sinema.jpg) | ![Ayarlar](docs/ayarlar.jpg) |
 
 | Gece | Rafa ürün atama |
 |---|---|
@@ -51,6 +55,7 @@ Mac ve Linux için de aynı adımları izle; 2. adımda kendi işletim sistemini
 | `R` | Yerleştirirken döndür. `Shift`+tık: arka arkaya yerleştir. Sağ tık / `Esc`: iptal |
 | `Boşluk` · `1` `2` `3` | Duraklat · 1× / 2× / 4× hız |
 | `C` | Kesik duvar görünümünü aç/kapat |
+| `Esc` | Açık paneli / seçimi kapatır; hiçbiri yoksa menüyü açar (Kaydet, Yükle, Ayarlar) |
 | Dokunmatik ekran | Tek parmakla kaydır, iki parmakla yakınlaştır ve döndür |
 
 ## Görsel yön
@@ -74,6 +79,15 @@ Dört aşamanın dördü de oynanabilir: **Büfe → Mahalle Marketi → Süperm
   - **Fırın tezgâhı ve fırıncı:** ucuz simit ve ekmek; "sıcacık" moral bonusu, fırın ağzı parlar.
   - **Reyon levhaları:** levhasız reyonda müşteri rafı daha geç bulur.
   - **Alışveriş arabası parkı:** haftalık alışverişçi araba iter; park yoksa listesi kısalır.
+  - **Odalar (personele özel, duvarlı):** personel kapıdan içeri girip çıkar.
+    - **Depo Odası:** +240 birim kapasite; satış alanını depo raflarıyla doldurmazsın.
+    - **Soğuk Oda:** yoksa depodaki süt, ayran, peynir ve içeceklerin %30'u her gece bozulur.
+    - **Mola Odası:** personel çay ocağından iki kat hızlı dinlenir, herkes biraz daha hızlı çalışır.
+  - **Ekmek tazeliği:** simit ve ekmek gün içinde bayatlar (rafta "sıcacık / taze / bayat" etiketi). Bayat ekmeği müşteri almayabilir.
+    - Satılmayan ekmek gece çöpe gider (gün sonu raporunda zarar olarak görünür).
+    - Sabah raflar fırıncının gece pişirdiği ya da fırından gelen ekmekle dolar.
+    - İstersen fırın kartından **akşam indirimi** açılır: 19:00'dan sonra %40 ucuz.
+  - **Gondol Başı Teşhir:** koridor başındaki teşhir; yanından geçen müşteri listesinde olmasa da ürünü alabilir.
 - **Güvenlik ve hırsızlık:**
   - Fırsatçı müşteri kimse bakmıyorsa ürünü cebine atar.
   - Dönen tavan kamerasının görüş konisini yüksek raflar keser.
@@ -87,36 +101,47 @@ Dört aşamanın dördü de oynanabilir: **Büfe → Mahalle Marketi → Süperm
 - **Kampanyalar (`K`):**
   - Broşür Dağıtımı: kapıda tanıtımcı durur.
   - Günün İndirimleri: en fazla 3 ürün seçilir, rafta kırmızı etiket çıkar.
+  - **3 Al 2 Öde:** seçilen ürünlerde müşteri üçlü alır, üçüncüsü bedava. Rafta sarı "3=2" etiketi çıkar.
   - Kasa Önü Standı ve Tadım Günü.
+- **Otopark:** "Otopark Anlaşması" yükseltmesi alınınca yolun karşısında otopark açılır. Haftalık alışverişçiler arabayla gelip park eder, yaya geçidinden karşıya geçer, alışveriş sonrası arabasına dönüp gider. Yaya geçidinde biri varken arabalar durur.
 - **Köşebaşı AVM (iki kat):** süpermarket zemin katta kalır, bloğun tamamı alışveriş merkezi olur.
-  - **11 kiracı birimi, 10 kurgusal marka:** giyim, elektronik, kitabevi, oyuncakçı, kuaför, oyun salonu, spor ve üç yemek standı.
+  - **11 kiracı birimi, 11 kurgusal marka:** giyim, elektronik, kitabevi, oyuncakçı, kuaför, oyun salonu, spor, sinema ve üç yemek standı.
+  - **Sinema (KARE SİNEMA):** yalnızca büyük birimlere (45 m² üstü) gelir. Seyirci salona girer, film boyunca görünmez, çıkınca AVM keyfi artar. Yemek katı doluysa sinema daha mutlu olur.
   - **Teklifler ve sözleşme:** her sabah yeni teklifler gelir. Kira artı ciro payı alırsın.
   - **Kiracı memnuniyeti gerekçeli:** "yürüyen merdivene uzak", "yanında gürültülü oyun salonu", "sadece 4 koltuk var" gibi. İki gün mutsuz kalan kiracı çıkar.
   - **Kiracı vitrinleri:** marka renginde vitrin, tabela, kendi mobilyası ve tezgâhta çalışan personel. Boş birimde kepenk ve "KİRALIK" levhası var.
-  - **Katlar arası ulaşım:** yukarı ve aşağı yürüyen merdiven ile cam asansör. Ziyaretçiler katlar arasında yol bulur.
-  - **Arızalar:** merdiven ya da asansör arızalanabilir. Önüne "ARIZALI" bariyeri gelir; tıklayıp tamir ettirirsin.
+  - **Katlar arası ulaşım:** yukarı ve aşağı yürüyen merdiven, cam asansör ve normal merdiven. Ziyaretçiler katlar arasında yol bulur; emekliler asansörü, gençler merdiveni kullanır.
+  - **Arızalar:** yürüyen merdiven ya da asansör arızalanabilir; normal merdiven hiç bozulmaz. Arızanın önüne "ARIZALI" bariyeri gelir.
+    - Tamir için ya dışarıdan ücretli usta çağırırsın (tıkla) ya da **Teknisyen** işe alırsın.
+    - Teknisyen arızaya koşup ücretsiz tamir eder, düzenli bakımla arıza sayısını yarıya indirir.
+  - **Tuvalet:** ziyaretçilerin ihtiyacı var. Tuvalet yoksa herkes söylenir, kiracılar da memnuniyetsizleşir. Kullanıldıkça kirlenir, temizlik görevlisi siler.
   - **Yemek katı:** masalar, sahne, çocuk oyun alanı ve banklar. Masalar kirlenir, temizlik görevlisi toplar.
   - **4 etkinlik:** Akşam Konseri (sahnede grup çalar), İmza Günü, Bayram İndirimleri, Çocuk Şenliği. Her birinin kendi süslemesi var (bayrak dizisi, balonlar, pankart). Güvenliksiz kalabalıkta arbede çıkar.
   - **Ziyaretçiler:** 4 arketip (genç, aile, profesyonel, emekli çift). Aileler çocuklarıyla gelir. Ziyaretçiye tıklayınca aklından geçenler görünür.
   - **Görünüm:** kamera kat değiştirince üst kat gizlenir, uzaklaşınca tüm bina ve çatıdaki "KÖŞEBAŞI AVM" tabelası görünür. Kameraya bakan duvarlar ve vitrinler yakınlaşınca iner.
 - **Ortak sistemler:**
-  - 15 ürün, 21 eşya ve 6 müşteri arketipi.
-  - Personel rolleri: kasiyer, reyon görevlisi, temizlik, güvenlik ve fırıncı.
+  - 15 ürün, 26 eşya ve 6 müşteri arketipi.
+  - Personel rolleri: kasiyer, reyon görevlisi, temizlik, güvenlik, fırıncı ve teknisyen.
   - Tedarik ve toptancı minibüsü.
   - Gün sonu raporu: hırsızlık, kayma, yorgunluk ve AVM satırlarıyla, tavsiyelerle birlikte.
   - 9 yükseltme; uyarılar, ısı haritası, fare üstü bilgiler.
+- **Kayıt ve ayarlar:**
+  - Oyun her sabah otomatik kaydedilir. Açılış ekranında "Devam et" düğmesi çıkar.
+  - Menüden (`Esc`) 3 kayıt yuvasına kaydedip yükleyebilirsin. Yüklenen oyun o günün sabahından başlar.
+  - Ayarlar: grafik kalitesi (Düşük / Orta / Yüksek), arayüz boyutu, tam ekran, kesik duvar, 4 ses kanalı (ana, müzik, efekt, ortam). Ayarlar kalıcıdır.
+  - Kayıtlar Windows'ta `%APPDATA%\Godot\app_userdata\Tezgâh` klasöründe durur.
+- **Ses:** tüm sesler kodla sentezleniyor, hiçbir ses dosyası yok.
+  - Efektler: yazar kasa, kapı zili, alarm, kayma, yerleştirme, uyarı ve arayüz sesleri.
+  - Müzik: gündüz ve akşam için iki ayrı parça, saate göre yumuşakça geçer.
+  - Ortam: sokak uğultusu ve kuş sesi; dükkân doldukça kalabalık uğultusu artar.
 
-## Henüz olmayanlar (açıkça)
+## Sınırlar (açıkça)
 
-- **Kayıt / yükleme** ve **ayarlar menüsü** yok. Oyun her açılışta baştan başlar. Web sürümünde vardı, Godot'ya taşınmadı.
-- **Müzik ve ses efektleri** yok.
-- Web sürümünde de olmayan, planlanan işler:
-  - AVM: merdiven, sinema, tuvalet ve bakım ekibi.
-  - Süpermarket: personel-only oda / soğuk oda, fırın ürünlerinde tazelik, "3 al 2 öde", fiziksel otopark alanı.
+- Kayıt gün içindeki anı saklamaz: yüklenen oyun o günün 07:00'sinden başlar, o an içerideki müşteriler kaydedilmez.
 - Depoda hazır bir `.exe` yok. Oyun editörden F5 ile çalışır.
   - Tek dosyalık `.exe` istersen: editörde **Proje → Dışa Aktar** (Project → Export) menüsüne gir. Godot bir kez "Export Templates" indirmeni isteyecek, kabul et. Ardından hazır **Windows** ayarıyla **Proje Dışa Aktar**'a bas; `export/Tezgah.exe` oluşur.
   - Dışa aktarma ayarı depoda hazır, ancak bu adımı kendi ortamımda deneyemedim. Editörden F5 ile çalıştırmayı test ettim.
-- Süpermarket ve AVM, betikli başsız simülasyonlarla ve ekran görüntüleriyle test edildi. Uzun oyun dengesi (kaç günde genişlenir, kira/etkinlik fiyatları) gerçek oyuncularla henüz denenmedi.
+- Denge betikli simülasyonlarla ayarlandı: her aşama için hazır bir düzenle günlerce oynatıp kâr, puan, kayıp ve bayat ekmek sayılarına baktım. Gerçek oyuncularla oyun testi yapılmadı; bunu benim yapmam mümkün değil. Genişleme hedeflerinin (özellikle AVM için 4,0★) zorluğu oynayarak ayarlanmalı.
 
 ## Varlıklar ve lisanslar
 
@@ -130,6 +155,7 @@ Dört aşamanın dördü de oynanabilir: **Büfe → Mahalle Marketi → Süperm
 godot/
   project.godot          ana sahne: scenes/main.tscn
   scripts/core/          cfg.gd (sabitler, palet), db.gd (ürünler, eşyalar, arketipler, aşamalar, kampanyalar),
+                         save.gd (JSON kayıt), settings.gd (ayarlar), game_audio.gd (ses sentezi, müzik, ortam),
                          mall_db.gd (AVM birimleri, kiracılar, ziyaretçiler, etkinlikler, merdiven/asansör)
   scripts/sim/           grid.gd (A*, kapı kenarları, katlar), fixture.gd, agent.gd (katlar arası bacaklar),
                          customer.gd, staff.gd (vardiya, görevler), mall.gd (kiracı, etkinlik, arıza), visitor.gd

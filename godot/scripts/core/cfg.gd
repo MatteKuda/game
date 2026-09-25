@@ -74,3 +74,6 @@ static func fmt_money(v: float) -> String:
 static func clock_str(minutes: float) -> String:
 	var m := int(minutes)
 	return "%02d:%02d" % [m / 60, m % 60]
+
+## exact centre of a tile rect (Rect2i.get_center() rounds down to whole tiles)
+static func rc(r: Rect2i) -> Vector2: return Vector2(r.position) + Vector2(r.size) * 0.5
