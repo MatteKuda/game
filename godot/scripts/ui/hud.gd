@@ -1535,7 +1535,7 @@ func start(loaded := false) -> void:
 	game.paused = false
 	game.speed = 1.0
 	if loaded:
-		game.alert("loaded", "star", "Kayıt yüklendi: %s, Gün %d. Gün sabah 07:00'den başlıyor." % [DB.STAGES[game.stage]["name"], game.day], "good", null, 0.0)
+		game.alert("loaded", "star", "Kayıt yüklendi: %s, Gün %d, saat %s." % [DB.STAGES[game.stage]["name"], game.day, Cfg.clock_str(game.clock)], "good", null, 0.0)
 	else:
 		game.alert("hello", "star", "Hoş geldin! Boş bölmeye tıklayıp ürün ata, rafları dolu tut. Sorunlar önce dükkânın içinde görünür.", "good", null, 0.0)
 		if game.scenario.is_empty() and Settings.tutorial: tutorial.start(game)
@@ -1913,7 +1913,7 @@ func _menu_main(v: VBoxContainer) -> void:
 		b.custom_minimum_size = Vector2(0, 46)
 		b.pressed.connect(it[2])
 		v.add_child(b)
-	v.add_child(UIKit.wrap(UIKit.label("Oyun her sabah otomatik kaydedilir. Kayıt yüklenince gün 07:00'den yeniden başlar.", 12, Cfg.INK3, "body", 700), 460))
+	v.add_child(UIKit.wrap(UIKit.label("Oyun her sabah otomatik kaydedilir. Gün içinde kaydedersen saat ve günün rakamları da saklanır; içerideki müşteriler saklanmaz.", 12, Cfg.INK3, "body", 700), 460))
 
 func _menu_slots(v: VBoxContainer, saving: bool) -> void:
 	var slots := [1, 2, 3] if saving else [0, 1, 2, 3]
@@ -1937,7 +1937,7 @@ func _menu_slots(v: VBoxContainer, saving: bool) -> void:
 		else:
 			var b2 := UIKit.button("Yükle", "play", true, true)
 			b2.disabled = inf.is_empty()
-			b2.pressed.connect(func(): SaveGame.load_slot(get_tree(), ss))
+			b2.pressed.connect(func(): if not SaveGame.load_slot(get_tree(), ss): _toast("Kayıt bozuk ya da okunamadı."))
 			h.add_child(b2)
 		row.add_child(h); v.add_child(row)
 	v.add_child(UIKit.wrap(UIKit.label("Kayıt klasörü: " + ProjectSettings.globalize_path("user://"), 11, Cfg.INK3, "body", 700), 460))

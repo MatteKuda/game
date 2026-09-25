@@ -47,6 +47,11 @@ func _ready() -> void:
 		for i in int(float(args["sim"]) * 30):
 			if game.day_ended_flag: break
 			game.tick(1.0 / 30.0)
+	if args.has("saveslot"):
+		print("MIDSAVE clock=", game.clock, " rev=", game.stats["revenue"], " ok=", SaveGame.save(game, int(args["saveslot"])))
+		if DisplayServer.get_name() == "headless": get_tree().quit()
+	if args.has("load"): print("LOADED clock=", game.clock, " rev=", game.stats["revenue"], " served=", game.stats["served"])
+	if args.has("quit"): get_tree().quit()
 	if args.has("hour"): game.clock = float(args["hour"]) * 60.0
 	if args.has("panel"): hud.open_panel(args["panel"])
 	if args.has("select"):

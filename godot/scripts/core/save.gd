@@ -1,9 +1,11 @@
 class_name SaveGame
 ## JSON saves in user:// (Windows: %APPDATA%/Godot/app_userdata/Tezgâh).
 ## Slot 0 is the automatic save made every morning; slots 1-3 are manual.
-## A save keeps the whole shop and mall; loading resumes at 07:00 of the saved day.
+## A save keeps the whole shop and mall. A save made during the day also keeps the clock, the day's
+## figures and today's campaigns, so loading continues from that time (shoppers inside are not kept).
+## Files are written atomically with a .bak copy; a damaged file falls back to its backup.
 
-const VERSION := 1
+const VERSION := 2
 static var pending: Dictionary = {} # set before reloading the scene; main applies it
 static var pending_scenario := "" # a new game in another neighbourhood (Scenarios)
 
@@ -19,18 +21,61 @@ static func info(slot: int) -> Dictionary:
 	if d == null: return {}
 	return {"day": d.get("day", 1), "stage": d.get("stage", 0), "money": d.get("money", 0), "saved_at": d.get("saved_at", "")}
 
-static func _read(slot: int) -> Variant:
-	var f := FileAccess.open(path(slot), FileAccess.READ)
+static func _read_file(p: String) -> Variant:
+	if not FileAccess.file_exists(p): return null
+	var f := FileAccess.open(p, FileAccess.READ)
 	if f == null: return null
 	var d = JSON.parse_string(f.get_as_text())
-	return d if d is Dictionary else null
+	return _migrate(d) if d is Dictionary and _valid(d) else null
 
+## the main file, or its backup when the main one is missing or damaged
+static func _read(slot: int) -> Variant:
+	var d = _read_file(path(slot))
+	if d == null: d = _read_file(path(slot) + ".bak")
+	return d
+
+## just enough structure to rebuild a world without crashing
+static func _valid(d: Dictionary) -> bool:
+	if not (d.get("stage") is float or d.get("stage") is int) or int(d["stage"]) < 0 or int(d["stage"]) > 3: return false
+	if not (d.get("day") is float or d.get("day") is int) or not (d.get("money") is float or d.get("money") is int): return false
+	if not (d.get("fixtures", []) is Array) or not (d.get("staff", []) is Array): return false
+	for f in d.get("fixtures", []):
+		if not (f is Dictionary) or not f.has("id") or not f.has("x") or not f.has("z"): return false
+	return true
+
+## older saves: fill in what later versions added (most fields already default on load)
+static func _migrate(d: Dictionary) -> Dictionary:
+	var v := int(d.get("version", 1))
+	if v < 2:
+		d["midday"] = {}
+	d["version"] = VERSION
+	return d
+
+## the backup only protects against a damaged write, so the previous good file becomes .bak
 static func save(game, slot: int) -> bool:
 	var d := serialize(game)
-	var f := FileAccess.open(path(slot), FileAccess.WRITE)
+	var p := path(slot)
+	var tmp := p + ".tmp"
+	var f := FileAccess.open(tmp, FileAccess.WRITE)
 	if f == null: return false
 	f.store_string(JSON.stringify(d, "\t"))
-	return true
+	f.close()
+	if _read_file(tmp) == null: return false
+	var dir := DirAccess.open("user://")
+	if dir == null: return false
+	var base := p.get_file()
+	if dir.file_exists(base):
+		if dir.file_exists(base + ".bak"): dir.remove(base + ".bak")
+		dir.rename(base, base + ".bak")
+	return dir.rename(base + ".tmp", base) == OK
+
+## JSON turns every number into a float; counters in the day figures should stay whole
+static func _intify(v):
+	if v is Dictionary:
+		for k in v: v[k] = _intify(v[k])
+		return v
+	if v is float and v == floorf(v) and absf(v) < 1e15: return int(v)
+	return v
 
 ## remember the save and restart the scene; main.gd applies it on the fresh world
 static func load_slot(tree: SceneTree, slot: int) -> bool:
@@ -69,6 +114,7 @@ static func serialize(game) -> Dictionary:
 		"style": game.style,
 		"rival": game.rival.serialize(),
 		"economy": {"cost_mul": game.cost_mul, "price_mul": game.price_mul, "next_hike": game._next_hike_day, "loan": game.loan, "vouchers": game.vouchers},
+		"midday": _midday(game),
 	}
 	if game.mall != null:
 		var m = game.mall
@@ -85,6 +131,33 @@ static func serialize(game) -> Dictionary:
 		for c in m.connectors: conns.append({"broken": c["broken"]})
 		d["mall"] = {"units": units, "connectors": conns, "scheduled": m.scheduled, "mood": m.mood, "history": m.history}
 	return d
+
+## state of the day in progress (empty for the morning autosave or after closing)
+static func _midday(game) -> Dictionary:
+	if game.day_ended_flag or game.clock <= Cfg.DAY_OPEN + 1.0: return {}
+	var energies := []
+	for s in game.staff: energies.append(s.energy)
+	var cargo := []
+	for o in game.van["cargo"]: cargo.append({"pid": o["pid"], "qty": o["qty"], "eta": game.abs_minutes()})
+	return {"clock": game.clock, "stats": game.stats, "campaigns": game.campaigns.keys(), "discounts": game.discounts, "multi": game.multi,
+		"energy": energies, "cargo": cargo, "match": game.match_night, "inspection": game.inspection_at, "praise": game.praise_until}
+
+static func _apply_midday(game, m: Dictionary) -> void:
+	if m.is_empty(): return
+	game.clock = float(m["clock"])
+	var st: Dictionary = _intify(m.get("stats", {}))
+	for k in st: game.stats[k] = st[k]
+	for c in m.get("campaigns", []): game.campaigns[c] = true
+	game.discounts = m.get("discounts", []); game.multi = m.get("multi", [])
+	var en: Array = m.get("energy", [])
+	for i in mini(en.size(), game.staff.size()): game.staff[i].energy = float(en[i])
+	for o in m.get("cargo", []): game.orders.append({"pid": o["pid"], "qty": int(o["qty"]), "eta": float(o["eta"])})
+	game.match_night = m.get("match", {})
+	if game.match_night.has("day"): game.match_night["day"] = int(game.match_night["day"])
+	game.inspection_at = float(m.get("inspection", 0.0)); game.praise_until = float(m.get("praise", 0.0))
+	game.neighborhood.today = game.neighborhood.today.filter(func(v): return float(v["at"]) > game.clock)
+	game._next_announce = game.abs_minutes() + 60.0
+	game.refresh_all(); game._campaign_visuals()
 
 # ------------------------------------------------------------------ apply (on a freshly built stage-0 world)
 static func apply(game, d: Dictionary) -> void:
@@ -177,5 +250,6 @@ static func apply(game, d: Dictionary) -> void:
 	game.neighborhood.start_day(game)
 	game.quests.refill(game)
 	game.cat.start_day(game)
+	_apply_midday(game, d.get("midday", {}))
 	var cam: Array = d.get("camera", [])
 	if cam.size() == 2: game.rig.focus(float(cam[0]), float(cam[1]))

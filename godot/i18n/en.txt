@@ -1223,3 +1223,6 @@ Yarın: %s · %s %d, %s. %s! ⟶ Tomorrow: $1 · $2 $3, $4. $5!
 Yarın: %s · %s %d, %s. Dondurma ve soğuk içecek stokla. ⟶ Tomorrow: $1 · $2 $3, $4. Stock up on ice cream and cold drinks.
 Yarın: %s · %s %d, %s. Şemsiye satılır, müşteri biraz azalır. ⟶ Tomorrow: $1 · $2 $3, $4. Umbrellas will sell; fewer shoppers.
 Yarın: %s · %s %d, %s. Salep aranır, sokak sakin olur. ⟶ Tomorrow: $1 · $2 $3, $4. Salep will be wanted; the street will be quiet.
+Kayıt yüklendi: %s, Gün %d, saat %s. ⟶ Save loaded: $1, Day $2, $3.
+Oyun her sabah otomatik kaydedilir. Gün içinde kaydedersen saat ve günün rakamları da saklanır; içerideki müşteriler saklanmaz. ⟶ The game autosaves every morning. Saving during the day also keeps the time and the day's figures; shoppers inside are not kept.
+Kayıt bozuk ya da okunamadı. ⟶ The save is damaged or unreadable.
