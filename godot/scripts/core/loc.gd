@@ -25,16 +25,21 @@ static func _load() -> void:
 		if line.strip_edges() == "" or line.begins_with("#"): continue
 		var parts := line.split(" ⟶ ", false, 1)
 		if parts.size() != 2: continue
-		var src: String = parts[0].replace("\\n", "\n")
-		var dst: String = parts[1].replace("\\n", "\n")
+		var src: String = parts[0].replace("\\n", "\n").replace("\\\"", "\"")
+		var dst: String = parts[1].replace("\\n", "\n").replace("\\\"", "\"")
 		if src.contains("%"):
 			var rx := _to_regex(src)
-			if rx != null: _patterns.append([rx, dst])
+			if rx != null: _patterns.append([rx, dst, _literal_len(src)])
 			_exact[src] = dst
 		else:
 			_exact[src] = dst
 	# longest patterns first so specific phrases win over generic ones
-	_patterns.sort_custom(func(a, b): return (a[0] as RegEx).get_pattern().length() > (b[0] as RegEx).get_pattern().length())
+	_patterns.sort_custom(func(a, b): return int(a[2]) > int(b[2]))
+
+## how much fixed text a pattern has: more literal text = more specific, tried first
+static func _literal_len(src: String) -> int:
+	var rx := RegEx.new(); rx.compile("%[-+.0-9]*[sdf]")
+	return rx.sub(src, "", true).length()
 
 static func _to_regex(src: String) -> RegEx:
 	var out := "^"

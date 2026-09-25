@@ -23,7 +23,7 @@ içeride ⟶ inside
 Tedarik ⟶ Supply
 Personel ⟶ Staff
 Kampanya ⟶ Campaigns
-Mahalle ⟶ Neighbourhood
+Mahalle ⟶ Neighbours
 Finans ⟶ Finance
 Gelişim ⟶ Growth
 Akış ⟶ Traffic
@@ -1210,3 +1210,16 @@ HOŞ GELDİN YA ŞEHR-İ RAMAZAN ⟶ HOŞ GELDİN YA ŞEHR-İ RAMAZAN
 Yeni kelime ⟶ New word
 Sözlük ⟶ Glossary
 Oyunda bilerek Türkçe bırakılan kelimeler. ⟶ Words the game keeps in Turkish on purpose.
+✓ %s · %s ⟶ ✓ $1 · $2
+%s + bedava %s ⟶ $1 + free $2
+%s + %s ⟶ $1 + $2
+%s · %s %d, %s. ⟶ $1 · $2 $3, $4.
+%s · %s %d, %s. %s: %s ⟶ $1 · $2 $3, $4. $5: $6
+%s · %s %d, %s. Dondurma, su ve kola dolapta hazır olsun. ⟶ $1 · $2 $3, $4. Have ice cream, water and cola ready.
+%s · %s %d, %s. Şemsiye satılır, kapının önü çamur olur. ⟶ $1 · $2 $3, $4. Umbrellas will sell and the entrance will get muddy.
+%s · %s %d, %s. Salep aranır, müşteri azdır. ⟶ $1 · $2 $3, $4. Salep will be wanted; fewer shoppers.
+Yarın: %s · %s %d, %s. ⟶ Tomorrow: $1 · $2 $3, $4.
+Yarın: %s · %s %d, %s. %s! ⟶ Tomorrow: $1 · $2 $3, $4. $5!
+Yarın: %s · %s %d, %s. Dondurma ve soğuk içecek stokla. ⟶ Tomorrow: $1 · $2 $3, $4. Stock up on ice cream and cold drinks.
+Yarın: %s · %s %d, %s. Şemsiye satılır, müşteri biraz azalır. ⟶ Tomorrow: $1 · $2 $3, $4. Umbrellas will sell; fewer shoppers.
+Yarın: %s · %s %d, %s. Salep aranır, sokak sakin olur. ⟶ Tomorrow: $1 · $2 $3, $4. Salep will be wanted; the street will be quiet.
