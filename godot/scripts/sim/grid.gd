@@ -51,6 +51,11 @@ func apply_layout(l: Dictionary) -> void:
 	for dx in l["doors"]:
 		door_edges[edge_key(dx, r.end.y - 1, dx, r.end.y)] = true
 		reserved[idx(dx, r.end.y - 1)] = 1
+	# zebra crossing: walkable road tiles joined to the far sidewalk by door edges
+	if lvl == 0:
+		for z in range(Cfg.SIDEWALK_Z1, Cfg.ROAD_Z1):
+			for x in range(Street.CROSS_X0, Street.CROSS_X1): region[idx(x, z)] = R_OUT
+		for x in range(Street.CROSS_X0, Street.CROSS_X1): door_edges[edge_key(x, Cfg.ROAD_Z1 - 1, x, Cfg.ROAD_Z1)] = true
 	for dx in l.get("back_doors", []):
 		door_edges[edge_key(dx, r.position.y, dx, r.position.y - 1)] = true
 		reserved[idx(dx, r.position.y)] = 1

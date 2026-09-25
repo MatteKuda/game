@@ -28,6 +28,9 @@ static func build(def: Dictionary) -> Dictionary:
 		"masa": _table(m)
 		"oyunalani": _play_area(m)
 		"bank": _bench(m)
+		"gondolbasi": _endcap(m)
+		"depooda", "soguk", "molaodasi": _room(m, def)
+		"wc": _wc(m)
 	return m
 
 # ------------------------------------------------------------------ helpers
@@ -462,3 +465,158 @@ static func _bench(m: Dictionary) -> void:
 	Art.cyl(r, 0.18, 0.15, 0.4, Art.mat(Color("c8643c")), Vector3(0.95, 0.2, 0.0))
 	Art.sphere(r, 0.22, Art.mat(Color("5fa35a")), Vector3(0.95, 0.52, 0.0))
 	m["height"] = 1.0
+
+# ------------------------------------------------------------------ Gondol Başı Teşhir (1x1)
+static func _endcap(m: Dictionary) -> void:
+	var r: Node3D = m["root"]
+	var red := Art.mat(Color("d6333a"), 0.5)
+	Art.box(r, Vector3(0.92, 0.12, 0.7), Art.mat(Color("2d3348"), 0.5), Vector3(0, 0.06, -0.05), 0.02)
+	Art.box(r, Vector3(0.92, 1.35, 0.1), red, Vector3(0, 0.8, -0.36), 0.03)
+	for y in [0.42, 0.82]:
+		Art.box(r, Vector3(0.9, 0.035, 0.52), Art.mat(Color("f4f1ea"), 0.4), Vector3(0, y, -0.08), 0.01)
+	# price burst sign on top
+	var top := Node3D.new(); top.position = Vector3(0, 1.72, -0.36); r.add_child(top)
+	Art.cyl(top, 0.3, 0.3, 0.04, Art.mat(Cfg.MUSTARD, 0.5), Vector3.ZERO, 12).rotation.x = PI / 2
+	Art.label(top, "FIRSAT", 40, Cfg.INK, Vector3(0, 0, 0.03), 0.0, "display")
+	var units := []
+	for y in [0.46, 0.86]:
+		for x in [-0.3, 0.0, 0.3]:
+			for z in [-0.2, 0.05]:
+				units.append(Transform3D(Basis(), Vector3(x, y, z)))
+	# cap 12: six per shelf
+	m["slots"].append({"units": units, "tag": Vector3(0, 0.36, 0.2)})
+	m["height"] = 2.0
+
+# ------------------------------------------------------------------ rooms (walled, staff only)
+## walls on three sides + a front wall with a door in the middle; staff walk in through the door
+static func _room(m: Dictionary, def: Dictionary) -> void:
+	var r: Node3D = m["root"]
+	var W := float(def["w"]); var D := float(def["d"])
+	var H := 1.45
+	var id: String = def["id"]
+	var wall_col: Color = {"depooda": Color("d9cdb8"), "soguk": Color("cfe6ef"), "molaodasi": Color("f0d6c4")}[id]
+	var trim: Color = {"depooda": Color("8a5a35"), "soguk": Color("2f6fb5"), "molaodasi": Cfg.TEAL}[id]
+	var floor_col: Color = {"depooda": Color("a8a39a"), "soguk": Color("dfe8ec"), "molaodasi": Color("c98b52")}[id]
+	var wm := Art.mat(wall_col, 0.8)
+	var cap := Art.mat(Color("2d3348"), 0.6)
+	Art.box(r, Vector3(W - 0.04, 0.03, D - 0.04), Art.mat(floor_col, 0.8), Vector3(0, 0.015, 0), 0.0)
+	var th := 0.12
+	# back and sides
+	Art.box(r, Vector3(W, H, th), wm, Vector3(0, H * 0.5, -D * 0.5 + th * 0.5), 0.0)
+	for sx in [-1.0, 1.0]:
+		Art.box(r, Vector3(th, H, D), wm, Vector3(sx * (W * 0.5 - th * 0.5), H * 0.5, 0), 0.0)
+	# front with door gap (1.0 m)
+	var seg := (W - 1.0) * 0.5
+	for sx in [-1.0, 1.0]:
+		Art.box(r, Vector3(seg, H, th), wm, Vector3(sx * (0.5 + seg * 0.5), H * 0.5, D * 0.5 - th * 0.5), 0.0)
+		Art.box(r, Vector3(seg + 0.02, 0.2, th + 0.02), Art.mat(trim, 0.6), Vector3(sx * (0.5 + seg * 0.5), 0.1, D * 0.5 - th * 0.5), 0.0)
+	# caps
+	Art.box(r, Vector3(W + 0.04, 0.06, th + 0.06), cap, Vector3(0, H + 0.03, -D * 0.5 + th * 0.5), 0.02)
+	for sx in [-1.0, 1.0]:
+		Art.box(r, Vector3(th + 0.06, 0.06, D + 0.04), cap, Vector3(sx * (W * 0.5 - th * 0.5), H + 0.03, 0), 0.02)
+		Art.box(r, Vector3(seg + 0.04, 0.06, th + 0.06), cap, Vector3(sx * (0.5 + seg * 0.5), H + 0.03, D * 0.5 - th * 0.5), 0.02)
+	# door frame + sign
+	for sx in [-0.52, 0.52]: Art.box(r, Vector3(0.06, H + 0.35, 0.16), Art.mat(trim, 0.5), Vector3(sx, (H + 0.35) * 0.5, D * 0.5 - th * 0.5), 0.01)
+	Art.box(r, Vector3(1.2, 0.34, 0.1), Art.mat(trim, 0.5), Vector3(0, H + 0.3, D * 0.5 - th * 0.5), 0.03)
+	Art.label(r, def["room"], 46, Color.WHITE, Vector3(0, H + 0.3, D * 0.5 - th * 0.5 + 0.06), 0.0, "display")
+	if id == "soguk":
+		# strip curtain in the doorway + frosty walls
+		for i in 6:
+			Art.box(r, Vector3(0.15, 1.3, 0.01), Art.glass(Color(0.85, 0.95, 1.0), 0.35), Vector3(-0.42 + i * 0.17, 0.7, D * 0.5 - 0.02), 0.0)
+		Art.box(r, Vector3(0.6, 0.35, 0.25), Art.mat(Color("c3cad2"), 0.3, 0.7), Vector3(W * 0.5 - 0.5, H - 0.25, -D * 0.5 + 0.25), 0.03)
+	# contents
+	var inner_d := D - 0.4
+	match id:
+		"depooda":
+			var steel := Art.mat(Color("5d6b7a"), 0.45, 0.6)
+			var board := Art.mat(Color("8f9aa6"), 0.5, 0.4)
+			var cardboard := [Color("c99a62"), Color("b98b55"), Color("d4a76f")]
+			var k := 0
+			# U-shaped racking along back and side walls
+			var racks := [[Vector3(0, 0, -D * 0.5 + 0.45), 0.0, W - 0.6], [Vector3(-W * 0.5 + 0.45, 0, 0.1), PI / 2, D - 1.4], [Vector3(W * 0.5 - 0.45, 0, 0.1), -PI / 2, D - 1.4]]
+			for rk in racks:
+				var n := Node3D.new(); n.position = rk[0]; n.rotation.y = rk[1]; r.add_child(n)
+				var ln: float = rk[2]
+				for y in [0.1, 0.65, 1.2]: Art.box(n, Vector3(ln, 0.04, 0.55), board, Vector3(0, y, 0), 0.01)
+				for sx in [-1.0, 1.0]: Art.box(n, Vector3(0.05, 1.3, 0.55), steel, Vector3(sx * ln * 0.5, 0.65, 0), 0.01)
+				var x := -ln * 0.5 + 0.3
+				while x < ln * 0.5 - 0.2:
+					for y in [0.12, 0.67]:
+						var b := Node3D.new(); b.position = Vector3(x, y, 0); b.rotation.y = randf_range(-0.1, 0.1); n.add_child(b)
+						var h := randf_range(0.3, 0.45)
+						Art.box(b, Vector3(0.42, h, 0.44), Art.mat(cardboard[k % 3], 0.9), Vector3(0, h * 0.5, 0), 0.02)
+						Art.box(b, Vector3(0.07, 0.005, 0.45), Art.mat(Color("e8d7b5")), Vector3(0, h + 0.003, 0), 0.0)
+						m["boxes"].append(b); k += 1
+					x += 0.5
+			# pallet jack in the middle
+			Art.box(r, Vector3(0.5, 0.08, 0.8), Art.mat(Cfg.MUSTARD, 0.5), Vector3(0.2, 0.08, 0.3), 0.02)
+			Art.cyl(r, 0.02, 0.02, 0.9, Art.mat(Color("2d3348")), Vector3(0.2, 0.5, -0.15), 6)
+		"soguk":
+			var steel2 := Art.mat(Color("c3cad2"), 0.3, 0.7)
+			var crate_cols := [Color("f7f7f2"), Color("7fc4ea"), Color("d8352c"), Color("faf6e8"), Color("2b7fd8")]
+			var k2 := 0
+			for sx in [-1.0, 1.0]:
+				var n2 := Node3D.new(); n2.position = Vector3(sx * (W * 0.5 - 0.42), 0, -0.1); n2.rotation.y = sx * -PI / 2; r.add_child(n2)
+				for y in [0.1, 0.6, 1.1]: Art.box(n2, Vector3(inner_d, 0.03, 0.5), steel2, Vector3(0, y, 0), 0.01)
+				var z := -inner_d * 0.5 + 0.25
+				while z < inner_d * 0.5 - 0.2:
+					for y in [0.12, 0.62]:
+						var b2 := Node3D.new(); b2.position = Vector3(z, y, 0); n2.add_child(b2)
+						Art.box(b2, Vector3(0.4, 0.28, 0.4), Art.mat(crate_cols[k2 % 5], 0.6), Vector3(0, 0.14, 0), 0.03)
+						m["boxes"].append(b2); k2 += 1
+					z += 0.48
+			Art.box(r, Vector3(W - 1.8, 0.02, 0.02), Art.mat(Color("7fd6ff"), 0.3, 0.0, 2.0), Vector3(0, H - 0.1, -D * 0.5 + 0.2), 0.0)
+		"molaodasi":
+			# sofa, coffee table, tea corner, lockers, plant
+			var sofa := Art.mat(Cfg.TEAL, 0.8)
+			Art.box(r, Vector3(1.6, 0.4, 0.7), sofa, Vector3(-0.3, 0.25, -D * 0.5 + 0.5), 0.08)
+			Art.box(r, Vector3(1.6, 0.45, 0.18), sofa, Vector3(-0.3, 0.6, -D * 0.5 + 0.22), 0.07)
+			for sx in [-1.0, 1.0]: Art.box(r, Vector3(0.18, 0.55, 0.7), sofa, Vector3(-0.3 + sx * 0.8, 0.3, -D * 0.5 + 0.5), 0.07)
+			for sx in [-0.55, -0.05]: Art.box(r, Vector3(0.45, 0.12, 0.5), Art.mat(Cfg.MUSTARD, 0.9), Vector3(-0.3 + sx + 0.25, 0.5, -D * 0.5 + 0.5), 0.05)
+			Art.cyl(r, 0.32, 0.32, 0.05, Art.mat(Cfg.WOOD, 0.6), Vector3(-0.3, 0.42, 0.15), 20)
+			Art.cyl(r, 0.04, 0.04, 0.4, Art.mat(Color("2d3348")), Vector3(-0.3, 0.2, 0.15), 8)
+			for i in 2: Art.cyl(r, 0.028, 0.02, 0.08, Art.glass(Color(0.75, 0.3, 0.15), 0.85), Vector3(-0.4 + i * 0.2, 0.49, 0.15))
+			var lk := Art.mat(Color("5b6570"), 0.4, 0.5)
+			for i in 3:
+				Art.box(r, Vector3(0.36, 1.25, 0.4), lk, Vector3(W * 0.5 - 0.35, 0.63, -D * 0.5 + 0.35 + i * 0.4), 0.02)
+				Art.box(r, Vector3(0.02, 0.12, 0.02), Art.mat(Cfg.MUSTARD), Vector3(W * 0.5 - 0.54, 0.8, -D * 0.5 + 0.35 + i * 0.4), 0.0)
+			Art.cyl(r, 0.18, 0.15, 0.35, Art.mat(Color("c8643c")), Vector3(-W * 0.5 + 0.35, 0.18, D * 0.5 - 0.45))
+			Art.sphere(r, 0.26, Art.mat(Color("5fa35a")), Vector3(-W * 0.5 + 0.35, 0.58, D * 0.5 - 0.45))
+	m["seat_pt"] = Vector3(-0.3, 0, -D * 0.5 + 0.55)
+	m["height"] = H + 0.5
+
+# ------------------------------------------------------------------ AVM Tuvalet (3x2)
+static func _wc(m: Dictionary) -> void:
+	var r: Node3D = m["root"]
+	var W := 3.0; var D := 2.0; var H := 1.6
+	var wm := Art.mat(Color("e9eef2"), 0.6)
+	var tile := Art.shader_mat("checker", {"color_a": Color("e8f1f5"), "color_b": Color("bcd4df"), "tile": 0.3})
+	Art.box(r, Vector3(W - 0.04, 0.03, D - 0.04), tile, Vector3(0, 0.015, 0), 0.0)
+	var th := 0.12
+	Art.box(r, Vector3(W, H, th), wm, Vector3(0, H * 0.5, -D * 0.5 + th * 0.5), 0.0)
+	for sx in [-1.0, 1.0]: Art.box(r, Vector3(th, H, D), wm, Vector3(sx * (W * 0.5 - th * 0.5), H * 0.5, 0), 0.0)
+	Art.box(r, Vector3(th, H, D - 0.3), Art.mat(Color("2f6fb5"), 0.5), Vector3(0, H * 0.5, -0.15), 0.0) # divider
+	var cap := Art.mat(Color("2d3348"), 0.6)
+	for side in [-1.0, 1.0]:
+		var cx: float = side * W * 0.25
+		# front wall pieces around each door
+		Art.box(r, Vector3(0.3, H, th), wm, Vector3(cx - side * 0.52, H * 0.5, D * 0.5 - th * 0.5), 0.0)
+		Art.box(r, Vector3(0.3, H, th), wm, Vector3(cx + side * 0.52, H * 0.5, D * 0.5 - th * 0.5), 0.0)
+		# stall with toilet, sink
+		Art.box(r, Vector3(0.36, 0.4, 0.5), Art.mat(Color("fbfbf8"), 0.2), Vector3(cx - 0.25, 0.2, -D * 0.5 + 0.4), 0.08)
+		Art.box(r, Vector3(0.4, 0.45, 0.14), Art.mat(Color("fbfbf8"), 0.2), Vector3(cx - 0.25, 0.55, -D * 0.5 + 0.18), 0.04)
+		Art.box(r, Vector3(0.45, 0.1, 0.32), Art.mat(Color("fbfbf8"), 0.2), Vector3(cx + 0.3, 0.8, -D * 0.5 + 0.25), 0.04)
+		Art.box(r, Vector3(0.4, 0.5, 0.02), Art.mat(Color("cfe2ea"), 0.05, 0.8), Vector3(cx + 0.3, 1.25, -D * 0.5 + 0.13), 0.0)
+		# sign above door
+		var col := Color("2f6fb5") if side < 0 else Color("d6333a")
+		Art.box(r, Vector3(0.7, 0.34, 0.08), Art.mat(col, 0.5), Vector3(cx, H + 0.25, D * 0.5 - th * 0.5), 0.03)
+		Art.label(r, "BAY" if side < 0 else "BAYAN", 40, Color.WHITE, Vector3(cx, H + 0.25, D * 0.5 - th * 0.5 + 0.05), 0.0, "display")
+	Art.box(r, Vector3(W + 0.04, 0.06, th + 0.06), cap, Vector3(0, H + 0.03, -D * 0.5 + th * 0.5), 0.02)
+	for sx in [-1.0, 1.0]: Art.box(r, Vector3(th + 0.06, 0.06, D + 0.04), cap, Vector3(sx * (W * 0.5 - th * 0.5), H + 0.03, 0), 0.02)
+	# dirt marks shown when it needs cleaning
+	var dirt := Node3D.new(); dirt.visible = false; r.add_child(dirt)
+	for i in 5:
+		var q := Art.cyl(dirt, 0.12 + i * 0.02, 0.12 + i * 0.02, 0.01, Art.mat(Color("9a8a5a"), 0.9), Vector3(-1.0 + i * 0.5, 0.035, 0.2 + (i % 2) * 0.3), 12)
+		q.scale = Vector3(1, 1, 0.6)
+	m["dirt"] = dirt
+	m["height"] = H + 0.5

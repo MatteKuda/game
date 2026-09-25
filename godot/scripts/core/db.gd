@@ -23,6 +23,10 @@ const PRODUCTS := [
 
 ## baked in-house at the Fırın Tezgâhı: unit cost of flour & fuel
 const BAKED := {"simit": 2.0, "ekmek": 2.5}
+const BAKERY := ["simit", "ekmek"]
+## freshness lost per game minute (bread goes stale in ~10 hours)
+const STALE_RATE := 1.0 / 600.0
+static func is_cold(pid: String) -> bool: return product(pid)["display"] == "fridge"
 
 const FIXTURES := [
 	{"id": "raf", "name": "Ahşap Raf", "desc": "Kuru gıda için iki bölmeli sıcak ahşap raf.", "kind": "display", "cat": "Teşhir", "w": 2, "d": 1, "cost": 600, "stage": 0, "display": "shelf", "slots": 2, "cap": 12},
@@ -43,8 +47,13 @@ const FIXTURES := [
 	{"id": "levha", "name": "Reyon Levhası", "desc": "Tavandan asılı kategori levhası. Yakınındaki (5 m) rafları bulmak kolaylaşır.", "kind": "sign", "cat": "Ortam", "w": 1, "d": 1, "cost": 250, "stage": 2, "noblock": true, "radius": 5.0},
 	{"id": "firin", "name": "Fırın Tezgâhı", "desc": "Fırıncı burada sıcak simit ve ekmek pişirir: ucuz maliyet, mutlu müşteri.", "kind": "oven", "cat": "Teşhir", "w": 2, "d": 1, "cost": 5200, "stage": 2},
 	{"id": "araba", "name": "Alışveriş Arabası Parkı", "desc": "Haftalık alışverişçiler araba alır; yoksa listeleri kısalır.", "kind": "carts", "cat": "Kasa & Depo", "w": 2, "d": 1, "cost": 1100, "stage": 2},
+	{"id": "gondolbasi", "name": "Gondol Başı Teşhir", "desc": "Koridor başında göz alıcı teşhir. Yanından geçen müşteri listesinde olmasa da alabilir.", "kind": "display", "cat": "Teşhir", "w": 1, "d": 1, "cost": 900, "stage": 2, "display": "shelf", "slots": 1, "cap": 12, "endcap": true},
+	{"id": "depooda", "name": "Depo Odası", "desc": "Duvarlı, personele özel depo. +240 birim kapasite; müşteri alanını raflarla doldurmaz.", "kind": "depot", "cat": "Odalar", "w": 3, "d": 3, "cost": 6500, "stage": 2, "depot": 240, "room": "DEPO"},
+	{"id": "soguk", "name": "Soğuk Oda", "desc": "Süt, ayran, peynir ve içecekler bozulmaz. Soğuk oda yoksa depodaki soğuk ürünlerin %30'u her gece bozulur. +60 kapasite.", "kind": "depot", "cat": "Odalar", "w": 3, "d": 2, "cost": 7800, "stage": 2, "depot": 60, "cold": true, "room": "SOĞUK ODA"},
+	{"id": "molaodasi", "name": "Mola Odası", "desc": "Kanepe, çay ve dolap: personel çay ocağından iki kat hızlı dinlenir ve biraz daha hızlı çalışır.", "kind": "break", "cat": "Odalar", "w": 3, "d": 2, "cost": 4200, "stage": 2, "rest": 2.2, "room": "MOLA"},
 	{"id": "masa", "name": "Yemek Masası", "desc": "Yemek katı için 4 kişilik masa. Kirlenince temizlik görevlisi toplar.", "kind": "table", "cat": "AVM", "w": 2, "d": 2, "cost": 700, "stage": 3, "zone": "mall", "seats": 4},
 	{"id": "oyunalani", "name": "Çocuk Oyun Alanı", "desc": "Kaydırak ve top havuzu. Aileler uzun kalır, oyuncakçı mutlu olur.", "kind": "play", "cat": "AVM", "w": 3, "d": 3, "cost": 6000, "stage": 3, "zone": "mall"},
+	{"id": "wc", "name": "Tuvalet", "desc": "Bay ve bayan tuvaleti. Ziyaretçiler ihtiyaç duyar; kirlenince temizlik görevlisi siler. Tuvaletsiz AVM'de herkes söylenir.", "kind": "wc", "cat": "AVM", "w": 3, "d": 2, "cost": 5000, "stage": 3, "zone": "mall"},
 	{"id": "bank", "name": "Dinlenme Bankı", "desc": "Yorulan ziyaretçiler oturur, AVM keyfi artar.", "kind": "bench", "cat": "AVM", "w": 2, "d": 1, "cost": 400, "stage": 3, "zone": "mall"},
 ]
 
@@ -117,6 +126,7 @@ const CAMPAIGNS := [
 	{"id": "brosur", "name": "Broşür Dağıtımı", "desc": "Kapının önünde bir tanıtımcı gün boyu broşür dağıtır.", "cost": 500, "stage": 0, "effect": "Bugün +%35 müşteri", "icon": "megaphone"},
 	{"id": "indirim", "name": "Günün İndirimleri", "desc": "Seçtiğin en fazla 3 üründe %15 indirim. Rafta kırmızı etiket, daha çok talep.", "cost": 0, "stage": 0, "effect": "Seçili ürünlere talep ×1.8, fiyat −%15", "icon": "tag"},
 	{"id": "kasaonu", "name": "Kasa Önü Standı", "desc": "Kasaların yanına renkli şekerleme standı.", "cost": 300, "stage": 0, "effect": "Anlık alım ×2", "icon": "cart"},
+	{"id": "ucal", "name": "3 Al 2 Öde", "desc": "Seçtiğin en fazla 3 üründe üçüncüsü bedava. Rafta sarı etiket; müşteri üçlü alır.", "cost": 400, "stage": 2, "effect": "Seçili ürünlerde talep ×1.5, sepette 3 adet", "icon": "box"},
 	{"id": "tadim", "name": "Tadım Günü", "desc": "Fırın önünde ücretsiz tadım masası.", "cost": 1200, "stage": 2, "effect": "Memnuniyet +, fırın ürünleri talebi ×1.5", "icon": "food"},
 ]
 
@@ -135,7 +145,7 @@ const EXPANSIONS := [
 		"unlocks": "11 kiracı birimi · 2 kat · Yürüyen merdiven & cam asansör · Yemek katı & masalar · Çocuk oyun alanı · Etkinlik takvimi · Tesis arızaları"},
 ]
 
-const ROLE_LABEL := {"owner": "Dükkân Sahibi", "cashier": "Kasiyer", "stocker": "Reyon Görevlisi", "cleaner": "Temizlik Görevlisi", "security": "Güvenlik Görevlisi", "baker": "Fırıncı"}
+const ROLE_LABEL := {"owner": "Dükkân Sahibi", "cashier": "Kasiyer", "stocker": "Reyon Görevlisi", "cleaner": "Temizlik Görevlisi", "security": "Güvenlik Görevlisi", "baker": "Fırıncı", "technician": "Teknisyen"}
 const ROLE_DESC := {
 	"owner": "Kasaya bakar. Kuyruk yokken ve yardımcı yoksa rafları kendisi doldurur; o sırada kasa boş kalır.",
 	"cashier": "Boştaki kasaya geçer ve ödemeleri alır.",
@@ -143,9 +153,10 @@ const ROLE_DESC := {
 	"cleaner": "Islak zemini paspaslayıp uyarı levhası koyar, çöpleri ve AVM'de kirli masaları toplar.",
 	"security": "Devriye gezer. Şüpheliyi gördüğünde peşine düşer, alarm çalınca kapıda yakalar.",
 	"baker": "Fırın tezgâhında sıcak simit ve ekmek pişirir; toptancıdan almaktan ucuzdur.",
+	"technician": "AVM'de arızalanan yürüyen merdiven ve asansörü ücretsiz tamir eder, düzenli bakımla arızaları yarıya indirir.",
 }
-const ROLE_WAGE := {"owner": 0, "cashier": 300, "stocker": 260, "cleaner": 230, "security": 340, "baker": 380}
-const ROLE_STAGE := {"owner": 0, "cashier": 0, "stocker": 0, "cleaner": 1, "security": 1, "baker": 2}
+const ROLE_WAGE := {"owner": 0, "cashier": 300, "stocker": 260, "cleaner": 230, "security": 340, "baker": 380, "technician": 360}
+const ROLE_STAGE := {"owner": 0, "cashier": 0, "stocker": 0, "cleaner": 1, "security": 1, "baker": 2, "technician": 3}
 const SHIFT_LABEL := {"full": "Tam gün 07–22", "morning": "Sabah 07–15", "evening": "Akşam 14–22"}
 const SHIFT_SHORT := {"full": "Tam", "morning": "Sabah", "evening": "Akşam"}
 const SHIFT_HOURS := {"full": [420, 1320], "morning": [420, 900], "evening": [840, 1320]}

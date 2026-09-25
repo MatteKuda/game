@@ -25,6 +25,7 @@ const CONNECTORS := [
 	{"id": "escUp", "kind": "escalator", "name": "Yürüyen Merdiven (yukarı)", "blocked": Rect2i(13, 1, 5, 1), "from": [0, Vector2i(12, 1)], "to": [1, Vector2i(18, 1)], "time": 5.5},
 	{"id": "escDown", "kind": "escalator", "name": "Yürüyen Merdiven (aşağı)", "blocked": Rect2i(13, 2, 5, 1), "from": [1, Vector2i(18, 2)], "to": [0, Vector2i(12, 2)], "time": 5.5},
 	{"id": "lift", "kind": "elevator", "name": "Cam Asansör", "blocked": Rect2i(28, 0, 2, 2), "from": [0, Vector2i(28, 2)], "to": [1, Vector2i(28, 2)], "bidir": true, "time": 4.0},
+	{"id": "stairs", "kind": "stairs", "name": "Merdiven", "blocked": Rect2i(9, 6, 1, 5), "from": [0, Vector2i(9, 5)], "to": [1, Vector2i(9, 11)], "bidir": true, "time": 7.0},
 ]
 ## opening in the floor-1 slab above the escalators
 const WELL := Rect2i(12, 1, 6, 2)
@@ -32,6 +33,8 @@ const WELL := Rect2i(12, 1, 6, 2)
 const STAGE := Rect2i(20, 14, 4, 2)
 ## glass lift shaft (cut out of the floor-1 slab)
 const SHAFT := Rect2i(28, 0, 2, 2)
+## opening in the floor-1 slab above the stairs
+const STAIR_WELL := Rect2i(9, 6, 1, 5)
 
 const TENANTS := [
 	{"id": "giyim", "name": "Giyim", "brand": "KUMAŞ & KO", "color": Color("1f8a86"), "accent": Color("f2b33d"), "rent": 900, "share": 0.08, "spend": [120, 420], "buy": 0.45, "rule": "Zemin katı ve girişe yakınlığı sever"},
@@ -41,19 +44,20 @@ const TENANTS := [
 	{"id": "kuafor", "name": "Kuaför", "brand": "MAKAS", "color": Color("b0546a"), "accent": Color("ffd6e0"), "rent": 600, "share": 0.12, "spend": [150, 400], "buy": 0.6, "rule": "Sakin köşeler ve temiz koridor ister"},
 	{"id": "oyun", "name": "Oyun Salonu", "brand": "JETON", "color": Color("6c4ab6"), "accent": Color("7fe3c8"), "rent": 1100, "share": 0.1, "spend": [40, 160], "buy": 0.8, "noisy": true, "rule": "Gürültülüdür: yanındaki kiracıları rahatsız eder"},
 	{"id": "spor", "name": "Spor", "brand": "KOŞU", "color": Color("d6333a"), "accent": Color("ffffff"), "rent": 1000, "share": 0.07, "spend": [150, 700], "buy": 0.35, "rule": "Kalabalık koridor ve üst katta vitrin sever"},
+	{"id": "sinema", "name": "Sinema", "brand": "KARE SİNEMA", "color": Color("1f2a44"), "accent": Color("f2b33d"), "rent": 1700, "share": 0.1, "spend": [120, 260], "buy": 0.95, "big": true, "movie": true, "rule": "Büyük birim ister (45 m² üstü). Yemek katında en az iki restoran olunca daha çok seyirci gelir"},
 	{"id": "kafe", "name": "Kahveci", "brand": "DEMLİK", "color": Color("5b3a24"), "accent": Color("f2b33d"), "rent": 800, "share": 0.12, "spend": [45, 120], "buy": 0.9, "food": true, "rule": "Yemek katında yeterli masa (≥8 koltuk) ister"},
 	{"id": "burger", "name": "Burgerci", "brand": "TOMBUL", "color": Color("f2b33d"), "accent": Color("d6333a"), "rent": 950, "share": 0.12, "spend": [90, 200], "buy": 0.9, "food": true, "rule": "Yemek katında yeterli masa ve temiz masalar ister"},
 	{"id": "pide", "name": "Pideci", "brand": "NAZLI PİDE", "color": Color("3f8f3a"), "accent": Color("fff1dc"), "rent": 850, "share": 0.12, "spend": [80, 180], "buy": 0.9, "food": true, "rule": "Temiz masa ve aile ziyaretçileri sever"},
 ]
 
 const VISITORS := [
-	{"id": "genc", "name": "Genç", "interests": {"giyim": 3, "elektronik": 2, "oyun": 3, "burger": 2, "spor": 2, "kafe": 1}, "stops": [2, 4], "speed": 1.45, "hunger": 0.5, "body": "rogue",
+	{"id": "genc", "name": "Genç", "interests": {"giyim": 3, "elektronik": 2, "oyun": 3, "burger": 2, "spor": 2, "kafe": 1, "sinema": 3}, "stops": [2, 4], "speed": 1.45, "hunger": 0.5, "body": "rogue",
 		"curve": [0.3, [16.0, 2.0, 1.2], [20.0, 1.5, 0.8]], "tops": [Color("6c63ff"), Color("2ec4b6"), Color("ff6b6b")], "bottoms": [Color("2b3a67"), Color("3d405b")]},
-	{"id": "aile", "name": "Aile", "interests": {"oyuncak": 3, "giyim": 2, "play": 4, "pide": 2, "burger": 1, "kafe": 1, "bench": 1}, "stops": [2, 4], "speed": 1.05, "hunger": 0.7, "child": true, "body": "barbarian",
+	{"id": "aile", "name": "Aile", "interests": {"oyuncak": 3, "giyim": 2, "play": 4, "pide": 2, "burger": 1, "kafe": 1, "bench": 1, "sinema": 2}, "stops": [2, 4], "speed": 1.05, "hunger": 0.7, "child": true, "body": "barbarian",
 		"curve": [0.2, [12.0, 2.0, 0.8], [18.0, 2.0, 1.2]], "tops": [Color("e76f51"), Color("f4a261"), Color("8ecae6")], "bottoms": [Color("3a5a40"), Color("6d597a")]},
-	{"id": "profesyonel", "name": "Profesyonel", "interests": {"elektronik": 3, "kitap": 2, "kafe": 3, "kuafor": 1, "spor": 1}, "stops": [1, 3], "speed": 1.4, "hunger": 0.4, "body": "rogue",
+	{"id": "profesyonel", "name": "Profesyonel", "interests": {"elektronik": 3, "kitap": 2, "kafe": 3, "kuafor": 1, "spor": 1, "sinema": 2}, "stops": [1, 3], "speed": 1.4, "hunger": 0.4, "body": "rogue",
 		"curve": [0.2, [12.5, 1.0, 1.0], [18.5, 1.2, 1.1]], "tops": [Color("f1faee"), Color("a8dadc"), Color("cdb4db")], "bottoms": [Color("1d3557"), Color("343a40")]},
-	{"id": "emekliz", "name": "Emekli Çift", "interests": {"kitap": 2, "kafe": 3, "kuafor": 2, "pide": 1, "bench": 3}, "stops": [1, 3], "speed": 0.9, "hunger": 0.5, "lift": true, "body": "mage",
+	{"id": "emekliz", "name": "Emekli Çift", "interests": {"kitap": 2, "kafe": 3, "kuafor": 2, "pide": 1, "bench": 3, "sinema": 1}, "stops": [1, 3], "speed": 0.9, "hunger": 0.5, "lift": true, "body": "mage",
 		"curve": [0.3, [11.0, 2.0, 1.0]], "tops": [Color("9c6644"), Color("6b705c"), Color("a5a58d")], "bottoms": [Color("4a4e69"), Color("5e503f")]},
 ]
 
@@ -71,3 +75,7 @@ static func tenant(id: String) -> Dictionary:
 static func event(id: String) -> Dictionary:
 	for e in EVENTS: if e["id"] == id: return e
 	return {}
+
+static func unit_area(u: Dictionary) -> int:
+	var r: Rect2i = u["def"]["rect"]
+	return r.size.x * r.size.y

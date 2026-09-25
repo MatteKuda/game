@@ -169,7 +169,7 @@ func _step_ride(dt: float, game) -> bool:
 	var k := minf(1.0, r["t"])
 	var a: Vector3 = r["from"]
 	var b: Vector3 = r["to"]
-	if c["kind"] == "escalator":
+	if c["kind"] == "escalator" or c["kind"] == "stairs":
 		var p := a.lerp(b, k)
 		p.y = a.y + (b.y - a.y) * clampf((k - 0.1) / 0.8, 0.0, 1.0)
 		position = p
@@ -186,7 +186,7 @@ func _step_ride(dt: float, game) -> bool:
 		else:
 			var q3 := (k - 0.85) / 0.15
 			position = Vector3(lerpf(cx, b.x, q3), b.y, lerpf(cz, b.z, q3))
-	moving = 0.0
+	moving = 1.0 if c["kind"] == "stairs" else 0.0
 	if k >= 1.0:
 		ride = {}
 		lvl = c["land_lvl"]

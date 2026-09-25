@@ -71,10 +71,11 @@ func _plan(game) -> void:
 	var meal := exp(-pow(h - 12.8, 2) / 2.0) + exp(-pow(h - 19.0, 2) / 2.5)
 	if randf() < arch["hunger"] * (0.35 + meal): stops.insert(randi() % (stops.size() + 1), {"kind": "food"})
 	if stops.is_empty(): stops.append({"kind": "bench"})
+	if stops.size() >= 2 and randf() < 0.3: stops.insert(1 + randi() % (stops.size() - 1), {"kind": "wc"})
 
 func update(dt: float, game) -> void:
 	var v := view
-	if not game.is_open() and state in ["browse", "bench", "play", "eat", "order"]: timer = minf(timer, 1.2)
+	if not game.is_open() and state in ["browse", "bench", "play", "eat", "order", "movie", "wc"]: timer = minf(timer, 1.2)
 	match state:
 		"to_mall":
 			v.play("walk")
@@ -91,7 +92,30 @@ func update(dt: float, game) -> void:
 			if move(dt, game): _arrive(game)
 		"in_unit":
 			v.play("walk")
-			if move(dt, game): state = "browse"; timer = randf_range(3.5, 7.0)
+			if move(dt, game):
+				var tu: Dictionary = stop["unit"]["tenant"] if not stop.is_empty() else {}
+				if not tu.is_empty() and tu["def"].get("movie", false):
+					# into the hall: gone for the length of a film
+					state = "movie"; timer = randf_range(30.0, 40.0); hidden_agent = true
+					log_thought("fun", "Film başlıyor, patlamısır aldım!", game, false)
+				else:
+					state = "browse"; timer = randf_range(3.5, 7.0)
+		"movie":
+			timer -= dt
+			if timer <= 0.0:
+				hidden_agent = false
+				var um: Dictionary = stop["unit"]
+				if not um["tenant"].is_empty(): mall.shop_at(self, um, true)
+				mood += 8; log_thought("fun", "Film harikaydı!", game)
+				go_to_any(game, mall.door_outside(um), um["def"]["floor"])
+				state = "leaving"; flags["from_unit"] = true; stop = {}
+		"wc":
+			timer -= dt
+			if timer <= 0.0:
+				hidden_agent = false
+				if target_fx and game.fixtures.has(target_fx): game.use_wc(target_fx)
+				look_at_pt = null
+				_next(game)
 		"browse":
 			v.play("reach" if sin(timer * 2.0) > 0 else "idle")
 			timer -= dt
@@ -171,6 +195,14 @@ func _next(game) -> void:
 			if stop["unit"]["tenant"].is_empty():
 				_next(game); return
 			target = mall.door_outside(stop["unit"]); fl = stop["unit"]["def"]["floor"]
+		"wc":
+			var wcs: Array = game.fixtures.filter(func(f): return f.def["kind"] == "wc")
+			if wcs.is_empty():
+				log_thought("dirty", "Bu koca AVM'de tuvalet yok mu?!", game); mood -= 12; mall.stats["no_wc"] = int(mall.stats.get("no_wc", 0)) + 1
+				_next(game); return
+			wcs.sort_custom(func(a, b): return a.center().distance_to(position) + (30.0 if a.lvl != lvl else 0.0) < b.center().distance_to(position) + (30.0 if b.lvl != lvl else 0.0))
+			target_fx = wcs[0]
+			target = game.nearest_access(target_fx, position); fl = target_fx.lvl
 		"food":
 			var foods: Array = mall.units.filter(func(u): return not u["tenant"].is_empty() and u["tenant"]["def"].get("food", false))
 			if foods.is_empty():
@@ -203,6 +235,11 @@ func _arrive(game) -> void:
 		"food":
 			state = "to_counter"
 			go_to(game, food_unit["def"]["door"][0])
+		"wc":
+			if target_fx == null or not game.fixtures.has(target_fx):
+				_next(game); return
+			if target_fx.dirty: mood -= 8; log_thought("dirty", "Tuvaletler berbat durumda…", game)
+			state = "wc"; timer = randf_range(4.0, 6.0); hidden_agent = true
 		"play":
 			state = "play"; timer = randf_range(8.0, 13.0)
 			look_at_pt = target_fx.center()
@@ -251,6 +288,7 @@ func _leave_street(game) -> void:
 
 func track_child(dt: float) -> void:
 	if child == null: return
+	child.visible = visible and not hidden_agent
 	trail.append(position)
 	if trail.size() > 24: trail.pop_front()
 	var target: Vector3 = trail[0]
@@ -276,6 +314,8 @@ func status_label() -> String:
 		"to_counter", "order": return "Yemek sipariş ediyor"
 		"to_seat": return "Masaya geçiyor"
 		"eat": return "Yemek yiyor" if not seat.is_empty() else "Ayakta yemek yiyor"
+		"movie": return "Sinemada film izliyor"
+		"wc": return "Tuvalette"
 		"play": return "Çocuk oyun alanında"
 		"bench": return "Bankta dinleniyor"
 		"leaving": return "Ayrılıyor"

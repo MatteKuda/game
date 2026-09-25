@@ -45,6 +45,10 @@ var puddles: Array = [] # [{id, tile, lvl, node, sign, claimed, dry, age}]
 var upgrades := {}
 var campaigns := {}
 var discounts: Array = []
+var multi: Array = [] # "3 al 2 öde" products
+var backstock_fresh := {} # bakery pid -> 0..1
+var evening_bakery := false # bakery goods -40% after 19:00
+var _fresh_acc := 0.0
 var stats := {}
 var totals := {"served": 0, "happy": 0, "revenue": 0, "visitors": 0, "theft": 0}
 var history: Array = []
@@ -71,7 +75,8 @@ static func new_stats() -> Dictionary:
 		"abandoned": 0, "impulse": 0, "purchases": 0, "wages": 0, "rent": 0, "utilities": 0, "other": 0,
 		"missed": {}, "expensive": {}, "sold": {}, "mood_sum": 0.0, "mood_n": 0,
 		"theft": 0, "theft_count": 0, "shrink": 0, "theft_seen": 0, "alarms": 0, "caught": 0, "caught_guard": 0,
-		"slips": 0, "spills": 0, "mall_income": 0, "mall_visitors": 0}
+		"slips": 0, "spills": 0, "mall_income": 0, "mall_visitors": 0,
+		"stale": 0, "stale_cost": 0, "spoiled": 0, "spoiled_cost": 0, "multi": 0, "endcap": 0, "wc": 0, "no_wc": 0}
 
 func _ready() -> void:
 	stats = new_stats()
@@ -126,6 +131,8 @@ func alert(key: String, icon: String, text: String, severity := "warn", focus = 
 	alerts.push_front(a)
 	if alerts.size() > 5: alerts.pop_back()
 	alert_added.emit(a)
+	if severity == "bad": GameAudio.play("bad", -8.0, 1.0)
+	elif severity == "good": GameAudio.play("good", -8.0, 1.0)
 
 # ------------------------------------------------------------------ queries
 func is_open() -> bool: return clock >= Cfg.DAY_OPEN and clock < Cfg.DAY_CLOSE
@@ -182,11 +189,18 @@ func patience_mul() -> float:
 func tolerance_bonus() -> float: return 0.05 if upgrades.has("etiket") else 0.0
 func impulse_mul() -> float: return (2.0 if campaigns.has("kasaonu") else 1.0) * (1.2 if upgrades.has("isik") else 1.0)
 func is_discounted(pid: String) -> bool: return campaigns.has("indirim") and discounts.has(pid)
+func is_multi(pid: String) -> bool: return campaigns.has("ucal") and multi.has(pid)
+func evening_sale(pid: String) -> bool: return evening_bakery and DB.BAKERY.has(pid) and clock >= 19 * 60
 func effective_price(pid: String) -> int:
 	var p: int = prices[pid]
-	return int(round(p * 0.85)) if is_discounted(pid) else p
+	if is_discounted(pid): p = int(round(p * 0.85))
+	if evening_sale(pid): p = int(round(p * 0.6))
+	return p
 func demand_mul(pid: String) -> float:
-	return (1.8 if is_discounted(pid) else 1.0) * (1.5 if campaigns.has("tadim") and (pid == "simit" or pid == "ekmek" or pid == "peynir") else 1.0)
+	return (1.8 if is_discounted(pid) else 1.0) * (1.5 if is_multi(pid) else 1.0) * (1.5 if campaigns.has("tadim") and (pid == "simit" or pid == "ekmek" or pid == "peynir") else 1.0)
+func has_cold_room() -> bool: return fixtures.any(func(f): return f.def.get("cold", false))
+## freshness of the bakery goods a customer would pick from this slot
+func slot_fresh(s: Dictionary) -> float: return float(s.get("fresh", 1.0))
 func has_oven() -> bool:
 	return fixtures.any(func(f): return f.def["kind"] == "oven") and has_role("baker")
 func sign_near(f: Fixture) -> bool:
@@ -206,7 +220,16 @@ func litter_near(t: Vector2i, r: float, l := 0) -> bool:
 	for L in litter:
 		if L["lvl"] == l and Vector2(L["tile"].x - t.x, L["tile"].y - t.y).length() <= r: return true
 	return false
+func room_door(f: Fixture) -> Vector2i:
+	var a := f.access()
+	return a[a.size() / 2]
+## a point inside a walled room, just behind its door
+func room_inside(f: Fixture) -> Vector3:
+	var p: Vector3 = f.global_transform * Vector3(0, 0, 0.1)
+	if f.def["kind"] == "break" and f.model.has("seat_pt"): p = f.global_transform * (f.model["seat_pt"] as Vector3)
+	return Vector3(p.x, f.lvl * Cfg.FLOOR_H + 0.02, p.z)
 func nearest_access(f: Fixture, from: Vector3) -> Vector2i:
+	if f.def.has("room"): return room_door(f)
 	var g := floor_grid(f.lvl)
 	var acc: Array = f.access().filter(func(t): return g.walkable(t.x, t.y))
 	acc.sort_custom(func(a, b): return Vector2(a.x + 0.5 - from.x, a.y + 0.5 - from.z).length() < Vector2(b.x + 0.5 - from.x, b.y + 0.5 - from.z).length())
@@ -260,7 +283,10 @@ func pick_connector(from_l: int, to_l: int, pos: Vector3, prefer_lift := false) 
 		elif d.get("bidir", false) and d["to"][0] == from_l and d["from"][0] == to_l:
 			conn = {"id": d["id"], "kind": d["kind"], "board": d["to"][1], "board_lvl": from_l, "land": d["from"][1], "land_lvl": to_l, "time": d["time"]}
 		if conn == null: continue
-		var dist: float = Vector2(conn["board"].x + 0.5 - pos.x, conn["board"].y + 0.5 - pos.z).length() + ((-8.0 if prefer_lift else 4.0) if d["kind"] == "elevator" else 0.0)
+		var extra := 0.0
+		if d["kind"] == "elevator": extra = -8.0 if prefer_lift else 4.0
+		elif d["kind"] == "stairs": extra = 12.0 if prefer_lift else 3.0
+		var dist: float = Vector2(conn["board"].x + 0.5 - pos.x, conn["board"].y + 0.5 - pos.z).length() + extra
 		if dist < best_d: best_d = dist; best = conn
 	return best
 
@@ -324,6 +350,7 @@ func layout_changed() -> void:
 		f.queue_slots = uniq
 	for f in fixtures:
 		if f.def["kind"] == "camera": _camera_cover(f)
+	Staff.room_bonus = 1.06 if fixtures.any(func(f): return f.def["id"] == "molaodasi") else 1.0
 	refresh_all()
 	changed.emit()
 
@@ -368,7 +395,7 @@ func depot_changed() -> void:
 	for f in fixtures:
 		if f.def["kind"] == "depot": f.set_depot_fill(fill)
 
-const NEEDS_ACCESS := ["display", "register", "depot", "break", "oven", "carts", "table", "play", "bench"]
+const NEEDS_ACCESS := ["display", "register", "depot", "break", "oven", "carts", "table", "play", "bench", "wc"]
 
 func validate(d: Dictionary, x: int, z: int, r: int, ignore: Fixture, l := -1) -> Dictionary:
 	if l < 0: l = view_floor
@@ -405,6 +432,8 @@ func validate(d: Dictionary, x: int, z: int, r: int, ignore: Fixture, l := -1) -
 		if not in_zone.call(t) or tile_set.has(g.idx(t.x, t.y)): return false
 		var o := g.fixture[g.idx(t.x, t.y)]
 		return o == 0 or o == ign_uid
+	if d.has("room") and not acc_free.call(fp["access"][fp["access"].size() / 2]):
+		return {"ok": false, "reason": "Oda kapısının önü boş olmalı"}
 	if needs:
 		var any := false
 		for t in fp["access"]: if acc_free.call(t): any = true
@@ -531,6 +560,7 @@ func confirm_placement(keep := false) -> bool:
 	money -= d["cost"]; stats["other"] += int(d["cost"])
 	var f := add_fixture(d, placing["x"], placing["z"], placing["rot"], view_floor)
 	float_text(f.center() + Vector3(0, float(f.model["height"]) + 0.3, 0), "−" + Cfg.fmt_money(d["cost"]), Cfg.TERRA)
+	GameAudio.play("place", -2.0)
 	if keep and money >= d["cost"]:
 		update_placement(int(placing["x"]), int(placing["z"]))
 	else:
@@ -589,7 +619,7 @@ func order(pid: String, qty: int, is_auto := false) -> bool:
 # ------------------------------------------------------------------ staff
 func roll_candidates() -> void:
 	candidates.clear()
-	var roles := ["stocker", "cashier", "stocker", "cleaner", "security", "baker"].filter(func(r): return DB.ROLE_STAGE[r] <= stage)
+	var roles := ["stocker", "cashier", "cleaner", "technician", "security", "baker", "stocker"].filter(func(r): return DB.ROLE_STAGE[r] <= stage)
 	if stage == 0: roles = ["stocker", "stocker", "cashier"]
 	for role in roles.slice(0, 5):
 		var skill := 0.85 + randf() * 0.35
@@ -676,6 +706,39 @@ func find_bake_task(st: Staff) -> Variant:
 	o.claimed = st.id; st.has_goal = false; st.dest = {}
 	return {"kind": "bake", "oven": o, "phase": "go"}
 
+func find_repair_task(st: Staff) -> Variant:
+	if mall == null: return null
+	for c in mall.connectors:
+		if not c["broken"] or int(c.get("claimed", 0)) != 0: continue
+		c["claimed"] = st.id
+		if c["repair_t"] > 0.0: c["repair_t"] = 0.0 # our own technician takes over from the contractor
+		var e: Array = c["def"]["from"]
+		st.has_goal = false; st.dest = {}
+		return {"kind": "repair", "conn": c, "tile": e[1], "lvl": e[0], "phase": "go"}
+	return null
+
+func find_wc_task(st: Staff) -> Variant:
+	for f in fixtures:
+		if f.def["kind"] == "wc" and f.dirty and not f.claimed:
+			f.claimed = st.id; st.has_goal = false; st.dest = {}
+			return {"kind": "wc", "wc": f, "phase": "go"}
+	return null
+
+## one visitor used the toilets; every dozen uses they need a scrub
+func use_wc(f: Fixture) -> void:
+	f.set_meta("uses", int(f.get_meta("uses", 0)) + 1)
+	stats["wc"] += 1
+	if int(f.get_meta("uses")) >= 10 and not f.dirty:
+		f.dirty = true
+		(f.model["dirt"] as Node3D).visible = true
+		f.set_status("dirty")
+		alert("wcdirty", "dirty", "Tuvaletler kirlendi. Temizlik görevlisi siler; yoksa ziyaretçi keyfi düşer.", "warn", f.center(), 90.0)
+
+func clean_wc(f: Fixture) -> void:
+	f.dirty = false; f.claimed = 0; f.set_meta("uses", 0)
+	(f.model["dirt"] as Node3D).visible = false
+	f.set_status("")
+
 func find_chase_task(st: Staff) -> Variant:
 	for c in customers:
 		if c.suspect and c.state in ["to_exit", "to_shelf", "browse"]:
@@ -716,6 +779,7 @@ func thief_at_door(c: Customer) -> String:
 		if f.def["kind"] == "gate" and absi(f.gx - door.x) <= 2 and absi(f.gz - door.y) <= 1: gate = f; break
 	if gate != null and randf() < 0.85:
 		gate.alarm_t = 3.5
+		GameAudio.play("alarm", -6.0, 2.0)
 		stats["alarms"] += 1
 		c.think("alarm", 3.0)
 		for s in staff:
@@ -829,10 +893,11 @@ func start_campaign(id: String, products := []) -> bool:
 	if campaigns.has(id): return false
 	if money < c["cost"]:
 		alert("nomoney", "wallet", "Kampanya için yeterli nakit yok.", "bad"); return false
-	if id == "indirim" and products.is_empty(): return false
+	if (id == "indirim" or id == "ucal") and products.is_empty(): return false
 	money -= c["cost"]; stats["other"] += int(c["cost"])
 	campaigns[id] = true
 	if id == "indirim": discounts = products.slice(0, 3)
+	if id == "ucal": multi = products.slice(0, 3)
 	refresh_all()
 	_campaign_visuals()
 	float_text(rig.target + Vector3(0, 3, 0), c["name"] + "!", Color("d6333a"))
@@ -882,6 +947,7 @@ func sale(c: Customer, total: int) -> void:
 	stats["revenue"] += total
 	totals["revenue"] += total
 	for b in c.basket: stats["sold"][b["pid"]] = int(stats["sold"].get(b["pid"], 0)) + 1
+	if c.register == null or c.register.lvl == view_floor: GameAudio.play("cash", -9.0, 0.25)
 	var at: Vector3 = c.register.center() + Vector3(0, 1.9, 0) if c.register else c.position + Vector3(0, 2.0, 0)
 	float_text(at, "+" + Cfg.fmt_money(total), Color("1a7f5a"))
 
@@ -946,6 +1012,17 @@ func _spawn_shopper() -> void:
 	var c := Customer.new()
 	agents_node.add_child(c)
 	c.setup_customer(arch, true, self)
+	if arch.get("cart", false) and upgrades.has("otopark"):
+		var slot := street.request_car()
+		if slot >= 0:
+			# arrives by car: hidden until the car has parked, then crosses at the zebra
+			c.car_slot = slot; c.state = "in_car"; c.hidden_agent = true
+			c.position = Vector3(street.slot_x(slot), 0.02, 30.0)
+			c.exit_x = floori(street.slot_x(slot))
+			var drs: Array = grid.layout["doors"]
+			c.door_x = drs[drs.size() - 1]
+			customers.append(c)
+			return
 	var from_left := randf() < 0.5
 	var z := Cfg.SIDEWALK_Z0 + randi() % 3
 	var x := 0 if from_left else Cfg.MAP_W - 1
@@ -982,7 +1059,7 @@ func _process(real_dt: float) -> void:
 	if mall != null: all += mall.visitors
 	for a in all:
 		a.sync_view(view_dt, real_time)
-		if not (a is Staff and not a.present): a.visible = _agent_visible(a, far)
+		if not (a is Staff and not a.present): a.visible = _agent_visible(a, far) and not a.hidden_agent
 	if mall != null: mall.sync_children(view_dt)
 	sky.set_time(hour())
 	var cam_dir := -rig.cam.global_transform.basis.z
@@ -997,8 +1074,11 @@ func _process(real_dt: float) -> void:
 	for p in puddles:
 		(p["node"] as Node3D).visible = p["dry"] <= 0.0 and (p["lvl"] == view_floor or far > 0.5 or stage < 3)
 	shop.update(real_dt, cam_dir, far, agent_pos, sky.night)
+	if GameAudio.I:
+		var busy := float(customers_inside()) / maxf(1.0, max_inside()) + (float(mall.visitors.size()) / 40.0 if mall != null else 0.0)
+		GameAudio.I.update(real_dt, hour(), busy, paused or not is_open())
 	if mall_shell != null: mall_shell.update(real_dt, view_dt, cam_dir, view_floor, far, shop.cutaway, sky.night, agent_pos)
-	street.update(view_dt if running else 0.0, sky.night, van["x"], van["state"] != "idle")
+	street.update(view_dt if running else 0.0, sky.night, van["x"], van["state"] != "idle", agent_pos)
 	if _promoter and _promoter.visible:
 		_promoter.play("pay" if sin(real_time * 0.7) > 0 else "idle")
 	_heat_acc += real_dt
@@ -1055,6 +1135,15 @@ func tick(dt: float) -> void:
 		while _spawn_acc > 1.0:
 			_spawn_acc -= 1.0
 			if customers.size() < 60 + stage * 20: _spawn_shopper()
+	_fresh_acc += dt * Cfg.MIN_PER_SEC
+	if _fresh_acc >= 5.0:
+		var k := _fresh_acc * DB.STALE_RATE
+		_fresh_acc = 0.0
+		for pid in DB.BAKERY: backstock_fresh[pid] = maxf(0.0, float(backstock_fresh.get(pid, 1.0)) - k)
+		for f in fixtures:
+			if not f.is_display(): continue
+			for sl in f.slots:
+				if DB.BAKERY.has(sl["pid"]) and int(sl["stock"]) > 0: sl["fresh"] = maxf(0.0, float(sl.get("fresh", 1.0)) - k)
 	for c in customers: c.update(dt, self)
 	for s in staff: s.update(dt, self)
 	if mall != null: mall.update(dt)
@@ -1110,6 +1199,9 @@ func tick(dt: float) -> void:
 	if _status_acc > 0.25:
 		_status_acc = 0.0
 		_update_statuses()
+	if prev < 19 * 60 and clock >= 19 * 60 and evening_bakery:
+		refresh_all()
+		alert("evening", "tag", "19:00: akşam indirimi başladı, simit ve ekmek %40 ucuz.", "info")
 	if prev < Cfg.DAY_CLOSE and clock >= Cfg.DAY_CLOSE:
 		alert("closing", "wait", "Saat 22:00 — kapanış. Son müşteriler çıkınca gün sonu raporu gelecek.", "info")
 	var mall_busy: bool = mall != null and mall.visitors.any(func(v): return v.state != "exit")
@@ -1163,6 +1255,7 @@ func _update_van(dt: float) -> void:
 				for o in van["cargo"]:
 					var room := maxi(0, cap - backstock_total())
 					var put := mini(room, int(o["qty"]))
+					if put > 0 and DB.BAKERY.has(o["pid"]): add_fresh(o["pid"], put, 0.8)
 					backstock[o["pid"]] += put; n += put
 					if int(o["qty"]) - put > 0: overflow += (int(o["qty"]) - put) * int(DB.product(o["pid"])["cost"])
 				if overflow > 0:
@@ -1183,6 +1276,7 @@ func end_day() -> void:
 		if c.inside():
 			if c.register: c.register.queue.erase(c)
 			c.finish_visit(self, false)
+	_overnight_losses()
 	var wages := wages_per_day()
 	var mall_sum := {}
 	if mall != null:
@@ -1196,21 +1290,90 @@ func end_day() -> void:
 	var costs: int = stats["purchases"] + wages + rent() + utilities() + stats["other"]
 	history.append({"day": day, "revenue": income, "costs": costs, "profit": income - costs, "rating": rating})
 	day_ended_flag = true
+	GameAudio.play("coin", -4.0)
 	day_ended.emit({"day": day, "stats": stats, "costs": costs, "income": income, "rating": rating, "money": money, "mall": mall_sum})
+
+## unsold bread goes stale overnight; without a cold room, 30% of chilled backstock spoils
+func _overnight_losses() -> void:
+	for f in fixtures:
+		if not f.is_display(): continue
+		for sl in f.slots:
+			if DB.BAKERY.has(sl["pid"]) and int(sl["stock"]) > 0:
+				stats["stale"] += int(sl["stock"]); stats["stale_cost"] += int(sl["stock"]) * int(DB.product(sl["pid"])["cost"])
+				sl["stock"] = 0
+	for pid in DB.BAKERY:
+		var b := int(backstock.get(pid, 0))
+		if b > 0:
+			stats["stale"] += b; stats["stale_cost"] += b * int(DB.product(pid)["cost"])
+			backstock[pid] = 0
+	if stage >= 1 and not has_cold_room():
+		for p in unlocked_products():
+			if not DB.is_cold(p["id"]): continue
+			var lost := int(floor(int(backstock[p["id"]]) * 0.3))
+			if lost > 0:
+				backstock[p["id"]] -= lost
+				stats["spoiled"] += lost; stats["spoiled_cost"] += lost * int(p["cost"])
+	refresh_all(); depot_changed()
+
+func add_fresh(pid: String, qty: int, fresh: float) -> void:
+	var have := int(backstock.get(pid, 0))
+	var f0 := float(backstock_fresh.get(pid, 1.0)) if have > 0 else fresh
+	backstock_fresh[pid] = (f0 * have + fresh * qty) / maxf(1.0, have + qty)
+
+## the morning bread run: the baker's night batch (or the bakery's delivery) goes straight onto the baskets
+func _morning_bread() -> void:
+	var oven := has_oven()
+	var total_cost := 0
+	for f in fixtures:
+		if not f.is_display(): continue
+		for sl in f.slots:
+			if not DB.BAKERY.has(sl["pid"]) or not auto.get(sl["pid"], true): continue
+			var n: int = f.cap() - int(sl["stock"])
+			if n <= 0: continue
+			sl["stock"] = f.cap(); sl["fresh"] = 1.0 if oven else 0.85
+			total_cost += int(round(n * (DB.BAKED[sl["pid"]] if oven else float(DB.product(sl["pid"])["cost"]))))
+	if total_cost > 0:
+		money -= total_cost; stats["purchases"] += total_cost
+		alert("morningbread", "star", ("Fırıncının gece pişirdiği sıcak ekmek ve simit raflarda (%s)." if oven else "Fırından sabah ekmek teslimatı raflara dizildi (%s).") % Cfg.fmt_money(total_cost), "good", null, 0.0)
+	refresh_all()
 
 func start_next_day() -> void:
 	day += 1
 	clock = float(Cfg.DAY_OPEN)
 	stats = new_stats()
 	day_ended_flag = false
-	campaigns.clear(); discounts = []
+	campaigns.clear(); discounts = []; multi = []
 	refresh_all()
 	_campaign_visuals()
 	roll_candidates()
 	for s in staff: s.energy = 100.0
+	_morning_bread()
 	for g in floors:
 		for i in g.traffic.size(): g.traffic[i] *= 0.5
 	if mall != null: mall.start_day()
+	SaveGame.save(self, 0)
+	changed.emit()
+
+## upgrade visuals after loading a save
+func apply_upgrade_visuals() -> void:
+	shop.build(grid.layout, stage, upgrades)
+	_campaign_visuals()
+	if upgrades.has("pos"):
+		for f in fixtures: if f.model["pos_device"]: f.model["pos_device"].visible = true
+	if upgrades.has("otopark"): street.build_parking()
+
+## a loaded game starts at the opening of the saved day
+func resume_day() -> void:
+	clock = float(Cfg.DAY_OPEN)
+	stats = new_stats()
+	day_ended_flag = false
+	campaigns.clear(); discounts = []; multi = []
+	roll_candidates()
+	for s in staff: s.energy = 100.0
+	if mall != null: mall.start_day()
+	layout_changed()
+	depot_changed()
+	_campaign_visuals()
 	changed.emit()
 
 func buy_upgrade(id: String) -> bool:
@@ -1221,6 +1384,7 @@ func buy_upgrade(id: String) -> bool:
 	if id == "pos":
 		for f in fixtures: if f.model["pos_device"]: f.model["pos_device"].visible = true
 	if id == "neon" or id == "tente": shop.build(grid.layout, stage, upgrades)
+	if id == "otopark": street.build_parking()
 	float_text(rig.target + Vector3(0, 3, 0), u["name"] + "!", Cfg.VIOLET)
 	changed.emit()
 	return true

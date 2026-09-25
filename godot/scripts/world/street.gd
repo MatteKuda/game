@@ -14,6 +14,10 @@ var blocked: Array[Vector2i] = [] # street tiles occupied by props
 var right_a: Node3D # eczane/berber block (removed for the Süpermarket)
 var right_b: Node3D # kırtasiye block (removed for the AVM)
 var left_a: Node3D # çay ocağı block (removed for the AVM)
+var lot: Node3D # car park across the road (Otopark upgrade)
+var park_slots: Array = [] # [{x, state: free|arriving|parked|leaving, node, path, seg, reverse}]
+const CROSS_X0 := 30
+const CROSS_X1 := 34 # exclusive: walkable zebra tiles x 30..33, z 19..24
 
 func build() -> void:
 	# ground & street
@@ -197,10 +201,10 @@ func _backyard() -> void:
 func _tea_garden() -> void:
 	# across the road: a low hedge, plane trees, tables with tea glasses
 	var g := Node3D.new(); add_child(g)
-	Art.box(g, Vector3(34, 0.05, 6), Art.mat(Color("cdb896"), 0.95), Vector3(22, -0.03, 30.0), 0.0)
-	for i in 16:
+	Art.box(g, Vector3(29, 0.05, 6), Art.mat(Color("cdb896"), 0.95), Vector3(19.5, -0.03, 30.0), 0.0)
+	for i in 14:
 		Art.box(g, Vector3(2.0, 0.55, 0.5), Art.mat(Color("5c9c55"), 0.9), Vector3(6.0 + i * 2.1, 0.27, 27.4), 0.2)
-	for i in 5: _tree(g, Vector3(7.0 + i * 7.0, 0, 31.5), 1.2 + (i % 2) * 0.3)
+	for i in 4: _tree(g, Vector3(7.0 + i * 7.0, 0, 31.5), 1.2 + (i % 2) * 0.3)
 	for i in 6:
 		var t := Node3D.new(); t.position = Vector3(9.0 + i * 5.0, 0, 29.5 + (i % 2) * 1.6); g.add_child(t)
 		Art.cyl(t, 0.35, 0.35, 0.04, Art.mat(Color("f2f0ea"), 0.5), Vector3(0, 0.72, 0))
@@ -250,18 +254,24 @@ func _street_furniture() -> void:
 	Art.label(bs, "DURAK", 50, Cfg.INK, Vector3(1.1, 2.1, 0.23), 0.0, "display")
 	var hyd := Art.model("res://assets/models/city/firehydrant.gltf"); hyd.position = Vector3(26.6, 0, 18.6); hyd.scale = Vector3.ONE * 0.6; add_child(hyd); Art.stylize(hyd)
 
+## a KayKit car normalised to 3.3 m, wrapped in a holder whose forward is +Z
+func _make_car(model: String) -> Node3D:
+	var c := Art.model("res://assets/models/city/%s.gltf" % model)
+	Art.stylize(c)
+	var holder := Node3D.new(); holder.add_child(c); add_child(holder)
+	var bb := AABB()
+	var inv := c.global_transform.affine_inverse()
+	for mi in c.find_children("*", "MeshInstance3D", true, false):
+		var box: AABB = (inv * mi.global_transform) * mi.get_aabb()
+		bb = box if bb.size == Vector3.ZERO else bb.merge(box)
+	c.scale = Vector3.ONE * (3.3 / maxf(0.01, maxf(bb.size.x, bb.size.z)))
+	return holder
+
 func _traffic() -> void:
 	var models := ["car_taxi", "car_sedan", "car_hatchback", "car_taxi", "car_stationwagon"]
 	for i in 5:
-		var c := Art.model("res://assets/models/city/%s.gltf" % models[i])
-		Art.stylize(c)
-		var holder := Node3D.new(); holder.add_child(c); add_child(holder)
-		var bb := AABB()
-		var inv := c.global_transform.affine_inverse()
-		for mi in c.find_children("*", "MeshInstance3D", true, false):
-			var box: AABB = (inv * mi.global_transform) * mi.get_aabb()
-			bb = box if bb.size == Vector3.ZERO else bb.merge(box)
-		c.scale = Vector3.ONE * (3.3 / maxf(0.01, maxf(bb.size.x, bb.size.z)))
+		var holder := _make_car(models[i])
+		var c: Node3D = holder.get_child(0)
 		var dir := 1 if i % 2 == 0 else -1
 		c.rotation.y = PI / 2 if dir == 1 else -PI / 2
 		cars.append({"node": holder, "z": 20.6 if dir == 1 else 23.4, "dir": dir, "speed": randf_range(4.0, 6.5), "x": -20.0 + i * 17.0})
@@ -285,11 +295,92 @@ func _van() -> void:
 	Art.stylize(van, true)
 	van.visible = false
 
-func update(dt: float, night: float, van_x: float, van_visible: bool) -> void:
+## ------------------------------------------------------------------ car park
+func build_parking() -> void:
+	if lot: return
+	lot = Node3D.new(); add_child(lot)
+	Art.box(lot, Vector3(10.5, 0.06, 6.0), Art.shader_mat("asphalt"), Vector3(40.75, -0.02, 30.0), 0.0)
+	Art.box(lot, Vector3(10.5, 0.16, 0.2), Art.mat(Cfg.CURB, 0.8), Vector3(40.75, 0.0, 33.0), 0.02)
+	Art.box(lot, Vector3(0.2, 0.16, 6.0), Art.mat(Cfg.CURB, 0.8), Vector3(35.5, 0.0, 30.0), 0.02)
+	var paint := Art.mat(Color("f3efe4"), 0.7)
+	for i in 5:
+		Art.box(lot, Vector3(0.1, 0.02, 3.6), paint, Vector3(36.5 + i * 2.0, 0.02, 30.6), 0.0)
+	Art.box(lot, Vector3(8.1, 0.02, 0.1), paint, Vector3(40.5, 0.02, 32.4), 0.0)
+	# P sign
+	var sg := Node3D.new(); sg.position = Vector3(35.9, 0, 27.4); lot.add_child(sg)
+	Art.cyl(sg, 0.05, 0.05, 2.6, Art.mat(Cfg.STEEL_DARK, 0.4, 0.5), Vector3(0, 1.3, 0), 8)
+	Art.box(sg, Vector3(0.8, 0.8, 0.08), Art.mat(Color("2f6fb5"), 0.5), Vector3(0, 2.5, 0.05), 0.08)
+	Art.label(sg, "P", 150, Color.WHITE, Vector3(0, 2.52, 0.1), 0.0, "display")
+	Art.box(sg, Vector3(1.3, 0.3, 0.06), Art.mat(Cfg.CREAM, 0.6), Vector3(0, 1.9, 0.05), 0.03)
+	Art.label(sg, "KÖŞEBAŞI OTOPARK", 36, Cfg.INK, Vector3(0, 1.9, 0.09), 0.0, "display")
+	for i in 4: park_slots.append({"x": 37.5 + i * 2.0, "state": "free", "node": null, "path": [], "seg": 0, "reverse": false})
+
+## a shopper's car pulls in; returns the slot or -1 when the lot is full
+func request_car() -> int:
+	if lot == null: return -1
+	for i in park_slots.size():
+		var s: Dictionary = park_slots[i]
+		if s["state"] != "free": continue
+		var node := _make_car(["car_sedan", "car_hatchback", "car_stationwagon", "car_sedan"][randi() % 4])
+		s["node"] = node; s["state"] = "arriving"; s["seg"] = 0; s["reverse"] = false
+		var x: float = s["x"]
+		s["path"] = [Vector3(72, 0, 23.4), Vector3(x + 3.0, 0, 23.4), Vector3(x, 0, 26.2), Vector3(x, 0, 30.6)]
+		node.position = s["path"][0]
+		return i
+	return -1
+
+func slot_parked(i: int) -> bool: return i >= 0 and i < park_slots.size() and park_slots[i]["state"] == "parked"
+func slot_x(i: int) -> float: return park_slots[i]["x"]
+
+func car_leave(i: int) -> void:
+	if i < 0 or i >= park_slots.size(): return
+	var s: Dictionary = park_slots[i]
+	if s["node"] == null: s["state"] = "free"; return
+	var x: float = s["x"]
+	s["state"] = "leaving"; s["seg"] = 0; s["reverse"] = true
+	s["path"] = [Vector3(x, 0, 30.6), Vector3(x, 0, 26.4), Vector3(x + 2.5, 0, 20.6), Vector3(80, 0, 20.6)]
+
+func _crosswalk_busy(peds: Array) -> bool:
+	for p in peds:
+		if p.y < 1.0 and p.x > CROSS_X0 - 0.3 and p.x < CROSS_X1 + 0.3 and p.z > 18.9 and p.z < 25.1: return true
+	return false
+
+func _update_park(dt: float, busy: bool) -> void:
+	for s in park_slots:
+		if s["state"] != "arriving" and s["state"] != "leaving": continue
+		var n: Node3D = s["node"]
+		var path: Array = s["path"]
+		var seg: int = s["seg"]
+		if seg >= path.size() - 1:
+			if s["state"] == "arriving": s["state"] = "parked"
+			else: n.queue_free(); s["node"] = null; s["state"] = "free"
+			continue
+		var a: Vector3 = path[seg]; var b: Vector3 = path[seg + 1]
+		# yield at the zebra
+		if busy and absf(n.position.z - 22.0) < 3.0 and n.position.x > CROSS_X0 - 5.0 and n.position.x < CROSS_X1 + 5.0 and seg <= 1 and not (n.position.x > CROSS_X0 - 0.5 and n.position.x < CROSS_X1 + 0.5):
+			continue
+		var d := b - n.position
+		var sp := 6.0 if seg == 0 or seg == path.size() - 2 and s["state"] == "leaving" else 2.2
+		var st := sp * dt
+		if d.length() <= st:
+			n.position = b; s["seg"] = seg + 1
+		else:
+			n.position += d.normalized() * st
+		var dir := (b - a).normalized()
+		var yaw := atan2(dir.x, dir.z)
+		if s["reverse"] and seg == 0: yaw = atan2(-dir.x, -dir.z)
+		n.rotation.y = lerp_angle(n.rotation.y, yaw, minf(1.0, dt * 5.0))
+
+func update(dt: float, night: float, van_x: float, van_visible: bool, peds: Array = []) -> void:
 	for m in night_windows: m.emission_energy_multiplier = night * 2.2
 	for l in street_lights: l.light_energy = night * 2.2
 	for m in lamp_mats: m.emission_energy_multiplier = night * 5.0
+	var busy := _crosswalk_busy(peds)
+	_update_park(dt, busy)
 	for c in cars:
+		# through traffic stops for anyone on the zebra
+		var ahead: float = (CROSS_X0 - 0.5 - c["x"]) if c["dir"] == 1 else (c["x"] - (CROSS_X1 + 0.5))
+		if busy and ahead > 1.2 and ahead < 7.0: continue
 		c["x"] += c["dir"] * c["speed"] * dt
 		if c["x"] > 70.0: c["x"] = -26.0
 		if c["x"] < -26.0: c["x"] = 70.0

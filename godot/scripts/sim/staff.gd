@@ -25,6 +25,7 @@ static func look_for(r: String) -> Dictionary:
 		"cashier": return {"body": "rogue", "skin": skin, "hair": hair, "top": Cfg.TEAL, "bottom": Color("2b3a55"), "shoes": Color("2a2a2e"), "accent": Cfg.MUSTARD, "height": 1.0}
 		"cleaner": return {"body": "rogue", "skin": skin, "hair": hair, "top": Color("6c4ab6"), "bottom": Color("3a3350"), "shoes": Color("2a2a2e"), "accent": Color("f2b33d"), "height": 1.0}
 		"security": return {"body": "knight", "skin": skin, "hair": hair, "top": Color("24324a"), "bottom": Color("1b2130"), "shoes": Color("1a1a1e"), "accent": Color("f2b33d"), "height": 1.06}
+		"technician": return {"body": "barbarian", "skin": skin, "hair": hair, "top": Color("e8962c"), "bottom": Color("2b3a55"), "shoes": Color("2a2a2e"), "accent": Color("f2b33d"), "height": 1.02}
 		"baker": return {"body": "barbarian", "skin": skin, "hair": hair, "top": Color("f6f1e7"), "bottom": Color("e8e2d6"), "shoes": Color("2a2a2e"), "accent": Color("f6f1e7"), "height": 1.0}
 		_: return {"body": "knight", "skin": skin, "hair": hair, "top": Color("2f5d8a"), "bottom": Color("24324a"), "shoes": Color("2a2a2e"), "accent": Cfg.MUSTARD, "height": 1.0}
 
@@ -38,8 +39,21 @@ func set_shift(sh: String) -> void:
 	shift = sh
 	wage = int(round(base_wage * DB.SHIFT_WAGE[shift]))
 
+static var room_bonus := 1.0 # set by the game when a break room exists
+
 func tired() -> bool: return energy < 30.0
-func eff_skill() -> float: return skill * (0.7 if tired() else 1.0)
+func eff_skill() -> float: return skill * (0.7 if tired() else 1.0) * room_bonus
+
+## rooms are solid fixtures on the grid: staff step straight in through the door and back out
+func _step_to(p: Vector3, dt: float) -> bool:
+	var d := Vector3(p.x - position.x, 0, p.z - position.z)
+	var l := d.length()
+	if l < 0.04: moving = 0.0; return true
+	var st := minf(l, speed * speed_mul * dt * 0.8)
+	position += d / l * st
+	facing = atan2(d.x, d.z)
+	moving = 1.0
+	return st >= l - 0.001
 func on_duty(clock: float) -> bool:
 	var h: Array = DB.SHIFT_HOURS[shift]
 	return clock >= h[0] and clock < h[1]
@@ -66,7 +80,8 @@ func update(dt: float, game) -> void:
 		if tired_shown <= 0.0: think("wait", 2.0); tired_shown = 14.0
 		if task == null or task["kind"] == "clean":
 			var spot = null
-			for f in game.fixtures: if f.def["kind"] == "break": spot = f; break
+			for f in game.fixtures:
+				if f.def["kind"] == "break" and (spot == null or float(f.def.get("rest", 1.0)) > float(spot.def.get("rest", 1.0))): spot = f
 			var can_leave := not (role == "owner" or role == "cashier") or register == null or register.queue.is_empty()
 			if spot != null and can_leave:
 				if task != null: cancel_task(game)
@@ -76,7 +91,7 @@ func update(dt: float, game) -> void:
 	if task == null: task = _find_work(game)
 	if task != null:
 		_do_task(dt, game); return
-	activity = "Devriye geziyor" if role == "security" else "Boşta, iş bekliyor"
+	activity = "Devriye geziyor" if role == "security" else ("Bakım turunda" if role == "technician" else "Boşta, iş bekliyor")
 	if has_goal and not move(dt, game):
 		view.play("walk"); return
 	view.play("idle")
@@ -95,20 +110,24 @@ func _find_work(game):
 		"cleaner":
 			t = game.find_mop_task(self)
 			if t == null: t = game.find_table_task(self)
+			if t == null: t = game.find_wc_task(self)
 			if t == null: t = game.find_clean_task(self)
 		"baker": t = game.find_bake_task(self)
 		"security": t = game.find_chase_task(self)
+		"technician": t = game.find_repair_task(self)
 	return t
 
 func _wander(game) -> void:
 	var g: Grid = game.grid
 	var r := g.interior()
 	for i in 12:
-		var mall: bool = role == "security" and game.stage >= 3 and randf() < 0.4
+		var mall: bool = (role == "security" and game.stage >= 3 and randf() < 0.4) or role == "technician"
 		var tx := (6 + randi() % 32) if mall else r.position.x + randi() % r.size.x
 		var tz := (randi() % 16) if mall else r.position.y + randi() % maxi(1, r.size.y - 1)
-		if g.walkable(tx, tz) and (g.is_interior(tx, tz) or (mall and g.is_mall(tx, tz))):
-			go_to_any(game, Vector2i(tx, tz), 0); return
+		var fl := 1 if role == "technician" and game.floors.size() > 1 and randf() < 0.5 else 0
+		var gg: Grid = game.floor_grid(fl)
+		if gg.walkable(tx, tz) and (gg.is_interior(tx, tz) or (mall and gg.is_mall(tx, tz))):
+			go_to_any(game, Vector2i(tx, tz), fl); return
 
 func _cashier_logic(dt: float, game) -> void:
 	if register == null or not game.fixtures.has(register) or register.cashier != self:
@@ -178,12 +197,15 @@ func cancel_task(game) -> void:
 	match task["kind"]:
 		"restock":
 			task["fixture"].slots[task["slot"]]["claimed"] = 0
-			if task["phase"] == "to_shelf" or task["phase"] == "stock":
+			if task["phase"] in ["to_shelf", "stock", "leave_room"]:
 				game.backstock[task["pid"]] = int(game.backstock.get(task["pid"], 0)) + int(task["qty"])
 		"clean": task["litter"]["claimed"] = 0
 		"mop": task["puddle"]["claimed"] = 0
 		"table": task["table"].claimed = 0
 		"bake": task["oven"].claimed = 0; task["oven"].baking = false
+		"repair": task["conn"]["claimed"] = 0
+		"wc": task["wc"].claimed = 0
+	if task.has("door"): position = task["door"] # never leave someone stuck inside a room
 	task = null
 	view.set_carry(false)
 	has_goal = false; dest = {}; legs = []
@@ -206,7 +228,14 @@ func _do_task(dt: float, game) -> void:
 					var acc: Vector2i = game.nearest_access(dep, position)
 					if not same_dest(acc, 0): go_to_any(game, acc, 0)
 					if move(dt, game):
-						t["phase"] = "pickup"; timer = 0.9; look_at_pt = dep.center()
+						if dep.def.has("room"):
+							t["phase"] = "enter"; t["door"] = position
+						else:
+							t["phase"] = "pickup"; timer = 0.9; look_at_pt = dep.center()
+				"enter":
+					activity = "Depo odasına giriyor"; v.play("walk")
+					if _step_to(game.room_inside(dep), dt):
+						t["phase"] = "pickup"; timer = 1.1; look_at_pt = dep.center() + (dep.center() - position)
 				"pickup":
 					activity = "Koli alıyor"; v.play("reach")
 					timer -= dt
@@ -219,7 +248,10 @@ func _do_task(dt: float, game) -> void:
 						t["qty"] = qty
 						game.depot_changed()
 						v.set_carry(true); look_at_pt = null
-						t["phase"] = "to_shelf"; has_goal = false; dest = {}
+						t["phase"] = "leave_room" if t.has("door") else "to_shelf"; has_goal = false; dest = {}
+				"leave_room":
+					activity = "Koliyle depodan çıkıyor"; v.play("carry")
+					if _step_to(t["door"], dt): t["phase"] = "to_shelf"
 				"to_shelf":
 					activity = "%s rafa taşıyor" % DB.product(t["pid"])["name"]; v.play("carry")
 					var acc2: Vector2i = game.nearest_access(fx, position)
@@ -233,6 +265,9 @@ func _do_task(dt: float, game) -> void:
 						var s: Dictionary = fx.slots[t["slot"]]
 						if s["pid"] == t["pid"]:
 							var put := mini(fx.cap() - int(s["stock"]), int(t["qty"]))
+							if DB.BAKERY.has(t["pid"]) and put > 0:
+								var old := int(s["stock"])
+								s["fresh"] = (float(s.get("fresh", 1.0)) * old + float(game.backstock_fresh.get(t["pid"], 1.0)) * put) / float(old + put)
 							s["stock"] += put
 							if int(t["qty"]) - put > 0: game.backstock[t["pid"]] += int(t["qty"]) - put
 						else:
@@ -303,12 +338,25 @@ func _do_task(dt: float, game) -> void:
 				var acc4: Vector2i = game.nearest_access(S, position)
 				if not same_dest(acc4, S.lvl): go_to_any(game, acc4, S.lvl)
 				if move(dt, game):
-					t["phase"] = "rest"; timer = 11.0; look_at_pt = S.center()
+					if S.def.has("room"):
+						t["phase"] = "enter"; t["door"] = position
+					else:
+						t["phase"] = "rest"; timer = 11.0; look_at_pt = S.center()
+			elif t["phase"] == "enter":
+				activity = "Mola odasına geçiyor"; v.play("walk")
+				if _step_to(game.room_inside(S), dt):
+					t["phase"] = "rest"; timer = 9.0; look_at_pt = null
+					facing = S.rotation.y
+			elif t["phase"] == "leave_room":
+				activity = "Moladan dönüyor"; v.play("walk")
+				if _step_to(t["door"], dt): _done()
 			else:
-				activity = "Çay molasında"; v.play("sit")
+				activity = "Mola odasında dinleniyor" if S.def.has("room") else "Çay molasında"; v.play("sit")
 				timer -= dt
-				energy = minf(100.0, energy + dt * 5.5)
-				if timer <= 0.0 or energy >= 98.0: _done()
+				energy = minf(100.0, energy + dt * 5.5 * float(S.def.get("rest", 1.0)))
+				if timer <= 0.0 or energy >= 98.0:
+					if t.has("door"): t["phase"] = "leave_room"
+					else: _done()
 		"bake":
 			var O: Fixture = t["oven"]
 			if not game.fixtures.has(O):
@@ -330,12 +378,48 @@ func _do_task(dt: float, game) -> void:
 					elif int(game.backstock.get("simit", 0)) > int(game.backstock.get("ekmek", 0)): pid = "ekmek"
 					var n := mini(8, game.depot_capacity() - game.backstock_total())
 					if n > 0:
+						game.add_fresh(pid, n, 1.0)
 						game.backstock[pid] = int(game.backstock.get(pid, 0)) + n
 						var cost := int(round(n * DB.BAKED[pid]))
 						game.money -= cost; game.stats["purchases"] += cost
 						game.depot_changed()
 						game.float_text(O.center() + Vector3(0, 1.9, 0), "+%d sıcak %s" % [n, DB.product(pid)["name"].to_lower()], Cfg.TERRA_DARK)
 					_done()
+		"repair":
+			var C: Dictionary = t["conn"]
+			if not C["broken"]:
+				C["claimed"] = 0; _done(); return
+			var bt: Vector2i = t["tile"]
+			if t["phase"] == "go":
+				activity = "%s tamirine gidiyor" % C["def"]["name"]; v.play("walk")
+				if not same_dest(bt, t["lvl"]):
+					if not go_to_any(game, bt, t["lvl"]) and not riding():
+						cancel_task(game); return
+				if move(dt, game):
+					t["phase"] = "fix"; timer = 14.0 / eff_skill()
+					var b: Rect2i = C["def"]["blocked"]
+					look_at_pt = Vector3(b.get_center().x, position.y, b.get_center().y)
+			else:
+				activity = "Tamir ediyor"; v.play("work")
+				timer -= dt
+				if timer <= 0.0:
+					game.mall.fixed(C, true); C["claimed"] = 0; think("happy", 2.0); _done()
+		"wc":
+			var W: Fixture = t["wc"]
+			if not game.fixtures.has(W) or not W.dirty:
+				if game.fixtures.has(W): W.claimed = 0
+				_done(); return
+			if t["phase"] == "go":
+				activity = "Tuvaletleri temizlemeye gidiyor"; v.play("walk")
+				var acc6: Vector2i = game.nearest_access(W, position)
+				if not same_dest(acc6, W.lvl): go_to_any(game, acc6, W.lvl)
+				if move(dt, game):
+					t["phase"] = "scrub"; timer = 4.0 / eff_skill(); look_at_pt = W.center()
+			else:
+				activity = "Tuvaleti temizliyor"; v.play("sweep")
+				timer -= dt
+				if timer <= 0.0:
+					game.clean_wc(W); _done()
 		"chase":
 			var c: Customer = t["target"]
 			t["t"] += dt

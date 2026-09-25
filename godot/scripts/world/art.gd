@@ -7,6 +7,7 @@ static var _meshes := {}
 static var _shaders := {}
 static var _fonts := {}
 static var outline_mat: StandardMaterial3D
+static var _styled := {}
 
 # ------------------------------------------------------------------ fonts
 static func font(kind := "display") -> Font:
@@ -94,15 +95,22 @@ static func stylize(root: Node, with_outline := true, tint := Color.WHITE) -> vo
 		if n is MeshInstance3D:
 			var mi := n as MeshInstance3D
 			var cnt := mi.mesh.get_surface_count() if mi.mesh else 0
+			if mi.material_override != null: continue # our own primitives already use the house materials
 			for s in cnt:
 				var src := mi.get_active_material(s)
 				if src is StandardMaterial3D:
-					var m: StandardMaterial3D = src.duplicate()
-					m.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT_WRAP
-					m.roughness = maxf(m.roughness, 0.6)
-					m.metallic = minf(m.metallic, 0.2)
-					if tint != Color.WHITE: m.albedo_color = m.albedo_color * tint
-					if with_outline: m.next_pass = outline()
+					# styled copies are cached per source material: freeing per-model copies makes the
+					# renderer complain about dangling materials whenever a model is removed
+					var key := "%d|%s|%s" % [src.get_instance_id(), tint.to_html(), with_outline]
+					var m: StandardMaterial3D = _styled.get(key)
+					if m == null:
+						m = src.duplicate()
+						m.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT_WRAP
+						m.roughness = maxf(m.roughness, 0.6)
+						m.metallic = minf(m.metallic, 0.2)
+						if tint != Color.WHITE: m.albedo_color = m.albedo_color * tint
+						if with_outline: m.next_pass = outline()
+						_styled[key] = m
 					mi.set_surface_override_material(s, m)
 
 static func _all(n: Node) -> Array:

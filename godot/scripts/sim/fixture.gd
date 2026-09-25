@@ -132,15 +132,17 @@ func refresh(game) -> void:
 			plate.material_override = Art.mat(Color("d9d4ca")); lab.text = "—"; lab.modulate = Cfg.INK3
 		else:
 			var price: int = game.effective_price(pid)
-			var sale: bool = game.is_discounted(pid)
+			var sale: bool = game.is_discounted(pid) or game.evening_sale(pid)
 			var ratio := float(s["stock"]) / maxf(1.0, cap())
 			var col := Color("fbf6ee")
 			var txt := Cfg.INK
 			if int(s["stock"]) == 0: col = Cfg.BAD; txt = Color.WHITE
 			elif sale: col = Color("d6333a"); txt = Color.WHITE
 			elif ratio < 0.34: col = Color("f6b24a")
+			var multi: bool = game.is_multi(pid) and int(s["stock"]) > 0
+			if multi: col = Cfg.MUSTARD; txt = Cfg.INK
 			plate.material_override = Art.mat(col, 0.6)
-			lab.text = "₺%d" % price
+			lab.text = "3=2 ₺%d" % price if multi else "₺%d" % price
 			lab.modulate = txt
 
 func set_depot_fill(f: float) -> void:

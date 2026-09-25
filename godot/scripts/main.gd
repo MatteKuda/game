@@ -7,11 +7,22 @@ var thumbs: Thumbs
 var args_extra := {}
 
 func _ready() -> void:
+	Settings.load_settings()
+	Settings.ensure_buses()
+	add_child(GameAudio.new())
 	game = Game.new()
 	add_child(game)
+	Settings.apply(game, get_tree())
 	thumbs = Thumbs.new(); add_child(thumbs); thumbs.build()
 	await thumbs.ready_all
 	hud = Hud.new(); add_child(hud); hud.setup(game, thumbs)
+	if not SaveGame.pending.is_empty():
+		var d: Dictionary = SaveGame.pending
+		SaveGame.pending = {}
+		SaveGame.apply(game, d)
+		hud.start(true)
+		print("LOADED stage=", game.stage, " day=", game.day, " money=", game.money, " fixtures=", game.fixtures.size(), " staff=", game.staff.size(), " upgrades=", game.upgrades.keys(), " tenants=", game.mall.units.filter(func(u): return not u["tenant"].is_empty()).size() if game.mall else -1, " lot=", game.street.lot != null)
+		return
 	var args := {}
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--"):
@@ -69,6 +80,10 @@ func _ready() -> void:
 		var c: PackedStringArray = args["cam"].split(",")
 		game.rig.focus(float(c[0]), float(c[1]), float(c[2]))
 	if args.has("itest"): _itest()
+	if args.has("savetest"):
+		print("SAVING stage=", game.stage, " day=", game.day, " money=", game.money, " fixtures=", game.fixtures.size(), " staff=", game.staff.size(), " upgrades=", game.upgrades.keys())
+		print("SAVE ok=", SaveGame.save(game, 3), " info=", SaveGame.info(3))
+		SaveGame.load_slot(get_tree(), 3)
 
 ## scripted stage-2/3 setup for headless balance runs and screenshots
 func _stage_test(n: int, secs: float) -> void:
@@ -93,10 +108,15 @@ func _stage_test(n: int, secs: float) -> void:
 	add.call("manav", 17, 4, 0, ["domates", "elma"])
 	add.call("firin", 24, 4, 0, [])
 	add.call("sepet", 22, 4, 0, ["simit", "ekmek"])
+	game.evening_bakery = args_extra.has("evening")
+	if args_extra.has("ucal"): game.start_campaign("ucal", ["makarna", "biskuvi"])
 	add.call("sepet", 23, 4, 0, ["ekmek", "simit"])
-	add.call("depo", 27, 4, 0, [])
-	add.call("depo", 29, 4, 0, [])
-	add.call("cay_ocagi", 32, 4, 0, [])
+	add.call("acik", 18, 13, 2, ["su", "sut", "peynir"])
+	add.call("soguk", 27, 4, 0, [])
+	add.call("depooda", 31, 4, 0, [])
+	add.call("molaodasi", 10, 12, 0, [])
+	add.call("gondolbasi", 15, 7, 0, ["cikolata"])
+	add.call("gondolbasi", 27, 10, 0, ["cips"])
 	# aisles
 	for x in [12, 16, 24, 28]:
 		add.call("gondol", x, 7, 0, ["cips", "biskuvi", "makarna"])
@@ -117,12 +137,17 @@ func _stage_test(n: int, secs: float) -> void:
 		game.hire({"role": r[0], "name": r[1], "wage": r[2], "skill": 1.0}, true)
 	for i in int(args_extra.get("stockers", "0")):
 		game.hire({"role": "stocker", "name": "Reyon %d" % (i + 2), "wage": 260, "skill": 1.0}, true)
+	game.buy_upgrade("otopark")
 	if n >= 3:
+		var U3: Dictionary = game.mall.units[6]
+		U3["offers"] = [{"def": MallDB.tenant("sinema"), "rent": 1700}]
 		for u in game.mall.units:
 			if not u["offers"].is_empty(): game.mall.lease(u, 0)
+		add.call("wc", 28, 5, 0, [], 1)
+		game.hire({"role": "technician", "name": "Usta Ali", "wage": 360, "skill": 1.0}, true)
 		for p in [[14, 7], [17, 7], [20, 9], [25, 9], [28, 7], [31, 7], [14, 10], [28, 10]]:
 			add.call("masa", p[0], p[1], 0, [], 1)
-		add.call("oyunalani", 9, 5, 0, [], 1)
+		add.call("oyunalani", 11, 7, 0, [], 1)
 		add.call("bank", 31, 5, 0, [], 1)
 		add.call("bank", 3, 5, 0, [], 1)
 		add.call("cop", 22, 6, 0, [], 1)
@@ -132,12 +157,15 @@ func _stage_test(n: int, secs: float) -> void:
 	for pid in game.backstock: game.backstock[pid] = 6 if game.is_stocked(pid) else 0
 	game.refresh_all()
 	var day0: int = game.day
+	hud.modal.visible = false
 	for i in int(secs * 30):
 		if game.day_ended_flag:
-			print("DAY ", game.day, " money=", game.money, " rev=", game.stats["revenue"], " served=", game.stats["served"], " rating=", snappedf(game.rating, 0.01), " stats=", game.stats)
+			var st: Dictionary = game.stats
+			print("DAY ", game.day, " money=", game.money, " rev=", st["revenue"], " served=", st["served"], " happy=", st["happy"], " lost=", st["lost"], " rating=", snappedf(game.rating, 0.01), " stale=", st["stale"], "/₺", st["stale_cost"], " spoiled=", st["spoiled"], " endcap=", st["endcap"], " multi=", st["multi"], " missed=", st["missed"], " thefts=", st["theft_count"], " slips=", st["slips"])
 			if game.mall: print("  MALL ", game.mall.history.back() if not game.mall.history.is_empty() else {}, " visitors_now=", game.mall.visitors.size(), " mood=", snappedf(game.mall.mood, 0.01))
 			game.start_next_day()
 		game.tick(1.0 / 30.0)
+	hud.modal.visible = false
 	print("STAGE", n, " after ", secs, "s day=", game.day - day0, " clock=", game.clock, " money=", game.money, " customers=", game.customers.size(), " staff=", game.staff.size(), " fixtures=", game.fixtures.size(), " stats=", game.stats)
 	if game.mall:
 		print("  mall visitors=", game.mall.visitors.size(), " mood=", game.mall.mood, " stats=", game.mall.stats)

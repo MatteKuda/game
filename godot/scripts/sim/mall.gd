@@ -22,7 +22,7 @@ func setup(g) -> void:
 	game = g
 	stats = new_stats()
 	for i in MallDB.UNITS.size(): units.append({"idx": i, "def": MallDB.UNITS[i], "tenant": {}, "offers": []})
-	for d in MallDB.CONNECTORS: connectors.append({"def": d, "broken": false, "repair_t": 0.0})
+	for d in MallDB.CONNECTORS: connectors.append({"def": d, "broken": false, "repair_t": 0.0, "claimed": 0})
 	roll_offers()
 
 # ------------------------------------------------------------ layout
@@ -110,7 +110,8 @@ func roll_offers() -> void:
 		if not u["tenant"].is_empty():
 			u["offers"] = []; continue
 		var food: bool = u["def"].get("food", false)
-		var pool := MallDB.TENANTS.filter(func(t): return t.get("food", false) == food and not present.has(t["id"]))
+		var big := MallDB.unit_area(u) >= 45
+		var pool := MallDB.TENANTS.filter(func(t): return t.get("food", false) == food and not present.has(t["id"]) and (big or not t.get("big", false)))
 		pool.shuffle()
 		var offers := []
 		for d in pool.slice(0, 3): offers.append({"def": d, "rent": int(round(d["rent"] * randf_range(0.85, 1.15) / 10.0)) * 10})
@@ -181,6 +182,7 @@ func recalc_sat() -> void:
 		var d := door_outside(a)
 		return Vector2(d.x - p.x, d.y - p.y).length()
 	var broken_any := connectors.any(func(c): return c["broken"])
+	var wcs: Array = fx.filter(func(f): return f.def["kind"] == "wc")
 	for u in units:
 		var t: Dictionary = u["tenant"]
 		if t.is_empty(): continue
@@ -217,6 +219,11 @@ func recalc_sat() -> void:
 				if o != u and o["def"]["floor"] == fl and dist.call(u, door_outside(o), fl) < 11.0: n += 1
 			if n > 0: add.call("Yanında gürültülü oyun salonu", -12 * n)
 		if broken_any and fl == 1: add.call("Yürüyen merdiven arızalı", -8)
+		if wcs.is_empty(): add.call("AVM'de tuvalet yok", -8)
+		elif wcs.any(func(w): return w.dirty): add.call("Tuvaletler kirli", -4)
+		if t["def"]["id"] == "sinema":
+			var foods := units.filter(func(o): return not o["tenant"].is_empty() and o["tenant"]["def"].get("food", false)).size()
+			add.call(("Yemek katında %d restoran" % foods) if foods >= 2 else "Yemek katı cılız", 10 if foods >= 2 else -8)
 		if not event.is_empty() and event["def"].get("boost", "") == t["def"]["id"]: add.call("%s etkinliği" % event["def"]["name"], 15)
 		t["reasons"] = R
 		var total := 0
@@ -228,8 +235,14 @@ func connector_working(id: String) -> bool:
 	for c in connectors: if c["def"]["id"] == id: return not c["broken"]
 	return false
 
+## a fix finished (by our technician or the outside contractor)
+func fixed(c: Dictionary, by_tech := false) -> void:
+	c["broken"] = false; c["repair_t"] = 0.0; c["claimed"] = 0
+	game.alert("fixed" + c["def"]["id"], "wrench", "%s %s." % [c["def"]["name"], "teknisyen tarafından onarıldı" if by_tech else "tamir edildi"], "good")
+	game.mall_changed.emit()
+
 func repair(c: Dictionary) -> void:
-	if not c["broken"] or c["repair_t"] > 0.0: return
+	if not c["broken"] or c["repair_t"] > 0.0 or int(c.get("claimed", 0)) != 0: return
 	if game.money < 600:
 		game.alert("nomoney", "wallet", "Tamir için yeterli nakit yok.", "bad"); return
 	game.money -= 600; game.stats["other"] += 600
@@ -316,18 +329,17 @@ func update(dt: float) -> void:
 	for c in connectors:
 		if c["repair_t"] > 0.0:
 			c["repair_t"] -= dt * Cfg.MIN_PER_SEC
-			if c["repair_t"] <= 0.0:
-				c["broken"] = false; c["repair_t"] = 0.0
-				game.alert("fixed" + c["def"]["id"], "wrench", "%s tamir edildi." % c["def"]["name"], "good")
-				game.mall_changed.emit()
+			if c["repair_t"] <= 0.0: fixed(c)
 	if _hour_acc > 60.0:
 		_hour_acc = 0.0
 		if game.is_open():
+			var maint := 0.5 if game.has_role("technician") else 1.0
 			for c in connectors:
-				if not c["broken"] and randf() < (0.02 if c["def"]["kind"] == "escalator" else 0.012):
+				if c["def"]["kind"] == "stairs": continue
+				if not c["broken"] and randf() < (0.02 if c["def"]["kind"] == "escalator" else 0.012) * maint:
 					c["broken"] = true
 					var b: Rect2i = c["def"]["blocked"]
-					game.alert("broke" + c["def"]["id"], "wrench", "%s arızalandı! Ziyaretçiler dolaşmak zorunda. Tıklayıp tamir ettir." % c["def"]["name"], "bad", Vector3(b.get_center().x, c["def"]["from"][0] * Cfg.FLOOR_H, b.get_center().y), 0.0)
+					game.alert("broke" + c["def"]["id"], "wrench", ("%s arızalandı! Teknisyen yolda." if game.has_role("technician") else "%s arızalandı! Ziyaretçiler dolaşmak zorunda. Tıklayıp tamir ettir ya da teknisyen al.") % c["def"]["name"], "bad", Vector3(b.get_center().x, c["def"]["from"][0] * Cfg.FLOOR_H, b.get_center().y), 0.0)
 					game.mall_changed.emit()
 		if not event.is_empty() and visitors.size() > 32 and not game.has_role("security") and randf() < 0.4:
 			var v = visitors.pick_random()

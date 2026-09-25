@@ -29,6 +29,7 @@ var suspect := false
 var has_cart := false
 var slip_t := 0.0
 var search_t := 0.0
+var car_slot := -1 # parking-lot slot when the shopper came by car
 
 func thief() -> bool: return arch != null and arch.get("thief", false)
 
@@ -93,6 +94,18 @@ func update(dt: float, game) -> void:
 		return
 	if inside() and state != "caught": _check_puddle(game)
 	match state:
+		"in_car":
+			if game.street.slot_parked(car_slot):
+				hidden_agent = false
+				position = Vector3(floori(game.street.slot_x(car_slot)) + 0.5, 0.02, Cfg.FAR_WALK_Z0 + 1.5)
+				state = "to_door"
+				go_to(game, Vector2i(door_x, game.grid.interior().end.y))
+				log_thought("happy", "Arabayı otoparka bıraktım, karşıya geçeyim.", game, false)
+		"to_car":
+			v.play("walk")
+			if move(dt, game):
+				game.street.car_leave(car_slot); car_slot = -1
+				removed = true
 		"walkby", "exit":
 			v.play("walk")
 			if move(dt, game): removed = true
@@ -108,6 +121,7 @@ func update(dt: float, game) -> void:
 					leave_street(game)
 				else:
 					if not thief(): game.stats["visitors"] += 1
+					GameAudio.play("bell", -16.0, 1.5)
 					var station = null
 					if arch.get("cart", false):
 						for f in game.fixtures:
@@ -227,12 +241,14 @@ func _check_puddle(game) -> void:
 	flags[key] = true
 	if randf() < 0.4:
 		slip_t = 1.7; mood -= 16
+		GameAudio.play("slip", -6.0, 0.5)
 		game.stats["slips"] += 1
 		log_thought("slip", "Kaydım! Kimse paspas yapmıyor mu?", game)
 		game.alert("slip", "slip", "Bir müşteri ıslak zeminde kaydı! Temizlik görevlisi paspas yapıp uyarı levhası koyar.", "bad", p["node"].position, 40.0)
 
 func _inside_tick(dt: float, game) -> void:
 	var t := tile()
+	if not thief() and state in ["to_shelf", "to_queue"]: _check_endcap(game)
 	if arch and randf() < arch["litter"] * dt and not game.bin_near(t, lvl): game.drop_litter(t, lvl)
 	for b in basket:
 		if ["kola", "ayran", "sut", "su"].has(b["pid"]):
@@ -335,11 +351,25 @@ func _evaluate_shelf(game) -> void:
 			log_thought("price", "%s ₺%d? Çok pahalı!" % [p["name"], price], game)
 			game.stats["expensive"][w["pid"]] = int(game.stats["expensive"].get(w["pid"], 0)) + 1
 			continue
+		var fresh: float = game.slot_fresh(slot) if DB.BAKERY.has(w["pid"]) else 1.0
+		if fresh < 0.3 and not game.evening_sale(w["pid"]):
+			mood -= 8
+			if randf() < 0.5:
+				w["status"] = "stale"; log_thought("dirty", "%s bayatlamış, almadım." % p["name"], game)
+				game.stats["missed"][w["pid"]] = int(game.stats["missed"].get(w["pid"], 0)) + 1
+				continue
+			log_thought("dirty", "%s biraz bayat ama idare eder." % p["name"], game, false)
+		var multi: bool = game.is_multi(w["pid"])
+		var want_n := maxi(int(w["qty"]), 3) if multi else int(w["qty"])
 		var took := 0
-		for q in int(w["qty"]):
-			if spent() + price > budget or slot["stock"] <= 0: break
+		for q in want_n:
+			var unit_price := 0 if multi and (q + 1) % 3 == 0 else price
+			if spent() + unit_price > budget or slot["stock"] <= 0: break
 			slot["stock"] -= 1
-			basket.append({"pid": w["pid"], "price": price}); took += 1
+			basket.append({"pid": w["pid"], "price": unit_price}); took += 1
+		if multi and took >= 3:
+			game.stats["multi"] += 1
+			if randf() < 0.5: log_thought("cheap", "3 al 2 öde! %s stok yaptım." % p["name"], game)
 		if took == 0:
 			w["status"] = "budget"; mood -= 6; log_thought("wallet", "Param yetmiyor.", game)
 			continue
@@ -349,8 +379,10 @@ func _evaluate_shelf(game) -> void:
 			if randf() < 0.6: log_thought("cheap", "%s indirimde, iyi denk geldi!" % p["name"], game)
 		elif price <= p["base"] * 0.9 and randf() < 0.5:
 			mood += 4; log_thought("cheap", "%s ucuzmuş!" % p["name"], game)
-		if (w["pid"] == "simit" or w["pid"] == "ekmek") and game.has_oven() and not flags.has("fresh"):
-			flags["fresh"] = true; mood += 5; log_thought("happy", "Ekmek sıcacık, fırından yeni çıkmış!", game)
+		if DB.BAKERY.has(w["pid"]) and fresh >= 0.75 and not flags.has("fresh"):
+			flags["fresh"] = true; mood += 5; log_thought("happy", "%s sıcacık, fırından yeni çıkmış!" % p["name"], game)
+		elif game.evening_sale(w["pid"]) and randf() < 0.5:
+			log_thought("cheap", "Akşam indirimi, %s ucuzladı!" % p["name"].to_lower(), game, false)
 		game.stock_changed(f)
 	view.set_basket_items(basket.map(func(b): return b["pid"]) + stolen)
 	next_want(game)
@@ -404,6 +436,28 @@ func _check_impulse(game) -> void:
 				log_thought("happy", "Kasanın yanında %s gördüm, aldım." % p["name"].to_lower(), game, false)
 				return
 
+## "gondol başı" displays catch the eye of shoppers walking past
+func _check_endcap(game) -> void:
+	for f in game.fixtures:
+		if not f.def.get("endcap", false) or impulse_checked.has(-f.uid): continue
+		if Vector2(f.center().x - position.x, f.center().z - position.z).length() > 1.9: continue
+		impulse_checked[-f.uid] = true
+		var s: Dictionary = f.slots[0]
+		if s["pid"] == "" or s["stock"] <= 0: continue
+		var pid: String = s["pid"]
+		if basket.any(func(b): return b["pid"] == pid) or wants.any(func(w): return w["pid"] == pid): continue
+		var p: Dictionary = DB.product(pid)
+		var price: int = game.effective_price(pid)
+		if price > p["base"] * (1.0 + arch["tol"]) or spent() + price > budget: continue
+		if randf() < (0.2 + arch["impulse"]) * game.impulse_mul() * (1.4 if game.is_discounted(pid) or game.is_multi(pid) else 1.0):
+			s["stock"] -= 1
+			basket.append({"pid": pid, "price": price})
+			view.set_basket_items(basket.map(func(b): return b["pid"]))
+			game.stock_changed(f)
+			game.stats["impulse"] += 1; game.stats["endcap"] += 1
+			game.float_text(position + Vector3(0, view.head_y + 0.4, 0), "+" + p["name"], Cfg.VIOLET)
+			log_thought("happy", "Gondol başında %s gözüme çarptı, aldım." % p["name"].to_lower(), game, false)
+
 func pick_register(game) -> void:
 	var regs: Array = game.fixtures.filter(func(f): return f.def["kind"] == "register")
 	if regs.is_empty():
@@ -447,6 +501,10 @@ func finish_visit(game, paid: bool) -> void:
 	go_to(game, Vector2i(door_x, game.grid.interior().end.y))
 
 func leave_street(game) -> void:
+	if car_slot >= 0:
+		state = "to_car"
+		go_to(game, Vector2i(floori(game.street.slot_x(car_slot)), Cfg.FAR_WALK_Z0 + 1))
+		return
 	state = "exit"
 	var t := tile()
 	go_to(game, Vector2i(exit_x, t.y if t.y >= Cfg.SIDEWALK_Z0 and t.y < Cfg.SIDEWALK_Z1 else Cfg.SIDEWALK_Z0 + 1))

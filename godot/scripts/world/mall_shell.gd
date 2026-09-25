@@ -58,7 +58,7 @@ func _floors() -> void:
 		Art.box(f0, Vector3(rr.size.x, 0.1, rr.size.y), _marble(), Vector3(rr.get_center().x, -0.03, rr.get_center().y), 0.0)
 	# floor-1 slab: row runs that skip the escalator well and the lift shaft
 	var F := MallDB.FOOTPRINT
-	var holes := [MallDB.WELL, MallDB.SHAFT]
+	var holes := [MallDB.WELL, MallDB.SHAFT, MallDB.STAIR_WELL]
 	var runs := {} # "x0,x1" -> [z0, z1]
 	var rects := []
 	for z in range(F.position.y, F.end.y):
@@ -96,7 +96,7 @@ func _floors() -> void:
 		var rr: Rect2i = r
 		for z in range(rr.position.y + 1, rr.end.y, 3):
 			for x in range(rr.position.x + 1, rr.end.x, 3):
-				if MallDB.WELL.grow(1).has_point(Vector2i(x, z)) or MallDB.SHAFT.grow(1).has_point(Vector2i(x, z)): continue
+				if MallDB.WELL.grow(1).has_point(Vector2i(x, z)) or MallDB.SHAFT.grow(1).has_point(Vector2i(x, z)) or MallDB.STAIR_WELL.grow(1).has_point(Vector2i(x, z)): continue
 				Art.box(f0, Vector3(0.9, 0.03, 0.9), panel, Vector3(x + 0.5, FH - 0.36, z + 0.5), 0.01)
 	# food court: warm terrazzo field between the two food units
 	Art.box(f1, Vector3(16, 0.02, 5), Art.shader_mat("terrazzo", {"base_color": Color("ecdcc2")}), Vector3(22, FH + 0.03, 10.5), 0.0)
@@ -105,6 +105,8 @@ func _floors() -> void:
 	var steel := Art.mat(Cfg.STEEL, 0.3, 0.7)
 	var gl := Art.glass(Color(0.8, 0.95, 1.0), 0.2)
 	var segs := [[W.position.x, W.position.y, W.end.x, W.position.y], [W.position.x, W.end.y, W.end.x, W.end.y], [W.position.x, W.position.y, W.position.x, W.end.y]]
+	var SW := MallDB.STAIR_WELL
+	segs += [[SW.position.x, SW.position.y, SW.position.x, SW.end.y], [SW.end.x, SW.position.y, SW.end.x, SW.end.y], [SW.position.x, SW.position.y, SW.end.x, SW.position.y]]
 	for s in segs:
 		var vert: bool = s[0] == s[2]
 		var ln := float(absi(s[2] - s[0]) + absi(s[3] - s[1]))
@@ -269,6 +271,7 @@ func _connectors() -> void:
 		var bar := _barrier(Vector3(bx, 0.0 if up else FH, z))
 		barriers[row[1]] = bar
 		(f0 if up else f1).add_child(bar)
+	_stairs()
 	# glass lift in its shaft
 	var L := MallDB.SHAFT
 	var lc := Vector3(L.get_center().x, 0, L.get_center().y)
@@ -289,6 +292,35 @@ func _connectors() -> void:
 	lb.rotation.y = PI / 2
 	barriers["lift"] = lb; f0.add_child(lb)
 	for k in barriers: (barriers[k] as Node3D).visible = false
+
+## straight stair run along +z through the slab opening: timber treads on steel stringers
+func _stairs() -> void:
+	var W := MallDB.STAIR_WELL
+	var g := Node3D.new(); f0.add_child(g)
+	var z0 := float(W.position.y); var z1 := float(W.end.y)
+	var x0 := float(W.position.x); var x1 := float(W.end.x)
+	var cx := (x0 + x1) * 0.5
+	var n := 14
+	var run := (z1 - z0) / n
+	var rise := FH / n
+	var tread := Art.mat(Cfg.WOOD, 0.6)
+	var nose := Art.mat(Cfg.MUSTARD, 0.5)
+	var steel := Art.mat(Color("34405a"), 0.45, 0.5)
+	for i in n:
+		var y := rise * (i + 1)
+		var z := z0 + run * (i + 0.5)
+		Art.box(g, Vector3(x1 - x0 - 0.1, 0.05, run + 0.04), tread, Vector3(cx, y - 0.025, z), 0.01)
+		Art.box(g, Vector3(x1 - x0 - 0.1, 0.02, 0.05), nose, Vector3(cx, y - 0.01, z + run * 0.5 - 0.02), 0.0)
+		Art.box(g, Vector3(x1 - x0 - 0.1, rise, 0.03), Art.mat(Color("e9e1d4"), 0.8), Vector3(cx, y - rise * 0.5, z - run * 0.5 + 0.015), 0.0)
+	var ln := Vector2(z1 - z0, FH).length()
+	var ang := atan2(FH, z1 - z0)
+	for sx in [x0 + 0.04, x1 - 0.04]:
+		var st := Node3D.new(); st.position = Vector3(sx, FH * 0.5 - 0.12, (z0 + z1) * 0.5); st.rotation.x = -ang; g.add_child(st)
+		Art.box(st, Vector3(0.08, 0.3, ln), steel, Vector3.ZERO, 0.02)
+		Art.box(st, Vector3(0.03, 0.85, ln), Art.glass(Color(0.8, 0.95, 1.0), 0.2), Vector3(0, 0.62, 0), 0.0)
+		Art.box(st, Vector3(0.07, 0.06, ln + 0.2), Art.mat(Color("1b1d22"), 0.5), Vector3(0, 1.06, 0), 0.02)
+	# bottom landing mat
+	Art.box(g, Vector3(x1 - x0, 0.02, 0.9), Art.mat(Color("3a3f48"), 0.9), Vector3(cx, 0.02, z0 - 0.5), 0.0)
 
 func _barrier(p: Vector3) -> Node3D:
 	var b := Node3D.new(); b.position = p
@@ -641,6 +673,31 @@ func _furnish(g: Node3D, u: Dictionary, t: Dictionary, y0: float) -> void:
 				for k in 8:
 					_pm(xf, Art.prim("sph", 0.1), [Color("f2b33d"), Color("61b3ff"), Color("2fae7a"), Color("f08f86")][k % 4], Vector3(span - 0.8 + (k % 3 - 1) * 0.22, 0.9, 1.4 + (k / 3 - 1) * 0.22))
 			_clerk(g, P.call(span - 0.4, band - 0.45, 0.0) if band < 2.0 else P.call(0.6, 1.5, 0.0), face, col)
+		"sinema":
+			# back wall: two hall doors under a glowing marquee, film posters; ticket + popcorn counter in front
+			var posters := [Color("d6333a"), Color("2f6fb5"), Color("6c4ab6"), Color("1f8a86")]
+			_pb(xf, Vector3(span - 0.3, 2.9, 0.1), Color("141a2e"), Vector3(span * 0.5, 1.45, 0.06), 0.0, 0.01)
+			for dd in [span * 0.28, span * 0.72]:
+				_pb(xf, Vector3(1.1, 2.1, 0.06), Color("5a1f28"), Vector3(dd, 1.05, 0.13), 0.0, 0.02)
+				_pb(xf, Vector3(0.05, 0.3, 0.05), Cfg.MUSTARD, Vector3(dd - 0.12, 1.05, 0.18))
+				_pb(xf, Vector3(0.05, 0.3, 0.05), Cfg.MUSTARD, Vector3(dd + 0.12, 1.05, 0.18))
+				_screen(g, Vector2(1.2, 0.32), Cfg.MUSTARD, P.call(dd, 0.17, 2.4), face, 2.4)
+			for k in 4:
+				var px := 0.5 + k * (span - 1.0) / 3.0
+				if absf(px - span * 0.28) < 0.8 or absf(px - span * 0.72) < 0.8: continue
+				_pb(xf, Vector3(0.62, 0.9, 0.04), Color("f6efe3"), Vector3(px, 1.55, 0.13), 0.0, 0.01)
+				_pb(xf, Vector3(0.56, 0.84, 0.03), posters[k % 4], Vector3(px, 1.55, 0.15), 0.0, 0.01)
+			# counter
+			_pb(xf, Vector3(minf(3.4, span - 1.5), 1.0, 0.6), Color("1f2a44"), Vector3(span * 0.5, 0.5, band - 0.4), 0.0, 0.03)
+			_pb(xf, Vector3(minf(3.4, span - 1.5) + 0.1, 0.06, 0.68), Cfg.MUSTARD, Vector3(span * 0.5, 1.03, band - 0.4), 0.0, 0.02)
+			var pop := Vector3(span * 0.5 - 1.1, 1.06, band - 0.45)
+			_pb(xf, Vector3(0.55, 0.7, 0.45), Color("d6333a"), pop + Vector3(0, 0.35, 0), 0.0, 0.03)
+			Art.box(g, Vector3(0.45, 0.45, 0.38), Art.glass(Color(1, 0.95, 0.8), 0.35), P.call(pop.x, pop.z, pop.y + 0.4), 0.0, face)
+			for k in 10: _pm(xf, Art.prim("sph", 0.05), Color("fff3c4"), pop + Vector3(randf_range(-0.16, 0.16), 0.25 + randf() * 0.15, randf_range(-0.12, 0.12)))
+			var mb2 := Node3D.new(); mb2.position = P.call(span * 0.5, 0.2, 3.05); mb2.rotation.y = face; g.add_child(mb2)
+			var l0 := Art.label(mb2, "VİZYONDA", 60, Cfg.MUSTARD, Vector3.ZERO, 0.0, "display", 8, Color("141a2e"))
+			glow_labels.append([l0, Cfg.MUSTARD])
+			_clerk(g, P.call(span * 0.5 + 0.6, band - 0.95, 0.0), face, col)
 		"kafe", "burger", "pide":
 			var cw := span - 1.4
 			var cz := band - 0.3
