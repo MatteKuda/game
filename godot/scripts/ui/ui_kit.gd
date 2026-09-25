@@ -63,7 +63,7 @@ static func icon(name: String, size := 18, col := Cfg.INK2) -> TextureRect:
 
 static func label(text: String, size := 14, col := Cfg.INK, kind := "body", weight := 500) -> Label:
 	var l := Label.new()
-	l.text = text
+	l.text = Loc.t(text)
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", col)
 	l.add_theme_font_override("font", Art.font("display") if kind == "display" else (Art.font("display700") if kind == "display700" else Art.body_font(weight)))
@@ -87,7 +87,7 @@ static func card(bg := Color(1.0, 0.98, 0.95, 0.95), radius := 16, pad := Vector
 
 static func button(text: String, ic := "", primary := false, small := false) -> Button:
 	var b := Button.new()
-	b.text = text
+	b.text = Loc.t(text)
 	b.focus_mode = Control.FOCUS_NONE
 	if ic != "": b.icon = icon_tex(ic); b.expand_icon = false; b.add_theme_constant_override("icon_max_width", 16 if small else 18)
 	b.add_theme_font_size_override("font_size", 12 if small else 14)
@@ -141,7 +141,7 @@ static func sep_h() -> HSeparator:
 	return s
 
 static func section(text: String) -> Label:
-	var l := label(text.to_upper(), 11, Cfg.INK3, "body", 750)
+	var l := label(Loc.t(text).to_upper(), 11, Cfg.INK3, "body", 750)
 	l.add_theme_constant_override("line_spacing", 0)
 	return l
 

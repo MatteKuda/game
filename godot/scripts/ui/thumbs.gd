@@ -28,6 +28,9 @@ func build() -> void:
 	_run()
 
 func _run() -> void:
+	if DisplayServer.get_name() == "headless": # balance runs: no renderer, no thumbnails
+		await get_tree().process_frame
+		ready_all.emit(); return
 	for d in DB.FIXTURES:
 		UIKit.clear(holder)
 		var m := Props.build(d)

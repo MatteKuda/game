@@ -1,0 +1,1189 @@
+# Tezgâh — English strings. One "Türkçe ⟶ English" pair per line; $1, $2… are the %s/%d values in order.
+# ------------------------------------------------------------------ HUD chrome
+Raf boş ⟶ Shelf empty
+Stok azaldı, depoda yok ⟶ Running low, none in the stockroom
+Boş bölme var ⟶ Empty section
+Kasiyer yok ⟶ No cashier
+Kuyruk uzadı ⟶ Long queue
+Depo boşalıyor ⟶ Stockroom running out
+Kiracılar ⟶ Tenants
+Fiyatlar ⟶ Prices
+RADYO KÖŞEBAŞI ⟶ RADIO KÖŞEBAŞI
+Görevler — Mahalle paneli (N) ⟶ Quests — Neighbourhood panel (N)
+Görevler ⟶ Quests
+Duraklat (Boşluk) ⟶ Pause (Space)
+Normal (1) ⟶ Normal (1)
+Hızlı (2) ⟶ Fast (2)
+Çok hızlı (3) ⟶ Very fast (3)
+Süper hızlı (4) ⟶ Super fast (4)
+Işık hızı (5) ⟶ Light speed (5)
+içeride ⟶ inside
+İnşa ⟶ Build
+Ürün & Fiyat ⟶ Products
+Tedarik ⟶ Supply
+Personel ⟶ Staff
+Kampanya ⟶ Campaigns
+Mahalle ⟶ Neighbourhood
+Finans ⟶ Finance
+Gelişim ⟶ Growth
+Akış ⟶ Traffic
+Güvenlik ⟶ Security
+Zemin Kat ⟶ Ground floor
+Menü ⟶ Menu
+1. Kat ⟶ 1st floor
+Gün %d ⟶ Day $1
+Bugün: %s\nYarın: %s ⟶ Today: $1\nTomorrow: $2
+Rehber tamam! Artık dükkân senin. ⟶ Tutorial done! The shop is all yours.
+bugün %s ⟶ today $1
+%s · Aşama %d ⟶ $1 · Stage $2
+Köşebaşı AVM açık! ⟶ Köşebaşı Mall is open!
+Kiracılar %d / 11 · AVM keyfi %.1f. Birimleri doldur, etkinlik planla, kiracıları mutlu tut. ⟶ Tenants $1 / 11 · mall mood $2. Fill the units, plan events, keep tenants happy.
+Genişlemeye hazır! ⟶ Ready to expand!
+Hedef: %s ⟶ Goal: $1
+Başarım açıldı: %s — %s ⟶ Achievement unlocked: $1 — $2
+Rehber %d/%d · %s ⟶ Guide $1/$2 · $3
+Rehberi kapat ⟶ Close the guide
+%s kazanıldı! ⟶ $1 won!
+%s kaybedildi ⟶ $1 lost
+Madalya mahalle haritasına eklendi. Başka bir mahallede şansını dene ya da burada devam et. ⟶ A medal was added to the neighbourhood map. Try another neighbourhood or keep playing here.
+Hedefe ulaşamadın. Yeniden dene ya da haritadan başka bir mahalle seç. ⟶ You didn't reach the goal. Try again or pick another neighbourhood on the map.
+Burada devam et ⟶ Keep playing here
+Mahalle haritası ⟶ Neighbourhood map
+Komşular, veresiye defteri, görevler ve karşıdaki rakip. ⟶ Neighbours, the credit book, quests and the rival across the road.
+Bir eşya seç, dükkânda yerine tıkla. R: döndür · Shift+tık: arka arkaya · Esc: iptal ⟶ Pick an item, click its spot in the shop. R: rotate · Shift+click: place several · Esc: cancel
+Şu an %s görünüyor, eşya bu kata yerleşir. AVM eşyaları koridora ve yemek katına, market eşyaları süpermarkete. PgUp/PgDn: kat değiştir. ⟶ Now showing the $1; items go on this floor. Mall items go in the corridors and food court, shop items in the supermarket. PgUp/PgDn: change floor.
+1. kat ⟶ 1st floor
+zemin kat ⟶ ground floor
+%d×%d m ⟶ $1×$2 m
+%d×%d m · %d bölme ⟶ $1×$2 m · $3 sections
+Bedava ×%d ⟶ Free ×$1
+%s aşamasında ⟶ at $1
+Her arketip farklı fiyat toleransına sahip. Pahalı ürün satılmaz, ucuz ürün kâr bırakmaz. ⟶ Every type of shopper has their own price tolerance. Too dear won't sell, too cheap earns nothing.
+Analiz ⟶ Analysis
+Son fiyat güncellemesinden beri toptancı fiyatları %%%.1f arttı; müşteriler de buna alıştı. ⟶ Wholesale prices are up $1% since your last price update; shoppers have got used to it too.
+Tüm fiyatları %%%.0f artır ⟶ Raise all prices $1%
+ÜRÜN ⟶ PRODUCT
+FİYAT ⟶ PRICE
+KİM ALIR? ⟶ WHO BUYS?
+RAF ⟶ SHELF
+DEPO ⟶ STOCK
+SATIŞ ⟶ SOLD
+%s · maliyet ₺%d ⟶ $1 · cost ₺$2
+%%%d kâr ⟶ $1% margin
+Depo: %d / %d birim · yolda %d. Toptancı her sabah açılışta bir kez gelir; verdiğin siparişler ertesi sabah teslim edilir. Oto: her akşam 18:00'de yarının ihtiyacını sipariş eder. Acil sipariş 1 saatte gelir ama %%25 pahalıdır. ⟶ Stockroom: $1 / $2 units · $3 on the way. The wholesaler comes once, at opening; orders arrive the next morning. Auto: orders tomorrow's needs at 18:00. Urgent orders arrive within the hour but cost 25% more.
+depoda %d · rafta %d · yolda %d ⟶ $1 in stock · $2 on shelves · $3 on the way
+₺%d · yarın sabahki teslimatla gelir ⟶ ₺$1 · comes with tomorrow morning's delivery
+Acil +12 ⟶ Urgent +12
+₺%d · 1 saat içinde ayrı minibüsle gelir (%%25 pahalı) ⟶ ₺$1 · a separate van within the hour (25% dearer)
+Oto ⟶ Auto
+Günlük maaş toplamı %s, gün sonunda ödenir. Yarım vardiya %%60 maaş alır; yorgun personel yavaşlar. ⟶ Daily wages $1, paid at closing. Half shifts earn 60%; tired staff slow down.
+Ekip ⟶ Team
+vardiya dışında ⟶ off shift
+beceri %d%% · moral %d · %d gün ⟶ skill $1% · morale $2 · $3 days
+istifa etti ⟶ handed in notice
+enerji %d ⟶ energy $1
+Eğit ⟶ Train
+Kurs ve usta yanında pratik: beceri +8, moral +8. %s · 3 günde bir. ⟶ A course and practice with a master: skill +8, morale +8. $1 · once every 3 days.
+İşten çıkar ⟶ Dismiss
+%d kişi yorgun ve yavaşladı. Bir Çay Ocağı kur ya da vardiyaları böl (Sabah + Akşam). ⟶ $1 people are tired and slower. Build a Tea Corner or split the shifts (Morning + Evening).
+Adaylar (her sabah yenilenir) ⟶ Candidates (new every morning)
+Beceri %d%% ⟶ Skill $1%
+İşe al · %s ⟶ Hire · $1
+sahip ⟶ owner
+Bugünün tabloları ve son günlerin kârı. ⟶ Today's figures and recent profit.
+Satış ⟶ Sales
+Mal alımı ⟶ Stock bought
+Diğer (eşya, yükseltme) ⟶ Other (items, upgrades)
+Maaş / gün ⟶ Wages / day
+Kira / gün ⟶ Rent / day
+Ödeyen müşteri ⟶ Paying customers
+Faturalar (gün sonunda) ⟶ Bills (at closing)
+Toptancı fiyat endeksi: %d (başlangıç 100) ⟶ Wholesale price index: $1 (start 100)
+Mahalle Bankası ⟶ Neighbourhood Bank
+Büyümek için nakit mi lazım? Kredi hemen gelir, taksitler her gün sonunda düşülür. ⟶ Need cash to grow? The loan arrives at once; instalments are taken at every closing.
+%s · %d gün · faiz %%%d · günlük %s ⟶ $1 · $2 days · $3% interest · $4 a day
+Çek ⟶ Borrow
+Kalan borç %s · günlük taksit %s ⟶ Left to pay $1 · daily instalment $2
+Erken kapat ⟶ Pay off now
+Son günler ⟶ Recent days
+İlk gün sonunda burada kâr grafiği çıkacak. ⟶ A profit chart appears here after the first day.
+Hedefleri tamamla, dükkânı büyüt; yükseltmelerle çekimi ve hızı artır. ⟶ Meet the goals, grow the shop; upgrades bring more shoppers and speed.
+Açılanlar: %s ⟶ Unlocks: $1
+Genişlet · %s ⟶ Expand · $1
+Yükseltmeler ⟶ Upgrades
+Alındı ⟶ Owned
+Bölmeler — tıkla, ürün ata ⟶ Sections — click to assign a product
+sıcacık ⟶ piping hot
+taze ⟶ fresh
+bayat ⟶ stale
+Boş bölme — ürün seç ⟶ Empty section — pick a product
+Boşalt ⟶ Clear
+Kasa ⟶ Till
+Kasiyer: %s ⟶ Cashier: $1
+Yok — kasiyer al! ⟶ None — hire a cashier!
+Kuyrukta: %d kişi ⟶ In the queue: $1
+Sarı noktalar kuyruğun izleyeceği yolu gösterir. Kasayı kapıdan uzağa koymak kuyruğu içeride tutar. ⟶ The yellow dots show where the queue will stand. A till away from the door keeps the queue inside.
+Fırın ⟶ Oven
+Fırıncı: %s ⟶ Baker: $1
+var ⟶ yes
+yok, Personel panelinden al ⟶ none, hire one in Staff
+Durum: %s ⟶ Status: $1
+pişiyor ⟶ baking
+bekliyor ⟶ idle
+Pişen simit ve ekmek depoya gider. Satmak için bir Fırın Sepeti kurup bölmesine simit ya da ekmek ata. ⟶ Fresh simit and bread go to the stockroom. To sell them, build a Bread Basket and assign simit or bread to it.
+Depo ⟶ Stockroom
+Soğuk oda var: depodaki süt, ayran, peynir ve içecekler gece bozulmaz. ⟶ Cold room: milk, ayran, cheese and drinks in stock keep overnight.
+Soğuk oda yok: depodaki soğuk ürünlerin %30'u her gece bozulur. ⟶ No cold room: 30% of chilled stock spoils every night.
+%d / %d birim dolu ⟶ $1 / $2 units full
+Taşı ⟶ Move
+Sat · %s ⟶ Sell · $1
+Kopyala ⟶ Copy
+Aynısından bir tane daha: yön ve ürünler kopyalanır (Ctrl+D) ⟶ One more of these: rotation and products are copied (Ctrl+D)
+Yoldan geçen ⟶ Passer-by
+Sadece geçip gidiyor. Vitrin ve tabela onu içeri çekebilir. ⟶ Just walking past. A good window and sign can draw them in.
+Müdavim · sadakat %d ⟶ Regular · loyalty $1
+Müdavim · sadakat %d · borç %s ⟶ Regular · loyalty $1 · owes $2
+İstediği: %s ⟶ Asked for: $1
+Keyif ⟶ Mood
+Bütçe %s · harcadı %s ⟶ Budget $1 · spent $2
+Alışveriş listesi ⟶ Shopping list
+Arıyor ⟶ Looking
+Aldı ⟶ Got it
+Bitmiş ⟶ Sold out
+Bulamadı ⟶ Not found
+Pahalı ⟶ Too dear
+Parası yetmedi ⟶ Couldn't afford
+Aklından geçenler ⟶ Thoughts
+Henüz bir şey düşünmedi. ⟶ Nothing on their mind yet.
+Beceri %d%% · maaş %s/gün ⟶ Skill $1% · wage $2/day
+Moral %d · %d gündür burada ⟶ Morale $1 · here for $2 days
+Taşınıyor ⟶ Moving
+Yerleştirilebilir ⟶ Can be placed
+Sol tık: yerleştir · R: döndür · Sağ tık/Esc: iptal · Ctrl+Z: geri al ⟶ Left click: place · R: rotate · Right click/Esc: cancel · Ctrl+Z: undo
+Temizlendi ⟶ Cleaned
+Geri alındı ⟶ Undone
+Tamir ediliyor ⟶ Being repaired
+Çalışıyor ⟶ Working
+GÜN %d KAPANDI ⟶ DAY $1 CLOSED
+günlük net kâr · kasada %s ⟶ net profit today · $1 in the till
+Maaş + kira ⟶ Wages + rent
+Ödeyen ⟶ Paid
+Mutlu ayrılan ⟶ Left happy
+Kaybedilen ⟶ Lost
+AVM kira + ciro payı ⟶ Mall rent + turnover share
+AVM ziyaretçisi ⟶ Mall visitors
+AVM keyfi ⟶ Mall mood
+Yeni güne başla ⟶ Start a new day
+%d hırsızlık oldu (₺%d kayıp). Kör noktalara kamera, kapıya alarm, içeriye güvenlik görevlisi. G tuşu kör noktaları gösterir. ⟶ $1 thefts (₺$2 lost). Cameras on blind spots, an alarm gate at the door, a guard inside. G shows the blind spots.
+%d müşteri ıslak zeminde kaydı. Temizlik görevlisi paspaslar ve uyarı levhası koyar. ⟶ $1 shoppers slipped on a wet floor. A cleaner mops and puts up a sign.
+%d simit/ekmek satılamadan bayatladı (₺%d zarar). Fırın kartından akşam indirimini aç ya da daha az stokla. ⟶ $1 simit/bread went stale unsold (₺$2 lost). Turn on the evening discount or stock less.
+Depodaki %d soğuk ürün bozuldu (₺%d). Bir Soğuk Oda kur. ⟶ $1 chilled items spoiled in the stockroom (₺$2). Build a Cold Room.
+%d hırsız yakalandı. Güvenlik yatırımı işe yarıyor. ⟶ $1 thieves caught. The security spend is paying off.
+Etkinlik kalabalığında %d arbede çıktı. Büyük etkinlikte güvenlik görevlisi şart. ⟶ $1 scuffles broke out in the event crowd. Big events need a guard.
+%d personel gün sonunda bitkindi. Çay ocağı kur ya da vardiyaları böl. ⟶ $1 staff were worn out by closing. Build a tea corner or split the shifts.
+%s %d kez bulunamadı. Rafa ata, stoğu ve reyon görevlisini kontrol et. ⟶ $1 couldn't be found $2 times. Put it on a shelf, check stock and the shelf stacker.
+%d müşteri kuyrukta beklemekten sıkılıp sepeti bıraktı. Temassız POS ya da ek kasa düşün. ⟶ $1 shoppers gave up in the queue and dropped their basket. Think about contactless POS or another till.
+%d kişi dükkân çok kalabalık diye girmedi. Büyümenin zamanı yaklaşıyor. ⟶ $1 people didn't come in because it was too crowded. Time to grow is near.
+%s %d kişiye pahalı geldi. ⟶ $1 seemed too dear to $2 people.
+%d kişi bugün alışverişi karşıdaki UCUZA'da yaptı. Mahalle panelinden (N) fiyatları karşılaştır. ⟶ $1 people shopped at UCUZA across the road today. Compare prices in the Neighbourhood panel (N).
+Veresiye: bugün %s deftere yazıldı, %s tahsil edildi. Defterde toplam %s alacak var. ⟶ Credit: $1 went in the book today, $2 was collected. $3 is owed in total.
+Sakin bir gün. Müşteriler aradığını buldu. ⟶ A quiet day. Shoppers found what they came for.
+Yarın: %s, %s. ⟶ Tomorrow: $1, $2.
+Yarın: %s, %s. %s! ⟶ Tomorrow: $1, $2. $3!
+Yarın: %s, %s. Dondurma ve soğuk içecek stokla. ⟶ Tomorrow: $1, $2. Stock up on ice cream and cold drinks.
+Yarın: %s, %s. Şemsiye satılır, müşteri biraz azalır. ⟶ Tomorrow: $1, $2. Umbrellas will sell; fewer shoppers.
+Yarın: %s, %s. Salep aranır, sokak sakin olur. ⟶ Tomorrow: $1, $2. Salep will be wanted; the street will be quiet.
+PERAKENDE YÖNETİM OYUNU ⟶ A SHOP MANAGEMENT GAME
+Köşedeki küçük büfeden mahallenin marketine. Rafları diz, fiyatı ayarla, kuyruğu erit, müşteriyi mutlu gönder. ⟶ From the little kiosk on the corner to the neighbourhood's market. Stock the shelves, set prices, melt the queue, send shoppers home happy.
+Önce dünyaya bak ⟶ Look at the world first
+Boş raflar, uzayan kuyruk, çöp ve baloncuklar sorunu gösterir. ⟶ Empty shelves, long queues, litter and thought bubbles show the problems.
+Yerleşim önemli ⟶ Layout matters
+Rafın yeri müşterinin yolunu, kuyruğu ve anlık alımları değiştirir. ⟶ Where a shelf stands changes shoppers' paths, the queue and impulse buys.
+Büyü ⟶ Grow
+Hedefleri tut, yan dükkânı devral, Mahalle Marketi'ne dönüş. ⟶ Meet the goals, take over the shop next door, become the Neighbourhood Market.
+Sağ tık sürükle: kaydır · Q/E: döndür · Tekerlek: yakınlaş · B: inşa · Boşluk: duraklat ⟶ Right-drag: pan · Q/E: rotate · Wheel: zoom · B: build · Space: pause
+Dükkânı Aç ⟶ Open the Shop
+Devam et · %s, Gün %d ⟶ Continue · $1, Day $2
+Kayıtlı oyun yükle ⟶ Load a saved game
+Mahalleler ⟶ Neighbourhoods
+Ayarlar ⟶ Settings
+Kayıt yüklendi: %s, Gün %d. Gün sabah 07:00'den başlıyor. ⟶ Save loaded: $1, Day $2. The day starts at 07:00.
+Hoş geldin! Boş bölmeye tıklayıp ürün ata, rafları dolu tut. Sorunlar önce dükkânın içinde görünür. ⟶ Welcome! Click an empty section to assign a product and keep the shelves full. Problems show up inside the shop first.
+Kampanyalar ⟶ Campaigns
+Kampanyalar bugün için geçerlidir, gün sonunda biter. Aynı anda birden fazla çalışabilir. ⟶ Campaigns last for today and end at closing. Several can run at once.
+Bugün aktif ⟶ Active today
+Başlat · %s ⟶ Start · $1
+En fazla 3 ürün seç (%d/3): ⟶ Pick up to 3 products ($1/3):
+İndirimi başlat ⟶ Start the discount
+İndirimde: %s ⟶ On sale: $1
+3 al 2 öde: %s ⟶ 3 for 2: $1
+Kiracı %d / %d · günlük kira %s + ciro payı · AVM keyfi %.1f★ ⟶ Tenants $1 / $2 · rent $3 a day + turnover share · mall mood $4★
+Etkinlikler ⟶ Events
+Tesis ⟶ Facilities
+Birim %s · %s · %d m² ⟶ Unit $1 · $2 · $3 m²
+Birim %s · %s · %d m² · yemek ⟶ Unit $1 · $2 · $3 m² · food
+Zemin kat ⟶ Ground floor
+%s · %s/gün + %%%d ciro ⟶ $1 · $2/day + $3% turnover
+Kirala ⟶ Lease
+Göster ⟶ Show
+Bugün teklif yok, yarın yenilenir. ⟶ No offers today; new ones tomorrow.
+%s · kira %s · bugün %s satış, %d ziyaret ⟶ $1 · rent $2 · sales today $3, $4 visits
+memnuniyet %d ⟶ satisfaction $1
+Bugün: %s ⟶ Today: $1
+Planlandı: Gün %d · %s ⟶ Planned: Day $1 · $2
+Güvenlik görevlisi yok: kalabalık etkinliklerde arbede çıkabilir. ⟶ No security guard: crowded events can turn into scuffles.
+Ziyaretçi ×%.2f · kiracı satışı ×%.2f · süpermarket ×%.2f ⟶ Visitors ×$1 · tenant sales ×$2 · supermarket ×$3
+Bugün ⟶ Today
+Yarın ⟶ Tomorrow
+Bugün ziyaretçi ⟶ Visitors today
+Kiracı satışı ⟶ Tenant sales
+Şu an içeride ⟶ Inside now
+Arbede ⟶ Scuffles
+Koltuk bulamayan ⟶ Found no seat
+Yürüyen merdiven ve asansör ⟶ Escalators and lift
+Arızalar rastgele çıkar. Arızalı yürüyen merdivende ziyaretçiler asansöre ya da merdivene yönelir, 1. kat kiracıları memnuniyetsizleşir. Teknisyen ücretsiz tamir eder ve arızaları yarıya indirir. ⟶ Breakdowns happen at random. With an escalator down, visitors take the lift or stairs and 1st-floor tenants grow unhappy. A technician repairs for free and halves breakdowns.
+Tuvaletler ⟶ Toilets
+AVM'de tuvalet yok! Ziyaretçiler ve kiracılar söyleniyor. İnşa > AVM > Tuvalet. ⟶ No toilets in the mall! Visitors and tenants are grumbling. Build > Mall > Toilets.
+Tuvalet (%s) · %s ⟶ Toilets ($1) · $2
+kirli, temizlik bekliyor ⟶ dirty, waiting for a cleaner
+temiz ⟶ clean
+Arızalanmaz ⟶ Never breaks
+Teknisyen tamir ediyor ⟶ Technician on it
+Tamir · ₺600 ⟶ Repair · ₺600
+Birim %s · KİRALIK ⟶ Unit $1 · TO LET
+Bugünkü teklifler ⟶ Today's offers
+Teklif yok, yarın sabah yenilenir. ⟶ No offers; new ones tomorrow morning.
+Memnuniyet ⟶ Satisfaction
+Kira %s/gün · ciro payı %%%d · bugün %s satış · %d ziyaret ⟶ Rent $1/day · turnover share $2% · sales today $3 · $4 visits
+Neden böyle hissediyor? ⟶ Why do they feel this way?
+Uyarı: yarın da mutsuz kalırsa ayrılacak. ⟶ Warning: if still unhappy tomorrow, they'll leave.
+Sözleşmeyi feshet ⟶ End the lease
+Arızalı ⟶ Broken
+Katlar arası yolculuk %.1f sn sürer. Emekliler ve bebek arabalı aileler asansörü tercih eder. ⟶ The ride between floors takes $1 s. Pensioners and families with prams prefer the lift.
+Islak zemin ⟶ Wet floor
+Üstünden geçen kayabilir, müşteri keyfi düşer. ⟶ Anyone walking over it may slip; moods drop.
+Paspaslandı, kuruyor. ⟶ Mopped, drying.
+Temizlik görevlisi yolda. ⟶ The cleaner is on the way.
+Temizlik görevlisi yok! Personel panelinden (H) bir tane al. ⟶ No cleaner! Hire one in the Staff panel (H).
+Sırada: temizlik görevlisi birazdan gelir. ⟶ Queued: the cleaner will come shortly.
+Uyarı levhası koy ⟶ Put up a sign
+AVM ziyaretçisi · %s · %s ⟶ Mall visitor · $1 · $2
+Harcadı %s ⟶ Spent $1
+Harcadı %s · çocuğuyla ⟶ Spent $1 · with a child
+Akşam indirimi: 19:00'dan sonra simit ve ekmek %40 ucuz ⟶ Evening discount: simit and bread 40% off after 19:00
+Oyunu Kaydet ⟶ Save Game
+Kayıt Yükle ⟶ Load Game
+Mahalle Haritası ⟶ Neighbourhood Map
+Başarımlar ⟶ Achievements
+Geri ⟶ Back
+Oyun duraklatıldı. Gün %d, %s ⟶ Game paused. Day $1, $2
+Devam et ⟶ Continue
+Kaydet ⟶ Save
+Yükle ⟶ Load
+Oyundan çık ⟶ Quit
+Oyun her sabah otomatik kaydedilir. Kayıt yüklenince gün 07:00'den yeniden başlar. ⟶ The game autosaves every morning. A loaded save restarts the day at 07:00.
+Otomatik kayıt (her sabah) ⟶ Autosave (every morning)
+Kayıt %d ⟶ Save $1
+Boş ⟶ Empty
+%s · Gün %d · %s · %s ⟶ $1 · Day $2 · $3 · $4
+Üzerine kaydet ⟶ Overwrite
+Kaydedildi: Kayıt %d ⟶ Saved: Save $1
+Kaydedilemedi! ⟶ Could not save!
+Kayıt klasörü: %s ⟶ Save folder: $1
+Görüntü ⟶ Display
+Grafik kalitesi ⟶ Graphics quality
+Arayüz boyutu ⟶ UI size
+Tam ekran ⟶ Fullscreen
+Yakınlaşınca kameraya bakan duvarları indir (C) ⟶ Lower the walls facing the camera when zoomed in (C)
+Ses ⟶ Sound
+Ana ses ⟶ Master
+Müzik ⟶ Music
+Efektler ⟶ Effects
+Ortam sesi ⟶ Ambience
+Düşük kalite: gölge ve ortam ışığı sadeleşir, eski ekran kartlarında akıcı çalışır. ⟶ Low quality: simpler shadows and ambient light; runs smoothly on older graphics cards.
+Düşük ⟶ Low
+Orta ⟶ Medium
+Yüksek ⟶ High
+Her mahalle ayrı bir oyun başlatır. Kazandığın mahallelere madalya işlenir. ⟶ Each neighbourhood starts a separate game. Neighbourhoods you win get a medal.
+Başla ⟶ Start
+%d / %d açıldı ⟶ $1 / $2 unlocked
+MAHALLE ⟶ LOCAL
+Tam ⟶ Full
+Sabah ⟶ Morning
+Akşam ⟶ Evening
+Tam gün 07–22 ⟶ Full day 07–22
+Sabah 07–15 ⟶ Morning 07–15
+Akşam 14–22 ⟶ Evening 14–22
+[b]Çöp[/b]\nTıkla: temizle ⟶ [b]Litter[/b]\nClick: clean up
+[b]Islak zemin[/b]\nKayma riski! Temizlik görevlisi paspaslar. ⟶ [b]Wet floor[/b]\nSlip risk! A cleaner will mop it.
+# ------------------------------------------------------------------ data: products, fixtures, people, upgrades
+Raf ⟶ Shelf
+Soğutucu ⟶ Fridge
+Fırın sepeti ⟶ Bread basket
+Manav tezgâhı ⟶ Produce stand
+Dondurma dolabı ⟶ Ice cream freezer
+Şarküteri ⟶ Deli
+Cips ⟶ Crisps
+Çikolata ⟶ Chocolate
+Bisküvi ⟶ Biscuits
+Kola ⟶ Cola
+Ayran ⟶ Ayran
+Simit ⟶ Simit
+Ekmek ⟶ Bread
+Domates ⟶ Tomatoes
+Elma ⟶ Apples
+Süt ⟶ Milk
+Deterjan ⟶ Detergent
+Makarna ⟶ Pasta
+Çay ⟶ Tea
+Beyaz Peynir ⟶ White cheese
+Su ⟶ Water
+Dondurma ⟶ Ice cream
+Gazete ⟶ Newspaper
+Sakız ⟶ Chewing gum
+Salep ⟶ Salep
+Defter ⟶ Notebook
+Yumurta ⟶ Eggs
+Yoğurt ⟶ Yoghurt
+Zeytin ⟶ Olives
+Şampuan ⟶ Shampoo
+Hurma ⟶ Dates
+Şemsiye ⟶ Umbrella
+Un ⟶ Flour
+Toz Şeker ⟶ Sugar
+Ayçiçek Yağı ⟶ Sunflower oil
+Sucuk ⟶ Sucuk sausage
+Kaşar ⟶ Kaşar cheese
+Donuk Pizza ⟶ Frozen pizza
+Bebek Bezi ⟶ Nappies
+Ramazan Pidesi ⟶ Ramadan pide
+Ahşap Raf ⟶ Wooden Shelf
+Kuru gıda için iki bölmeli sıcak ahşap raf. ⟶ A warm wooden shelf with two sections for dry goods.
+Teşhir ⟶ Display
+İçecek Dolabı ⟶ Drinks Fridge
+Işıklı cam kapaklı soğutucu. Soğuk ürünler burada durur. ⟶ A lit glass-door fridge. Chilled products go here.
+Fırın Sepeti ⟶ Bread Basket
+İki katlı hasır sepet: simit ve ekmek sabahın yıldızı. ⟶ A two-tier wicker basket: simit and bread are the stars of the morning.
+Kasa Tezgâhı ⟶ Till Counter
+Müşteriler burada öder. Kasiyer arkasında durur, kuyruk kapıya doğru uzar. ⟶ Shoppers pay here. The cashier stands behind it; the queue grows towards the door.
+Kasa & Depo ⟶ Tills & Stock
+Depo Rafı ⟶ Stock Rack
+Yedek stok burada tutulur. +240 birim depo kapasitesi. ⟶ Backstock lives here. +240 units of storage.
+Dondurma Dolabı ⟶ Ice Cream Freezer
+Cam kapaklı derin dondurucu. Yazın kapının yanında altın değerinde; donuk ürünler de burada durur. ⟶ A glass-lid chest freezer. Worth its weight in gold by the door in summer; frozen food goes here too.
+Saksı Bitki ⟶ Potted Plant
+Çevresindeki alışverişi daha keyifli yapar, kuyrukta sabrı artırır. ⟶ Makes shopping nearby nicer and queues more bearable.
+Ortam ⟶ Ambience
+Çöp Kovası ⟶ Bin
+Yakınına (3 m) yere çöp atılmaz. ⟶ Nobody litters near it (3 m).
+Orta Gondol ⟶ Gondola Shelf
+Üç bölmeli metal gondol reyon. Market düzeninin omurgası. ⟶ A three-section metal gondola. The backbone of a market layout.
+Manav Tezgâhı ⟶ Produce Stand
+Eğimli kasalarda taze meyve ve sebze. ⟶ Fresh fruit and veg in tilted crates.
+Açık Soğutucu ⟶ Open Cooler
+Kapısız, üç bölmeli geniş soğutucu. Hızlı alışveriş. ⟶ A wide three-section cooler with no doors. Quick to shop.
+Güvenlik Kamerası ⟶ Security Camera
+Tavana asılı dönen kamera. Görüş konisindeki hırsızlar fark edilir (6 m). Yüksek raflar görüşü keser. ⟶ A ceiling camera that sweeps its cone (6 m). Thieves in view get noticed; tall shelving blocks the view.
+Güvenlik & Personel ⟶ Security & Staff
+Alarm Kapısı ⟶ Alarm Gate
+Kapının yanına kurulur. Ödenmemiş ürünle geçenlerde öter (%85). ⟶ Goes next to a door. Beeps at anyone walking out with unpaid goods (85%).
+Çay Ocağı (Mola) ⟶ Tea Corner (Break)
+Yorulan personel burada çay içip dinlenir. Molasız personel yavaşlar. ⟶ Tired staff drink tea and rest here. Without breaks, staff slow down.
+Bantlı Kasa ⟶ Conveyor Till
+Yürüyen bantlı kasa. Ödeme %35 daha hızlı, uzun kuyruk için ideal. ⟶ A till with a conveyor belt. Checkout is 35% faster; ideal for long queues.
+Self-Servis Kasa ⟶ Self-Checkout
+Kasiyer gerektirmez ama yavaştır ve kayıp riskini artırır. ⟶ Needs no cashier, but it's slow and things go missing.
+Reyon Levhası ⟶ Aisle Sign
+Tavandan asılı kategori levhası. Yakınındaki (5 m) rafları bulmak kolaylaşır. ⟶ A hanging category sign. Shelves nearby (5 m) are easier to find.
+Fırın Tezgâhı ⟶ Bakery Oven
+Fırıncı burada sıcak simit ve ekmek pişirir: ucuz maliyet, mutlu müşteri. ⟶ The baker bakes hot simit and bread here: cheap to make, happy customers.
+Alışveriş Arabası Parkı ⟶ Trolley Bay
+Haftalık alışverişçiler araba alır; yoksa listeleri kısalır. ⟶ Weekly shoppers take a trolley; without one their lists get shorter.
+Gondol Başı Teşhir ⟶ End Cap Display
+Koridor başında göz alıcı teşhir. Yanından geçen müşteri listesinde olmasa da alabilir. ⟶ An eye-catching display at the end of an aisle. Passers-by may buy even if it's not on their list.
+Şarküteri Tezgâhı ⟶ Deli Counter
+Camlı soğuk tezgâh: sucuk ve kaşar kesilip tartılır. Kârlı ama arkasında bir Şarküteri Ustası durmalı. ⟶ A chilled glass counter: sucuk and kaşar are sliced and weighed. Profitable, but it needs a Deli Master behind it.
+Depo Odası ⟶ Stockroom
+Duvarlı, personele özel depo. +600 birim kapasite; müşteri alanını raflarla doldurmaz. ⟶ A walled, staff-only stockroom. +600 units, without filling the shop floor with racks.
+Odalar ⟶ Rooms
+Soğuk Oda ⟶ Cold Room
+Süt, ayran, peynir ve içecekler bozulmaz. Soğuk oda yoksa depodaki soğuk ürünlerin %30'u her gece bozulur. +150 kapasite. ⟶ Milk, ayran, cheese and drinks keep. Without one, 30% of chilled stock spoils every night. +150 capacity.
+Mola Odası ⟶ Break Room
+Kanepe, çay ve dolap: personel çay ocağından iki kat hızlı dinlenir ve biraz daha hızlı çalışır. ⟶ Sofa, tea and a fridge: staff rest twice as fast as at the tea corner and work a little faster.
+Yemek Masası ⟶ Dining Table
+Yemek katı için 4 kişilik masa. Kirlenince temizlik görevlisi toplar. ⟶ A table for four in the food court. A cleaner clears it when it gets messy.
+AVM ⟶ Mall
+Çocuk Oyun Alanı ⟶ Play Area
+Kaydırak ve top havuzu. Aileler uzun kalır, oyuncakçı mutlu olur. ⟶ A slide and a ball pit. Families stay longer and the toy shop is happy.
+Tuvalet ⟶ Toilets
+Bay ve bayan tuvaleti. Ziyaretçiler ihtiyaç duyar; kirlenince temizlik görevlisi siler. Tuvaletsiz AVM'de herkes söylenir. ⟶ Men's and women's toilets. Visitors need them; a cleaner scrubs them when dirty. A mall without toilets makes everyone grumble.
+Dinlenme Bankı ⟶ Bench
+Yorulan ziyaretçiler oturur, AVM keyfi artar. ⟶ Tired visitors sit down; mall mood goes up.
+Öğrenci ⟶ Student
+Az parası var, atıştırmalık ve soğuk içecek peşinde. Sabırsız. ⟶ Little money, after snacks and cold drinks. Impatient.
+Emekli ⟶ Pensioner
+Fiyata çok duyarlı. Sabah ekmeğini ve ayranını alır, beklemeye razıdır. ⟶ Very price-sensitive. Buys the morning bread and ayran; doesn't mind waiting.
+Beyaz Yaka ⟶ Office Worker
+Aceleci ama cömert. Kuyrukta beklemeyi hiç sevmez. ⟶ In a hurry but generous. Hates waiting in line.
+Aile Alışverişçisi ⟶ Family Shopper
+Uzun listeyle gelir, sepeti doldurur. Taze ürün ve temiz mağaza ister. ⟶ Comes with a long list and fills the basket. Wants fresh produce and a clean shop.
+Fırsatçı ⟶ Opportunist
+Kimse bakmıyorsa cebine bir şey atar ve kapıya yönelir. Kamera, alarm ve güvenlik onu caydırır. ⟶ If nobody's watching, pockets something and heads for the door. Cameras, alarms and guards put them off.
+Haftalık Alışverişçi ⟶ Weekly Shopper
+Arabayla gelir, 5–8 kalemlik uzun liste. Reyon levhası ve araba parkı ister. ⟶ Comes by car with a 5–8 item list. Wants aisle signs and trolleys.
+Mahalle Büfesi ⟶ Corner Kiosk
+Büfe ⟶ Kiosk
+Mahalle Marketi ⟶ Neighbourhood Market
+Market ⟶ Market
+Süpermarket ⟶ Supermarket
+Köşebaşı AVM ⟶ Köşebaşı Mall
+Neon Tabela ⟶ Neon Sign
+Gece parlayan tabela; yoldan geçenlerin dikkatini çeker. ⟶ A sign that glows at night and catches passers-by.
++%25 müşteri çekimi, gece ışıltısı ⟶ +25% footfall, night glow
+Temassız POS ⟶ Contactless POS
+Kartla hızlı ödeme. Kasa işlemleri kısalır. ⟶ Quick card payments. Checkout gets shorter.
+Kasa süresi −%35 ⟶ Checkout time −35%
+Yeni Tente & Vitrin ⟶ New Awning & Window
+Çizgili tente ve dolu vitrin; dükkân daha davetkâr görünür. ⟶ A striped awning and a full window; the shop looks more inviting.
++%10 çekim ⟶ +10% footfall
+Elektronik Raf Etiketi ⟶ Electronic Shelf Labels
+Fiyatlar raflarda anında güncellenir, müşteri fiyata güvenir. ⟶ Prices update on the shelves instantly; shoppers trust them.
+Fiyat toleransı +%5 ⟶ Price tolerance +5%
+Sıcak Raf Aydınlatması ⟶ Warm Shelf Lighting
+Ürünler parlar, reyonlar davetkâr olur. ⟶ Products glow; aisles look inviting.
+Ortam +, anlık alım +%20 ⟶ Ambience +, impulse buys +20%
+Otopark Anlaşması ⟶ Car Park Deal
+Karşı otoparkla anlaşma: arabalı haftalık alışverişçiler gelir. ⟶ A deal with the car park opposite: weekly shoppers come by car.
+Haftalık alışverişçi ×1.6 ⟶ Weekly shoppers ×1.6
+Köşebaşı Markası ⟶ Köşebaşı Own Brand
+Un, şeker, yağ, makarna, deterjan ve peynir kendi markanla gelir; toptancıya aracı olmadan. ⟶ Flour, sugar, oil, pasta, detergent and cheese under your own label, with no middleman.
+Temel ürünlerde maliyet −%20 ⟶ Staples cost −20%
+Çatıya Güneş Paneli ⟶ Rooftop Solar Panels
+Dolapların, fırının ve soğuk odanın elektriğini güneş karşılar. ⟶ The sun powers the fridges, the oven and the cold room.
+Elektrik faturası −%40 ⟶ Electricity bill −40%
+Sadakat Kartı ⟶ Loyalty Card
+Puan kazanan müşteri sadık kalır, kuyrukta daha sabırlıdır. ⟶ Shoppers who collect points stay loyal and are more patient in the queue.
+Sabır +%20, puan dalgalanması azalır ⟶ Patience +20%, steadier rating
+Merkezi Klima ⟶ Central Air Conditioning
+AVM içi serin ve ferah. Ziyaretçiler daha uzun kalır. ⟶ The mall is cool and airy. Visitors stay longer.
+AVM ziyaretçisi +%10, keyif + ⟶ Mall visitors +10%, mood +
+Dijital Yönlendirme Ekranları ⟶ Digital Wayfinding Screens
+Kiracıların reklamı her katta. ⟶ Tenant ads on every floor.
+Kiracı satışları +%15 ⟶ Tenant sales +15%
+Broşür Dağıtımı ⟶ Flyer Handout
+Kapının önünde bir tanıtımcı gün boyu broşür dağıtır. ⟶ A promoter hands out flyers at the door all day.
+Bugün +%35 müşteri ⟶ +35% shoppers today
+Günün İndirimleri ⟶ Deals of the Day
+Seçtiğin en fazla 3 üründe %15 indirim. Rafta kırmızı etiket, daha çok talep. ⟶ 15% off up to 3 products you pick. Red shelf tags, more demand.
+Seçili ürünlere talep ×1.8, fiyat −%15 ⟶ Picked products: demand ×1.8, price −15%
+Kasa Önü Standı ⟶ Checkout Candy Stand
+Kasaların yanına renkli şekerleme standı. ⟶ A colourful sweets stand next to the tills.
+Anlık alım ×2 ⟶ Impulse buys ×2
+3 Al 2 Öde ⟶ 3 for 2
+Seçtiğin en fazla 3 üründe üçüncüsü bedava. Rafta sarı etiket; müşteri üçlü alır. ⟶ The third is free on up to 3 products you pick. Yellow tags; shoppers buy three.
+Seçili ürünlerde talep ×1.5, sepette 3 adet ⟶ Picked products: demand ×1.5, 3 per basket
+Tadım Günü ⟶ Tasting Day
+Fırın önünde ücretsiz tadım masası. ⟶ A free tasting table in front of the oven.
+Memnuniyet +, fırın ürünleri talebi ×1.5 ⟶ Satisfaction +, bakery demand ×1.5
+Yan Dükkânı Devral ⟶ Take Over the Shop Next Door
+Soldaki kapalı dükkânın kepengi aylardır inik. Duvarı yıkıp büfeyi Mahalle Marketi'ne dönüştür: iki kat alan, ikinci kapı, manav tezgâhı, gondol reyonlar ve aile alışverişçileri. ⟶ The shutter of the empty shop on the left has been down for months. Knock through and turn the kiosk into a Neighbourhood Market: twice the space, a second door, a produce stand, gondolas and family shoppers.
+Mağaza puanı ⟶ Shop rating
+Mutlu ayrılan müşteri ⟶ Happy customers
+Kasada nakit ⟶ Cash in the till
+Manav tezgâhı · Orta gondol · Açık soğutucu · 3 kasa · Süt, deterjan, domates, elma, yumurta, yoğurt, zeytin, şampuan, şemsiye · Aile alışverişçileri · Temizlik & güvenlik personeli · Kamera ve alarm kapısı · 2. kapı ⟶ Produce stand · Gondola · Open cooler · 3 tills · Milk, detergent, tomatoes, apples, eggs, yoghurt, olives, shampoo, umbrellas · Family shoppers · Cleaners & guards · Cameras and alarm gates · 2nd door
+Eczane Bloğunu Al: Süpermarket ⟶ Buy the Pharmacy Block: Supermarket
+Sağdaki eczane ve berber taşınıyor. Binayı al, arka depoyu aç: 24×12 m'lik bir süpermarket. Bantlı kasalar, kendi fırının, reyon levhaları ve arabalı haftalık alışveriş. ⟶ The pharmacy and barber on the right are moving out. Buy the building, open up the back: a 24×12 m supermarket. Conveyor tills, your own bakery, aisle signs and weekly shoppers with trolleys.
+Bantlı kasa · Self-servis kasa · Fırın tezgâhı & fırıncı · Reyon levhası · Araba parkı · Şarküteri tezgâhı & usta · Makarna, çay, peynir, su, un, şeker, yağ, sucuk, kaşar, donuk pizza, bebek bezi · Haftalık alışverişçi · 3. kapı ⟶ Conveyor till · Self-checkout · Bakery oven & baker · Aisle signs · Trolley bay · Deli counter & master · Pasta, tea, cheese, water, flour, sugar, oil, sucuk, kaşar, frozen pizza, nappies · Weekly shoppers · 3rd door
+Bütün Bloğu Al: Köşebaşı AVM ⟶ Buy the Whole Block: Köşebaşı Mall
+Bloğun tamamı satılık. Süpermarket zemin katta kalsın; etrafına iki katlı bir alışveriş merkezi kur: kiracı mağazalar, yürüyen merdivenler, yemek katı, çocuk oyun alanı ve etkinlik takvimi. ⟶ The whole block is for sale. Keep the supermarket on the ground floor and build a two-storey mall around it: tenant shops, escalators, a food court, a play area and an events calendar.
+11 kiracı birimi · 2 kat · Yürüyen merdiven & cam asansör · Yemek katı & masalar · Çocuk oyun alanı · Etkinlik takvimi · Tesis arızaları ⟶ 11 tenant units · 2 floors · Escalators & glass lift · Food court & tables · Play area · Events calendar · Facility breakdowns
+Dükkân Sahibi ⟶ Shop Owner
+Kasiyer ⟶ Cashier
+Reyon Görevlisi ⟶ Shelf Stacker
+Temizlik Görevlisi ⟶ Cleaner
+Güvenlik Görevlisi ⟶ Security Guard
+Fırıncı ⟶ Baker
+Teknisyen ⟶ Technician
+Şarküteri Ustası ⟶ Deli Master
+Kasaya bakar. Kuyruk yokken ve yardımcı yoksa rafları kendisi doldurur; o sırada kasa boş kalır. ⟶ Minds the till. With no queue and no help, stocks the shelves himself — leaving the till empty meanwhile.
+Boştaki kasaya geçer ve ödemeleri alır. ⟶ Takes a free till and handles payments.
+Depodan koli taşıyıp azalan rafları doldurur, boşta kalınca çöp toplar. ⟶ Carries boxes from the stockroom to refill shelves; picks up litter when idle.
+Islak zemini paspaslayıp uyarı levhası koyar, çöpleri ve AVM'de kirli masaları toplar. ⟶ Mops wet floors and puts up signs; clears litter and messy mall tables.
+Devriye gezer. Şüpheliyi gördüğünde peşine düşer, alarm çalınca kapıda yakalar. ⟶ Patrols. Chases suspects; catches them at the door when the alarm goes.
+Fırın tezgâhında sıcak simit ve ekmek pişirir; toptancıdan almaktan ucuzdur. ⟶ Bakes hot simit and bread at the oven; cheaper than buying wholesale.
+Şarküteri tezgâhının arkasında durur; sucuk ve kaşarı keser, tartar, tezgâhı doldurur. O yokken şarküteriden alışveriş yapılamaz. ⟶ Stands behind the deli counter; slices and weighs sucuk and kaşar and restocks it. Without them nobody can buy at the deli.
+AVM'de arızalanan yürüyen merdiven ve asansörü ücretsiz tamir eder, düzenli bakımla arızaları yarıya indirir. ⟶ Repairs broken escalators and the lift for free; regular maintenance halves breakdowns.
+Geveze ⟶ Chatty
+Kasada sohbet eder: ödeme %15 yavaş ama müşteri keyfi +5. ⟶ Chats at the till: checkout 15% slower but shoppers' mood +5.
+Titiz ⟶ Meticulous
+Rafı ve yeri özenle yapar: doldurma ve temizlik %25 hızlı. ⟶ Careful with shelves and floors: restocking and cleaning 25% faster.
+Çevik ⟶ Nimble
+Hızlı yürür: +%15 hız. ⟶ Walks fast: +15% speed.
+Güler yüzlü ⟶ Cheerful
+Hizmet ettiği her müşterinin keyfi +6. ⟶ Every shopper they serve gets +6 mood.
+Dikkatli ⟶ Watchful
+Hırsızı %40 daha uzaktan fark eder. ⟶ Spots thieves from 40% further away.
+Keyfine düşkün ⟶ Easy-going
+%30 çabuk yorulur ama %15 ucuza çalışır. ⟶ Tires 30% faster but works for 15% less.
+Dalgın ⟶ Absent-minded
+Arada bir durup telefonuna bakar: %10 yavaş, ama %10 ucuz. ⟶ Stops now and then to check the phone: 10% slower, but 10% cheaper.
+# ------------------------------------------------------------------ game messages
+AVM ortak alanına (koridor / yemek katı) yerleştirilmeli ⟶ Must go in the mall's common area (corridor / food court)
+Dükkânın içine yerleştirilmeli ⟶ Must go inside the shop
+Burada zaten bir tane var ⟶ There's already one here
+Başka bir eşyanın üstüne gelemez ⟶ Can't overlap another item
+Kapı / geçiş önü boş kalmalı ⟶ Keep doors and passages clear
+Bu aşamada en fazla %d adet ⟶ At most $1 at this stage
+Alarm kapısı bir giriş kapısının hemen yanına kurulmalı ⟶ An alarm gate must stand right next to an entrance
+Oda kapısının önü boş olmalı ⟶ The room's door must be clear
+Önü açık olmalı (erişim alanı) ⟶ The front must be clear (access area)
+Kasanın müşteri tarafı boş olmalı ⟶ The customer side of the till must be clear
+Kasiyerin arkada duracağı yer yok ⟶ No room for the cashier behind it
+%s ulaşılamaz hâle gelir ⟶ $1 would become unreachable
+Kasiyer yeri ulaşılamaz hâle gelir ⟶ The cashier's spot would become unreachable
+Bu konuma yol yok ⟶ No path to this spot
+Kapılardan biri kapanıyor ⟶ That blocks a door
+Bir konum seç ⟶ Pick a spot
+Yeterli para yok ⟶ Not enough money
+Bedava! ⟶ Free!
+Depo dolu: otomatik sipariş (%s) verilemedi. Depo rafı ekle ya da yavaş satan ürünü azalt. ⟶ Stockroom full: the auto-order ($1) couldn't be placed. Add a stock rack or carry less of a slow seller.
+Depo dolu — sipariş verilemedi. Depo rafı ekleyin. ⟶ Stockroom full — order not placed. Add a stock rack.
+Sipariş için yeterli nakit yok. ⟶ Not enough cash for the order.
+%s işe başladı ⟶ $1 started work
+Tuvaletler kirlendi. Temizlik görevlisi siler; yoksa ziyaretçi keyfi düşer. ⟶ The toilets are dirty. A cleaner will scrub them; otherwise visitor mood drops.
+%s Güvenlik peşine düştü. ⟶ $1 Security is on it.
+%s Güvenlik görevlisi olsaydı yakalanabilirdi. ⟶ $1 A guard could have caught them.
+Alarm kapısı öttü! Hırsız ürünleri bırakıp kaçtı. ⟶ The alarm gate beeped! The thief dropped the goods and ran.
+Şüpheli %s değerinde ürünle kaçtı! Alarm kapısı ve güvenlik görevlisi caydırır. ⟶ A suspect ran off with $1 of goods! Alarm gates and guards deter them.
+Yere bir şey döküldü ⟶ Something was spilled
+%s: zemin ıslak! ⟶ $1: wet floor!
+%s: zemin ıslak! Temizlik görevlisi yolda. ⟶ $1: wet floor! The cleaner is on the way.
+%s: zemin ıslak! Boştaki personel paspas yapacak. ⟶ $1: wet floor! Idle staff will mop it.
+%d masa kirli. Temizlik görevlisi olmadan yemek katı dağılır. ⟶ $1 tables are dirty. Without a cleaner the food court falls apart.
+Kampanya için yeterli nakit yok. ⟶ Not enough cash for the campaign.
+Deftere yazıldı %s ⟶ Put on credit $1
+Zabıta denetimi: dükkân tertemiz, raflar dolu. Puanın yükseldi! ⟶ Inspection: spotless shop, full shelves. Your rating went up!
+Zabıta denetimi: %d çöp, %d boş raf bölmesi. ₺%d ceza. ⟶ Inspection: $1 litter, $2 empty sections. ₺$3 fine.
+Yarın sabahki teslimat için otomatik sipariş verildi: %s ⟶ Auto-order placed for tomorrow morning's delivery: $1
+UCUZA'da süt daha ucuzmuş, bugün oradan alayım. ⟶ Milk's cheaper at UCUZA, I'll shop there today.
+Yağmurdan gelenler kapının önünü çamur etti ⟶ People coming in from the rain muddied the entrance
+%s su sızdırıyor ⟶ $1 is leaking
+19:00: akşam indirimi başladı, simit ve ekmek %40 ucuz. ⟶ 19:00: evening discount on, simit and bread 40% off.
+Saat 22:00 — kapanış. Son müşteriler çıkınca gün sonu raporu gelecek. ⟶ 22:00 — closing time. The day report comes when the last shoppers leave.
+Kemal Usta kasadan ayrılamıyor, raflar boş kalıyor. Personel panelinden (H) reyon görevlisi al. ⟶ Kemal Usta can't leave the till and the shelves are going empty. Hire a shelf stacker in Staff (H).
+%s rafta bitti. ⟶ $1 is out on the shelf.
+%s rafta bitti ve depoda da yok — sipariş ver! ⟶ $1 is out on the shelf and in the stockroom — order more!
+Kasada %d kişilik kuyruk! Hızlı ödeme ya da ek kasa bekleme süresini düşürür. ⟶ A queue of $1 at the till! Faster payment or another till cuts the wait.
+Bir kasada kasiyer yok. Personel panelinden kasiyer al ya da vardiyaları kontrol et. ⟶ A till has no cashier. Hire one in Staff or check the shifts.
+%s çok yorgun, yavaşladı. Bir Çay Ocağı (Mola) kur ya da vardiyaları böl. ⟶ $1 is exhausted and slowing down. Build a Tea Corner or split the shifts.
+Depo doldu, %s tutarında mal iade edildi. ⟶ The stockroom filled up; $1 of goods went back.
+Teslimat +%d birim ⟶ Delivery +$1 units
+Fırıncının gece pişirdiği sıcak ekmek ve simit raflarda (%s). ⟶ The baker's overnight bread and simit are on the shelves ($1).
+Fırından sabah ekmek teslimatı raflara dizildi (%s). ⟶ The morning bread delivery is on the shelves ($1).
+Toptancı zam yaptı: ortalama %%%.1f. Müşterilerin \"normal fiyat\" beklentisi de arttı. Ürün & Fiyat panelinden fiyatlarını güncellemeyi unutma. ⟶ The wholesaler raised prices: $1% on average. Shoppers' idea of a "normal price" went up too. Don't forget to update your prices in Products.
+Mahalle Bankası'ndan %s kredi çektin. Her gün sonunda %s taksit düşülecek. ⟶ You borrowed $1 from the Neighbourhood Bank. $2 will be taken at every closing.
+Kredinin tamamını erken kapattın. ⟶ You paid off the whole loan early.
+Kredi borcu bitti. Tebrikler! ⟶ The loan is paid off. Well done!
+%s istifa etti ve bugün son günüydü. Personel panelinden yenisini al. ⟶ $1 quit and today was their last day. Hire someone new in Staff.
+%s zam istiyor ⟶ $1 wants a raise
+%s (%s) %d gündür burada çalışıyor, maaşının %s'den %s'ye çıkmasını istiyor. Reddedersen morali düşer; çok küserse istifa edebilir. ⟶ $1 ($2) has worked here for $3 days and would like their wage to go from $4 to $5. Refuse and morale drops; if they sulk enough they may quit.
+Zam yap · +%s/gün ⟶ Give the raise · +$1/day
+Şimdi olmaz ⟶ Not now
+Eğitim +beceri ⟶ Training +skill
+%s, %s. ⟶ $1, $2.
+Mahalle Marketi açıldı! Yeni reyonlar, manav ve aile alışverişçileri seni bekliyor. ⟶ The Neighbourhood Market is open! New aisles, a produce stand and family shoppers await.
+Süpermarket açıldı! Bantlı kasalar, fırın, reyon levhaları ve araba parkı kilidi açıldı. ⟶ The Supermarket is open! Conveyor tills, the bakery, aisle signs and trolleys are unlocked.
+Köşebaşı AVM açıldı! Kiracı birimlerini AVM panelinden (V) doldur, üst kata PageUp ile çık. ⟶ Köşebaşı Mall is open! Fill the tenant units in the Mall panel (V); PageUp goes upstairs.
+# ------------------------------------------------------------------ customers
+Arabayı otoparka bıraktım, karşıya geçeyim. ⟶ Left the car in the car park, crossing over now.
+İçerisi çok kalabalık, vazgeçtim. ⟶ Too crowded inside, forget it.
+Dükkân kapalı. ⟶ The shop is closed.
+Araba yok, bu sepete her şey sığmaz. Listemi kısalttım. ⟶ No trolley — it won't all fit in a basket. I cut my list.
+Şarküteride kimse yok, bekledim bekledim… ⟶ Nobody at the deli, I waited and waited…
+Usta ince ince kesti, tarttı. ⟶ The master sliced it thin and weighed it.
+Bu kuyruk hiç ilerlemiyor… ⟶ This queue isn't moving at all…
+%s hal hatır sordu, ne tatlı insan. ⟶ $1 asked how I was — what a sweetheart.
+Kasadaki %s hep gülümsüyor. ⟶ $1 at the till is always smiling.
+Kasada kimse yok! ⟶ Nobody at the till!
+Yakalandım… ⟶ Caught…
+Yakalandı! ⟶ Caught!
+Kaydım! Kimse paspas yapmıyor mu? ⟶ I slipped! Doesn't anyone mop here?
+Bir müşteri ıslak zeminde kaydı! Temizlik görevlisi paspas yapıp uyarı levhası koyar. ⟶ A shopper slipped on a wet floor! A cleaner mops and puts up a sign.
+Bir müşteri içeceğini döktü ⟶ A shopper spilled a drink
+Yerler çok kirli… ⟶ The floor is filthy…
+Koridorlar çok dar, sıkıştım. ⟶ The aisles are too narrow, I got stuck.
+%s arıyordum, satılmıyor mu? ⟶ I wanted $1 — don't they sell it?
+Eli boş çıkıyorum. ⟶ Leaving empty-handed.
+Reyonu bulmak zor, levha yok mu? ⟶ Hard to find the aisle — no signs?
+Rafa ulaşamıyorum, yol kapalı! ⟶ Can't reach the shelf, the way is blocked!
+%s bitmiş! ⟶ $1 is sold out!
+%s ₺%d? Çok pahalı! ⟶ $1 for ₺$2? Too dear!
+%s bayatlamış, almadım. ⟶ The $1 was stale, so I didn't buy it.
+%s biraz bayat ama idare eder. ⟶ The $1 is a bit stale but it'll do.
+3 al 2 öde! %s stok yaptım. ⟶ 3 for 2! Stocked up on $1.
+Param yetmiyor. ⟶ I can't afford it.
+%s indirimde, iyi denk geldi! ⟶ $1 on sale — lucky me!
+%s ucuzmuş! ⟶ $1 is cheap!
+%s sıcacık, fırından yeni çıkmış! ⟶ The $1 is piping hot, straight from the oven!
+Akşam indirimi, %s ucuzladı! ⟶ Evening discount, $1 is cheaper!
+Burada göz var… başka rafa bakayım. ⟶ Someone's watching… I'll try another shelf.
+Kamera var, riskli. ⟶ There's a camera, too risky.
+Kamera bir müşterinin ürünü cebine attığını kaydetti! ⟶ A camera caught a shopper pocketing something!
+Kasanın yanında %s gördüm, aldım. ⟶ Saw $1 by the till, grabbed some.
+Gondol başında %s gözüme çarptı, aldım. ⟶ $1 caught my eye on the end cap, so I took some.
+Kasa yok! Nasıl ödeyeceğim? ⟶ No till! How do I pay?
+Yeter! Sepeti bırakıp gidiyorum. ⟶ That's it! I'm dropping the basket and leaving.
+Güzel dükkân, yine gelirim! ⟶ Nice shop, I'll be back!
+Aldım ama memnun kalmadım. ⟶ Bought it, but I'm not happy.
+Geçip gidiyor ⟶ Walking past
+Dükkâna yöneliyor ⟶ Heading for the shop
+İçeri giriyor ⟶ Coming in
+%s rafına gidiyor ⟶ Going to the $1
+Raf arıyor ⟶ Looking for a shelf
+Ürünlere bakıyor ⟶ Browsing
+Kasaya gidiyor ⟶ Going to the till
+Kuyrukta (%d. sırada) ⟶ In the queue (#$1)
+Ödeme yapıyor ⟶ Paying
+Araba alıyor ⟶ Taking a trolley
+Ödemeden kapıya gidiyor! ⟶ Heading out without paying!
+Kapıya yöneliyor ⟶ Heading for the door
+Kaçıyor! ⟶ Running away!
+Güvenliğe yakalandı ⟶ Caught by security
+Ayrılıyor ⟶ Leaving
+# ------------------------------------------------------------------ mahalle olayları
+Toptancıdan fırsat ⟶ Wholesaler's bargain
+Toptancının elinde fazla %s kaldı: %d adet %%%d indirimle, 1 saat içinde getirir. ⟶ The wholesaler has surplus $1: $2 units at $3% off, delivered within the hour.
+Al · ₺%d ⟶ Buy · ₺$1
+Depoda yer yok ⟶ No room in the stockroom
+Geç ⟶ Pass
+Toplu sipariş ⟶ Bulk order
+%s apartmana %s istiyor, %%20 fazlasını öder. Depodan ve raftan düşülür. ⟶ $1 wants $2 for the building and will pay 20% extra. Taken from stock and shelves.
+Hazırla · +₺%d ⟶ Pack it · +₺$1
+Stok yetmiyor ⟶ Not enough stock
+Reddet ⟶ Decline
+Bu akşam derbi var! ⟶ Derby tonight!
+Mahalle maç için toplanacak: 19:00–22:00 arası kola ve cips talebi 2,5 katı. Stok yap, istersen vitrine afiş as. ⟶ The neighbourhood gathers for the match: cola and crisps demand ×2.5 from 19:00 to 22:00. Stock up, and put a poster in the window if you like.
+Afiş as · ₺150 (akşam +%30 müşteri) ⟶ Put up a poster · ₺150 (+30% shoppers tonight)
+Tamam, stok yaparım ⟶ OK, I'll stock up
+Zabıta denetimi geliyor ⟶ Inspection coming
+Belediye 1 saat içinde denetime gelecek. Yerde çöp ya da boş raf varsa ceza keser; temiz dükkâna puan artar. ⟶ The council inspector arrives within the hour. Litter or empty shelves mean a fine; a clean shop earns rating.
+Hazırız ⟶ We're ready
+Temizlikçi çağır · ₺120 ⟶ Call a cleaner · ₺120
+Muhtar dükkânı övdü ⟶ The muhtar praised the shop
+Muhtar kahvede dükkânından bahsetmiş. Bugün mahalleden biraz daha fazla müşteri gelecek. ⟶ The muhtar talked up your shop at the café. A few more neighbours will come today.
+Harika! ⟶ Great!
+Para yetmedi. ⟶ Not enough money.
+%s fırsatı alındı, 1 saat içinde geliyor. ⟶ $1 bargain bought, arriving within the hour.
+Toplu sipariş teslim edildi: +₺%d. ⟶ Bulk order delivered: +₺$1.
+Maç afişi asıldı: akşam kalabalık olacak. ⟶ Match poster up: it'll be busy tonight.
+Maç akşamı: kola ve cipsi doldurmayı unutma. ⟶ Match night: don't forget to stock cola and crisps.
+Temizlikçi yerleri pırıl pırıl yaptı. ⟶ The cleaner made the place sparkle.
+Denetim 1 saat içinde. ⟶ Inspection within the hour.
+%s'e zam yapıldı, çok memnun. ⟶ $1 got the raise and is very pleased.
+%s kırıldı ve istifasını verdi: 2 gün sonra ayrılıyor. ⟶ $1 was hurt and handed in notice: leaving in 2 days.
+%s zam alamadı, morali bozuk. ⟶ $1 didn't get the raise and is feeling low.
+%s artık dükkânın kedisi! Maması kapının yanında. ⟶ $1 is the shop cat now! The food bowl is by the door.
+# ------------------------------------------------------------------ staff activity
+Hazır ⟶ Ready
+Devriye geziyor ⟶ Patrolling
+Bakım turunda ⟶ On a maintenance round
+Boşta, iş bekliyor ⟶ Idle, waiting for work
+Müşteriye hizmet veriyor ⟶ Serving a customer
+Kasada bekliyor ⟶ Waiting at the till
+Kasaya dönüyor ⟶ Going back to the till
+Kasa yok — boşta ⟶ No till — idle
+Şarküteri tezgâhı yok — boşta ⟶ No deli counter — idle
+Müşteriye kesip tartıyor ⟶ Slicing and weighing for a customer
+Tezgâhın başında ⟶ At the counter
+Tezgâha dönüyor ⟶ Going back to the counter
+Vardiyası bitti, çıkıyor ⟶ Shift over, leaving
+Vardiyaya geldi ⟶ Arrived for the shift
+Depoya gidiyor ⟶ Going to the stockroom
+Depo odasına giriyor ⟶ Entering the stockroom
+Koli alıyor ⟶ Picking up a box
+Koliyle depodan çıkıyor ⟶ Leaving the stockroom with a box
+%s rafa taşıyor ⟶ Carrying $1 to the shelf
+Rafı dolduruyor ⟶ Filling the shelf
+Çöpü temizlemeye gidiyor ⟶ Going to pick up litter
+Süpürüyor ⟶ Sweeping
+Islak zemine koşuyor ⟶ Hurrying to a wet floor
+Paspas yapıyor ⟶ Mopping
+Kirli masaya gidiyor ⟶ Going to a dirty table
+Masayı siliyor ⟶ Wiping the table
+Molaya gidiyor ⟶ Going on a break
+Mola odasına geçiyor ⟶ Going into the break room
+Moladan dönüyor ⟶ Back from the break
+Mola odasında dinleniyor ⟶ Resting in the break room
+Çay molasında ⟶ On a tea break
+Fırına geçiyor ⟶ Going to the oven
+Hamur yoğuruyor, fırın yanıyor ⟶ Kneading dough, oven's hot
++%d sıcak %s ⟶ +$1 hot $2
+%s tamirine gidiyor ⟶ Going to fix the $1
+Tamir ediyor ⟶ Repairing
+Tuvaletleri temizlemeye gidiyor ⟶ Going to clean the toilets
+Tuvaleti temizliyor ⟶ Cleaning the toilets
+Şüphelinin peşinde! ⟶ Chasing a suspect!
+# ------------------------------------------------------------------ achievements
+İlk Kepenk ⟶ First Shutter
+İlk günü kapat. ⟶ Close your first day.
+Mahallenin Marketi ⟶ The Local Market
+Mahalle Marketi'ne büyü. ⟶ Grow into the Neighbourhood Market.
+Süper! ⟶ Super!
+Süpermarket aç. ⟶ Open the Supermarket.
+AVM Patronu ⟶ Mall Boss
+Köşebaşı AVM'yi aç. ⟶ Open Köşebaşı Mall.
+Bin Tebessüm ⟶ A Thousand Smiles
+Toplam 1.000 mutlu müşteri. ⟶ 1,000 happy customers in total.
+Mahallenin Gözbebeği ⟶ Apple of the Neighbourhood's Eye
+Toplam 10.000 mutlu müşteri. ⟶ 10,000 happy customers in total.
+Kasa Dolu ⟶ Full Till
+Kasada ₺100.000. ⟶ ₺100,000 in the till.
+Dört Buçuk Yıldız ⟶ Four and a Half Stars
+Mağaza puanı 4,5. ⟶ A 4.5 shop rating.
+Kedili Dükkân ⟶ Shop with a Cat
+Mahallenin kedisini sahiplen. ⟶ Adopt the neighbourhood cat.
+Defter Kabarık ⟶ A Thick Credit Book
+Toplam ₺1.000 veresiye yaz. ⟶ Put ₺1,000 on credit in total.
+Hakkını Helal Et ⟶ Consider It Forgiven
+Bir komşunun borcunu sil. ⟶ Wipe a neighbour's debt.
+Kepenk İndirttin ⟶ Shutters Down
+UCUZA'yı kapattır ya da satın al. ⟶ Close or buy out UCUZA.
+Görev Avcısı ⟶ Quest Hunter
+10 görev tamamla. ⟶ Complete 10 quests.
+Yakaladım! ⟶ Gotcha!
+10 hırsız yakala. ⟶ Catch 10 thieves.
+Pırıl Pırıl ⟶ Spotless
+Zabıta denetiminden tam not al. ⟶ Pass an inspection with full marks.
+Derbi Gecesi ⟶ Derby Night
+Bir maç gününde 60 kola sat. ⟶ Sell 60 colas on a match day.
+İftara Yetiştir ⟶ In Time for Iftar
+Ramazan'da bir günde 40 pide sat. ⟶ Sell 40 pide in one day during Ramadan.
+Borçsuz Esnaf ⟶ Debt-free Shopkeeper
+Bir krediyi tamamen öde. ⟶ Pay off a loan in full.
+Mahalle Bizimle ⟶ The Neighbourhood's With Us
+10 müdavimin sadakati 80+ olsun. ⟶ Get 10 regulars to 80+ loyalty.
+Sen İste ⟶ Just Ask
+Müdavimlerin 5 isteğini karşıla. ⟶ Fulfil 5 requests from regulars.
+Moda'yı Kurtardın ⟶ Saved Moda
+Moda Sahili senaryosunu kazan. ⟶ Win the Moda Seaside scenario.
+Kampüs Efsanesi ⟶ Campus Legend
+Kampüs Yolu senaryosunu kazan. ⟶ Win the Campus Road scenario.
+Çarşının Hakimi ⟶ Ruler of the Bazaar
+Çarşı senaryosunu kazan. ⟶ Win the Bazaar scenario.
+# ------------------------------------------------------------------ Radio Köşebaşı
+Sayın müşterilerimiz, 3 numaralı reyondaki domatesler kendini salata sandı; lütfen onları hayal kırıklığına uğratmayın. ⟶ Dear customers, the tomatoes in aisle 3 think they're a salad; please don't disappoint them.
+Kasadaki sıra bir yere kaçmıyor. Ama siz kaçarsanız Kemal Usta çok üzülür. ⟶ The queue isn't going anywhere. But if you do, Kemal Usta will be very sad.
+Bugünün sorusu: Simit mi, poğaça mı? Cevabınızı kasaya iletin, ödülü yok ama sohbet var. ⟶ Today's question: simit or poğaça? Tell the till — no prize, but plenty of chat.
+Kayıp ilanı: mavi bir alışveriş sepeti, en son bisküvi rafının önünde görüldü. Bulan kasaya getirsin. ⟶ Lost: one blue shopping basket, last seen by the biscuits. Finder, please bring it to the till.
+Mahalle bülteni: 5 numaranın kedisi yine balkondan balkona geçti. Herkes sağ salim. ⟶ Neighbourhood bulletin: number 5's cat hopped balcony to balcony again. Everyone is safe and sound.
+Hatırlatma: Çay ocağındaki bardaklar dükkânın malıdır, eve götürmeyiniz. Götürdüyseniz yarın getiriniz. ⟶ Reminder: the tea glasses belong to the shop, please don't take them home. If you did, bring them back tomorrow.
+Bugün de gülümseyerek alışveriş yapan her müşteriye Kemal Usta'dan bir 'Allah razı olsun'. ⟶ A heartfelt "bless you" from Kemal Usta to everyone shopping with a smile today.
+Ekmekler taze, simitler sıcak, fiyatlar mahalleli. Radyo Köşebaşı'nı dinliyorsunuz. ⟶ Fresh bread, hot simit, neighbourly prices. You're listening to Radio Köşebaşı.
+Arabasını kaldırımın üstüne park eden beyefendi, lütfen... tamam, gitmişsiniz. Teşekkürler. ⟶ To the gentleman parked on the pavement, please... ah, you've gone. Thank you.
+Dikkat! Bisküvi rafında bir çocuk kendi ağırlığınca bisküvi seçmeye çalışıyor. Annesi kasaya. ⟶ Attention! A child at the biscuit shelf is picking their own weight in biscuits. Would their mum come to the till.
+Kasiyerimize 'para üstü şeker olsun mu' diye sormayınız, şekerlerimiz bitti. Yarın gelecek. ⟶ Please don't ask the cashier for sweets instead of change — we're out. More tomorrow.
+Muhtarlıktan duyuru: Su kesintisi yoktur. Bu duyuru sadece içiniz rahat etsin diye yapılmıştır. ⟶ From the muhtar's office: there is no water cut. This announcement is just to put your mind at ease.
+Günün şarkısı: 'Bakkal amca, veresiye yaz' — birinci kıta, nakarat yok. ⟶ Song of the day: "Grocer, put it on my tab" — first verse, no chorus.
+Hava durumu: Dükkân içi 22 derece, kalpler sıcak, dolaplar soğuk. ⟶ Weather: 22 degrees in the shop, warm hearts, cold fridges.
+Dışarısı sağanak! Şemsiyesini unutan komşularımız için rafta şemsiye var. Tesadüf mü? Değil. ⟶ It's pouring! Umbrellas on the shelf for anyone who forgot theirs. Coincidence? Hardly.
+Yağmurda kapıdaki paspasa ayağınızı silerseniz temizlik görevlimiz size ömür boyu minnettar kalır. ⟶ Wipe your feet on the doormat in the rain and our cleaner will be grateful forever.
+Kar yağıyor, salep hazır. Kaymamak için yavaş yürüyün, sepetleri yavaş doldurun. ⟶ It's snowing, salep is ready. Walk slowly so you don't slip, and fill your baskets slowly too.
+Kardan adam yapan çocuklara duyurulur: havuç manav tezgâhında değil, sadece domates var. ⟶ Kids building snowmen: there are no carrots at the produce stand, only tomatoes.
+Sıcak hava uyarısı: Dondurma dolabının kapağını açık bırakmayınız, dondurmalar ağlıyor. ⟶ Heat warning: please close the freezer lid, the ice creams are crying.
+Bugün hava o kadar sıcak ki ayranlar kendi kendine köpürüyor. ⟶ It's so hot today the ayran is frothing all by itself.
+Derbi akşamı! Kola ve cips kasanın hemen yanında. Gol sesi duyarsanız panik yapmayın, çay ocağındakiler. ⟶ Derby night! Cola and crisps are right by the till. If you hear a goal, don't panic — that's the tea corner.
+Maç öncesi son çağrı: çekirdek yok, cips var. Kimse bize kızmasın. ⟶ Last call before kick-off: no sunflower seeds, but crisps. Please don't be cross.
+%s şu an depo rafının üstünde uyuyor. Lütfen sessiz olalım, rüyasında fare kovalıyor. ⟶ $1 is asleep on the stock rack. Let's keep it down — they're chasing mice in their dreams.
+%s'e mama vermeyiniz, kendisi diyette. Tamam, bir tane verebilirsiniz. ⟶ Please don't feed $1, they're on a diet. Oh, all right, just one.
+Kayıp bulundu: %s'in oyuncak faresi. Kasada teslim alınabilir, sahibi pek ilgilenmiyor. ⟶ Found: $1's toy mouse. Collect it at the till; its owner doesn't seem bothered.
+Karşıdaki UCUZA'da ucuz olabilir ama orada seni adınla selamlayan var mı? Yok. ⟶ UCUZA over the road may be cheap, but does anyone there greet you by name? No.
+Hatırlatma: Veresiye defteri sadece Köşebaşı'nda. UCUZA'da defter yok, sadece kasa var. ⟶ Reminder: the credit book is only at Köşebaşı. UCUZA has no book, just a till.
+Hayırlı Ramazanlar! İftar pideleri 17:30'dan itibaren fırından çıkıyor, sıcacık. ⟶ Happy Ramadan! Iftar pide come out of the oven from 17:30, piping hot.
+İftara az kaldı; hurmalar reyonda, sabır kasada. ⟶ Iftar is near; dates in the aisle, patience at the till.
+Bayramınız mübarek olsun! Bayram şekerleri ve çikolatalar ön rafta. ⟶ Happy Bayram! Holiday sweets and chocolate on the front shelf.
+Bayramda büyükleri ziyaret etmeyi unutmayın, eli boş gitmeyin: çikolata reyonu solunuzda. ⟶ Don't forget to visit your elders for Bayram, and don't go empty-handed: chocolate's on your left.
+%s rafı boş görünüyor ama kalbimiz dolu. Reyon görevlimiz yolda. ⟶ The $1 shelf looks empty, but our hearts are full. The stacker is on the way.
+Sayın müşterilerimiz, %s biraz sonra rafta olacak. Bu arada bisküvilere bir göz atın. ⟶ Dear customers, $1 will be back on the shelf shortly. Meanwhile, have a look at the biscuits.
+Kuyrukta bekleyen komşularımıza sabırları için teşekkür ederiz. Bu sırada birbirinizle tanışabilirsiniz. ⟶ Thank you, neighbours in the queue, for your patience. Why not get to know each other meanwhile.
+# ------------------------------------------------------------------ calendar
+İlkbahar ⟶ Spring
+Yaz ⟶ Summer
+Sonbahar ⟶ Autumn
+Kış ⟶ Winter
+Pazartesi ⟶ Monday
+Salı ⟶ Tuesday
+Çarşamba ⟶ Wednesday
+Perşembe ⟶ Thursday
+Cuma ⟶ Friday
+Cumartesi ⟶ Saturday
+Pazar ⟶ Sunday
+Güneşli ⟶ Sunny
+Sıcak hava ⟶ Hot
+Bulutlu ⟶ Cloudy
+Yağmurlu ⟶ Rainy
+Karlı ⟶ Snowy
+güneşli ⟶ sunny
+sıcak hava ⟶ hot
+bulutlu ⟶ cloudy
+yağmurlu ⟶ rainy
+karlı ⟶ snowy
+%s · %s %d ⟶ $1 · $2 $3
+%s · %s %d · %s ⟶ $1 · $2 $3 · $4
+Ramazan ⟶ Ramadan
+Gündüz sakin, iftardan önce (17:30–19:30) ekmek ve pide kuyruğu. Hurma talebi dört katı. ⟶ Quiet by day, a rush for bread and pide before iftar (17:30–19:30). Dates demand ×4.
+Ramazan Bayramı ⟶ Eid al-Fitr
+Bayram şekeri ve çikolata talebi 2,5 katı; mahallenin yarısı memlekette. ⟶ Holiday sweets and chocolate ×2.5; half the neighbourhood is away visiting family.
+Kurban Bayramı ⟶ Eid al-Adha
+Mahalle sakin, bayram ziyaretine gidenler çikolata ve kola alıyor. ⟶ The neighbourhood is quiet; those off visiting buy chocolate and cola.
+Arife ⟶ Holiday Eve
+Bayram öncesi herkes alışverişte: müşteri +%30. ⟶ Everyone shops before the holiday: +30% shoppers.
+Okullar açıldı ⟶ Back to school
+Defter talebi dört katı, öğrenciler akın ediyor. ⟶ Notebook demand ×4; students flood in.
+Hafta sonu ⟶ Weekend
+Aileler ve haftalık alışverişçiler daha çok, beyaz yakalar az. ⟶ More families and weekly shoppers, fewer office workers.
+%s, %s. %s: %s ⟶ $1, $2. $3: $4
+%s, %s. Dondurma, su ve kola dolapta hazır olsun. ⟶ $1, $2. Have ice cream, water and cola ready.
+%s, %s. Şemsiye satılır, kapının önü çamur olur. ⟶ $1, $2. Umbrellas will sell and the entrance will get muddy.
+%s, %s. Salep aranır, müşteri azdır. ⟶ $1, $2. Salep will be wanted; fewer shoppers.
+# ------------------------------------------------------------------ neighbourhood
+%s Teyze ⟶ Auntie $1
+%s Amca ⟶ Uncle $1
+%s Hanım ⟶ Mrs $1
+%s Bey ⟶ Mr $1
+%s Abi ⟶ Brother $1
+Öğretmen %s ⟶ Teacher $1
+Doktor %s ⟶ Dr $1
+Her sabah gazetesini alır, manşetleri yorumlamadan gitmez. ⟶ Buys the paper every morning and never leaves without commenting on the headlines.
+Ekmeği sıcak sever, bayatsa hemen fark eder. ⟶ Likes bread warm and notices at once if it's stale.
+Simitsiz güne başlamaz. ⟶ Never starts the day without a simit.
+Torunlarına çikolata götürür. ⟶ Takes chocolate to the grandchildren.
+Maç günleri kolayı kasayla alır. ⟶ Buys cola by the crate on match days.
+Çayın markasını sorar, demini anlatır. ⟶ Asks about the tea brand and explains how to brew it.
+Öğle yemeğine ayransız oturmaz. ⟶ Never sits down to lunch without ayran.
+Havalar ısındı mı ilk dondurmayı o alır. ⟶ First to buy ice cream when the weather warms up.
+Sütün son kullanma tarihine bakar. ⟶ Checks the milk's use-by date.
+Peynirin tuzunu tadıp öyle alır. ⟶ Tastes the cheese for salt before buying.
+Domatesleri tek tek seçer. ⟶ Picks tomatoes one by one.
+Ders çalışırken cips atıştırır. ⟶ Snacks on crisps while studying.
+Köy yumurtası ister, sarısına bakar. ⟶ Wants free-range eggs and checks the yolks.
+Kampanya varsa üç tane birden alır. ⟶ Buys three at once when there's a deal.
+Mahallenin tanıdık yüzlerinden. ⟶ One of the neighbourhood's familiar faces.
+%s istediği %s gelmeyince kırıldı. ⟶ $1 was hurt that the $2 they asked for never came.
+Defterde %d kişinin borcu bir haftayı geçti (%s). Mahalle panelinden (N) hatırlat. ⟶ $1 people have owed for over a week ($2). Remind them from the Neighbourhood panel (N).
+%s soruyor: \"%s da getirsen ya?\" 3 gün içinde rafa koyarsan sevinir. ⟶ $1 asks: "Could you stock $2 too?" They'll be delighted if it's on a shelf within 3 days.
+Deftere yazdırdım, ay başında öderim. ⟶ Put it on my tab, I'll pay at the start of the month.
+Borç ödendi +%s ⟶ Debt paid +$1
+Veresiye borcumu kapattım, içim rahatladı. ⟶ Paid off my tab — what a relief.
+İstediğim %s gelmiş, sağ ol komşu! ⟶ The $1 I asked for is here, thanks neighbour!
+%s istediği ürünü rafta buldu, çok sevindi. Mahallede adın iyiye çıkıyor. ⟶ $1 found what they asked for on the shelf and was delighted. Your name is getting around the neighbourhood.
+%s'in %s borcunu sildin. \"Hakkını helal et komşu\" diyor, mahallede sözün geçer oldu. ⟶ You wiped $1's $2 debt. "May it be forgiven, neighbour," they say — your word carries weight around here now.
+# ------------------------------------------------------------------ quests
+Bugün %d %s sat ⟶ Sell $1 $2 today
+Rafı dolu tut, fiyatı makul, gerekirse gondol başına ya da kampanyaya koy. ⟶ Keep the shelf full and the price fair; use an end cap or a campaign if needed.
+Bugün %d mutlu müşteri ⟶ $1 happy customers today
+Kuyruğu kısa, rafları dolu, yeri temiz tut. Mutlu ayrılan müşteri sayılır. ⟶ Keep the queue short, shelves full and the floor clean. Customers who leave happy count.
+Bugün %s ciro ⟶ $1 turnover today
+Günlük satış toplamı. Pahalı ama aranan ürünler ve kampanyalar işe yarar. ⟶ Total sales for the day. Pricey but wanted products and campaigns help.
+Tertemiz kapanış ⟶ Spotless closing
+Bir günü yerde en fazla 1 çöp ve hiç ıslak zemin olmadan kapat. 3 gün içinde. ⟶ Close a day with at most 1 piece of litter and no wet floor. Within 3 days.
+Aynı anda %d çeşit ürün ⟶ $1 products at once
+Rafa en az %d farklı ürün ata ve hepsinde stok olsun. Çeşit artınca \"satılmıyor mu\" diyen azalır. ⟶ Have at least $1 different products on the shelves, all in stock. More variety means fewer "don't you sell it?" complaints.
+%d müdavimin sadakati 80+ ⟶ $1 regulars at 80+ loyalty
+Mahalle panelinden (N) müdavimleri izle: sevdikleri ürünü rafta tut, kuyrukta bekletme. ⟶ Follow your regulars in the Neighbourhood panel (N): keep their favourites in stock and don't make them queue.
+2 gün üst üste hırsızlıksız ⟶ 2 days in a row without theft
+Kamera, alarm kapısı ve güvenlik görevlisiyle kör noktaları kapat (G). ⟶ Cover the blind spots with cameras, alarm gates and a guard (G).
+Kuyruktan kimse kaçmasın ⟶ Nobody leaves the queue
+En az %d müşteriye hizmet verip hiç kimseyi kuyrukta sıkıp göndermeden bir gün kapat. ⟶ Serve at least $1 customers and close a day without anyone giving up in the queue.
+Defterden %s tahsil et ⟶ Collect $1 from the book
+Borçlulara hatırlat; sözünün eri olanlar hemen öder. ⟶ Remind your debtors; the reliable ones pay right away.
+Bir müdavimin isteğini karşıla ⟶ Fulfil a regular's request
+Mahalle panelindeki istek listesinden bir ürünü rafa koy; sahibi gelip alsın. ⟶ Stock something from the request list in the Neighbourhood panel, and let its asker come and buy it.
+3 gün üst üste pazarın %60'ı ⟶ 60% of the market 3 days running
+UCUZA'ya giden müşteriyi geri kazan: fiyat, tazelik, sadakat. ⟶ Win back the shoppers going to UCUZA: price, freshness, loyalty.
+Bugün %d dondurma sat ⟶ Sell $1 ice creams today
+Yaz geldi! Dondurma dolabını kapının yakınına koy, sıcak günlerde talep uçar. ⟶ Summer's here! Put the freezer near the door; demand soars on hot days.
+İftara %d %s ⟶ $1 $2 for iftar
+17:30–19:30 arası fırın ürünleri kapışılır. Sepetleri dolu tut. ⟶ Bakery goods fly off the shelves 17:30–19:30. Keep the baskets full.
+Görev tamam: %s! Ödül: %s ⟶ Quest complete: $1! Reward: $2
+Görev tamam! ⟶ Quest complete!
+bekliyor ⟶ pending
+# ------------------------------------------------------------------ rival
+Karşı kaldırımda inşaat var: indirim zinciri UCUZA 2 gün sonra açılıyor. Fiyata hassas müşteriler oraya kayabilir. Mahalle panelinden (N) takip et. ⟶ Building work across the road: the discount chain UCUZA opens in 2 days. Price-sensitive shoppers may drift over. Keep an eye on it in the Neighbourhood panel (N).
+UCUZA açıldı! Süt, ekmek, deterjan gibi temel ürünlerde senden %10–18 ucuz. Emekliler ve aileler karşıya geçmeye başlayacak. ⟶ UCUZA has opened! It's 10–18% cheaper than you on staples like milk, bread and detergent. Pensioners and families will start crossing over.
+UCUZA'da afiş: \"%s sadece ₺%d!\" İki gün boyunca bu üründe müşteri kaçırabilirsin. ⟶ Poster at UCUZA: "$1 only ₺$2!" You may lose shoppers on this for two days.
+UCUZA kepenk indirdi! Mahalle senden şaşmadı; karşıdaki dükkân kiralık. Mağaza puanı +0,2. ⟶ UCUZA has pulled down its shutters! The neighbourhood stuck with you; the shop across the road is to let. Rating +0.2.
+UCUZA şubesini satın aldın, tabelası indirildi. Mağaza puanı +0,2. ⟶ You bought the UCUZA branch and took down its sign. Rating +0.2.
+UCUZA karşı kaldırımda. Temel ürünlerde senden ucuz; emekliler, aileler ve haftalık alışverişçiler fiyata bakıp karşıya geçebilir. Sadakati 70'in üstündeki müdavimlerin hiç gitmez. ⟶ UCUZA is across the road. It's cheaper on staples; pensioners, families and weekly shoppers may compare prices and cross over. Regulars with loyalty above 70 never go.
+Fiyatları eşle ⟶ Match prices
+UCUZA'nın sattığı ve senin rafında olan ürünlerde fiyatını onunkine indir (maliyetin altına düşmez). Kâr marjın incelir. ⟶ Lower your price to UCUZA's on products you both sell (never below cost). Your margin gets thinner.
+Eşle ⟶ Match
+\"Taze & Yakın\" afişi ⟶ "Fresh & Close" poster
+Vitrine ve kaldırıma afiş: 3 gün boyunca karşıya geçen müşteri %40 azalır. ⟶ Posters in the window and on the pavement: 40% fewer shoppers cross over for 3 days.
+Afiş as · ₺600 ⟶ Put up · ₺600
+Mahalle dayanışması ⟶ Neighbourhood solidarity
+En az 6 müdavimin sadakati 70+ ise çay ikram edip komşuları toplarsın: 5 gün boyunca kayıp %30 azalır, müşteri %15 artar. (Şu an %d) ⟶ With at least 6 regulars at 70+ loyalty, you invite the neighbours for tea: 30% fewer lost shoppers and 15% more customers for 5 days. (Now $1)
+Topla ⟶ Gather
+UCUZA'yı satın al ⟶ Buy out UCUZA
+Süpermarket aşamasında zincirin bu şubesini devral: rakip kapanır, müşterileri sana gelir. ⟶ From the Supermarket stage, take over this branch of the chain: the rival closes and its shoppers come to you.
+Satın al · %s ⟶ Buy · $1
+%d üründe fiyatını UCUZA'ya eşitledin. ⟶ You matched UCUZA's price on $1 products.
+\"Taze & Yakın\" afişi asıldı: 3 gün boyunca müşteri kaçağı azalacak. ⟶ The "Fresh & Close" poster is up: fewer shoppers will slip away for 3 days.
+Komşular çay içmeye toplandı: \"Biz mahallenin bakkalını bırakmayız!\" ⟶ The neighbours gathered for tea: "We won't abandon our local grocer!"
+Mahallede payın ⟶ Your share of the neighbourhood
+Dün ona giden ⟶ Went there yesterday
+Onun puanı ⟶ Its rating
+Fiyat karşılaştırması ⟶ Price comparison
+SEN ⟶ YOU
+Pahalı kalıyorsun ⟶ You're dearer
+Başa baş ⟶ Neck and neck
+Senden ucuz alan yok ⟶ Nobody's cheaper
+Karşılık ver ⟶ Fight back
+# ------------------------------------------------------------------ scenarios
+Kariyer ⟶ Career
+Köşedeki küçük büfeden dört katlı AVM'ye. Asıl hikâye. ⟶ From the little corner kiosk to a mall. The main story.
+Hedefleri tutarak büyü. ⟶ Grow by meeting the goals.
+Moda Sahili ⟶ Moda Seaside
+Batmak üzere ⟶ On the brink
+Eski sahibi borca girmiş bir mahalle marketi. Kasada ₺1.500, raflar yarı boş, komşular küs. ⟶ A local market whose old owner ran into debt. ₺1,500 in the till, shelves half empty, neighbours sulking.
+30 gün içinde puanı 3,8'e ve kasayı ₺25.000'e çıkar. Kasa −₺3.000'e düşerse iflas. ⟶ Within 30 days reach a 3.8 rating and ₺25,000 in the till. Drop below −₺3,000 and you're bankrupt.
+Kampüs Yolu ⟶ Campus Road
+Öğrenci akını ⟶ Student rush
+Üniversitenin yolunda bir büfe. Dersten çıkan öğrenciler dalga dalga gelir; bütçeleri az, sabırları hiç yok. ⟶ A kiosk on the way to the university. Students pour in wave after wave between classes; small budgets, zero patience.
+12 günde 1.500 mutlu müşteri. ⟶ 1,500 happy customers in 12 days.
+Çarşı ⟶ Bazaar
+Rakip kapıda ⟶ Rival at the door
+Çarşının ortasında bir süpermarket devraldın; karşıda güçlü bir UCUZA şubesi var. ⟶ You've taken over a supermarket in the middle of the bazaar; a strong UCUZA branch sits opposite.
+28 gün içinde UCUZA'yı kapattır ya da satın al. ⟶ Close or buy out UCUZA within 28 days.
+Serbest Mod ⟶ Sandbox
+Kum havuzu ⟶ Free play
+Kasada ₺250.000. Genişlemek için hedef yok, sadece para. Kafana göre kur. ⟶ ₺250,000 in the till. No goals to expand, just money. Build as you like.
+Hedef yok, keyfine bak. ⟶ No goals — just enjoy it.
+Kalan gün ⟶ Days left
+Mutlu müşteri ⟶ Happy customers
+%s · %s ⟶ $1 · $2
+%s: %s ⟶ $1: $2
+Hedef: %s ⟶ Goal: $1
+# ------------------------------------------------------------------ neighbourhood panel
+Beyaz yaka ⟶ Office worker
+Haftalık ⟶ Weekly
+Aile ⟶ Family
+Müdavimler ⟶ Regulars
+Rakip ⟶ Rival
+Defter ⟶ Credit book
+Veresiye defteri: tanıdık komşular \"yazarsın\" der. Deftere yazmak sadakati ve satışı artırır ama bazıları geç öder, bazıları hiç ödemez. Hatırlatmak parayı getirir ama biraz kırar; borcu silmek mahallede adını büyütür. ⟶ The credit book: neighbours you know say "put it on my tab". Credit builds loyalty and sales, but some pay late and some never do. Reminding brings the money in but stings a little; wiping a debt makes your name around the neighbourhood.
+Kime yazılır? ⟶ Who gets credit?
+Kimseye ⟶ Nobody
+Sadık müdavimlere ⟶ Loyal regulars
+Bütün mahalleye ⟶ The whole neighbourhood
+Kişi başı sınır ⟶ Limit per person
+Toplam alacak ⟶ Total owed
+Bugün yazılan ⟶ Credited today
+Bugün tahsil ⟶ Collected today
+Silinen ⟶ Written off
+Borçlular ⟶ Debtors
+Defter temiz, kimsenin borcu yok. ⟶ The book is clean; nobody owes anything.
+Veresiye kapalı. Açarsan tanıdık müşteriler parası yetmeyince deftere yazdırır. ⟶ Credit is off. Turn it on and regulars who come up short will put it on their tab.
+%s · %d gündür · %s ⟶ $1 · for $2 days · $3
+%s · %d gündür · %s · hatırlatıldı ⟶ $1 · for $2 days · $3 · reminded
+sözünün eri ⟶ true to their word
+ödemeyi unutabilir ⟶ may forget to pay
+ödeyeceği şüpheli ⟶ doubtful payer
+henüz tanımıyorsun ⟶ you don't know them yet
+Hatırlat ⟶ Remind
+Borcunu nazikçe hatırlat: büyük ihtimalle yakında gelip öder, sadakati biraz düşer. ⟶ A gentle reminder: they'll most likely come and pay soon; loyalty drops a little.
+Sil ⟶ Forgive
+Borcu sil: para gider ama sadakat ve mağaza puanı artar. ⟶ Wipe the debt: you lose the money but gain loyalty and rating.
+Mahallenin %d tanıdık yüzü. %d kişi dükkâna bağlı, %d kişi küs. Mutlu ayrılan müdavimin sadakati artar; sevdiği ürün yoksa ya da kuyrukta bekletilirse düşer. İstekleri 3 gün içinde karşılarsan çok sevinirler. ⟶ $1 familiar faces in the neighbourhood. $2 are devoted to the shop, $3 are sulking. Loyalty rises when a regular leaves happy and falls if their favourite is missing or they have to queue. They love it when you meet their requests within 3 days.
+İstekler ⟶ Requests
+%s: \"%s getirir misin?\" · %d gün kaldı ⟶ $1: "Could you get $2?" · $3 days left
+%s: \"%s getirir misin?\" · %d gün kaldı · rafta var ⟶ $1: "Could you get $2?" · $3 days left · on the shelf
+borç %s ⟶ owes $1
+%d ziyaret · %s harcadı · %s ⟶ $1 visits · spent $2 · $3
+hiç gelmedi ⟶ never came
+bugün geldi ⟶ came today
+dün geldi ⟶ came yesterday
+%d gün önce geldi ⟶ came $1 days ago
+sadakat %d ⟶ loyalty $1
+Mahallenin küçük meydan okumaları. Aynı anda üç görev açık; biri bitince yenisi gelir. Ödüller nakit, puan ve bazen bedava eşya. ⟶ Little neighbourhood challenges. Three are open at a time; finish one and a new one arrives. Rewards: cash, rating and sometimes a free item.
+Tamamlananlar (%d) ⟶ Completed ($1)
+Ödül: %s ⟶ Reward: $1
+Ödül: %s · %d gün kaldı ⟶ Reward: $1 · $2 days left
+Son %d günün satışları. Kâr = satış adedi × (fiyat − maliyet). Kaçan satış: rafta bulunamayan ya da pahalı bulunan ürün. Bugünün rakamları gün sonunda eklenir. ⟶ Sales over the last $1 days. Profit = units × (price − cost). Missed sales: not found on a shelf or thought too dear. Today's figures are added at closing.
+İlk gün kapanınca burada ürün ürün analiz çıkacak. ⟶ A product-by-product analysis appears here after the first day.
+En çok kazandıran: %s ⟶ Top earners: $1
+Rafında yok ama soruluyor: %s ⟶ Not on your shelves but asked for: $1
+Pahalı bulunuyor: %s ⟶ Considered too dear: $1
+Rafta sık bitiyor: %s ⟶ Often sold out: $1
+SON GÜNLER ⟶ RECENT DAYS
+ADET ⟶ UNITS
+KÂR ⟶ PROFIT
+KAÇAN ⟶ MISSED
+KİM ALIYOR ⟶ WHO BUYS
+DURUM ⟶ STATUS
+₺%d · maliyet ₺%d ⟶ ₺$1 · cost ₺$2
+%d adet ⟶ $1 units
+Rafa koy! ⟶ Stock it!
+Satılmıyor ⟶ Not stocked
+Fiyat yüksek ⟶ Price too high
+Stok yetmiyor ⟶ Runs out
+Durgun, rafı meşgul ediyor ⟶ Slow seller, taking up shelf space
+Kazandırıyor ⟶ Earning well
+Normal ⟶ Normal
+Rehber ⟶ Guide
+Bir rafa tıkla ⟶ Click a shelf
+Dükkândaki ahşap rafa tıkla: sağda bölmeleri, stoğu ve fiyat etiketlerini gösteren kart açılır. ⟶ Click the wooden shelf in the shop: a card opens on the right showing its sections, stock and price tags.
+Boş bölmeye ürün ata ⟶ Assign a product to an empty section
+Raf kartında \"Boş bölme\" satırına tıkla, bir ürün seç. Rafta ne varsa o satılır. ⟶ In the shelf card click an "Empty section" row and pick a product. Whatever is on the shelf is what sells.
+Fiyatlara bak (P) ⟶ Check the prices (P)
+Ürün & Fiyat panelinde her ürünün kârını ve kimin alacağını gör. Pahalı ürün rafta kalır. ⟶ In Products, see each product's margin and who will buy it. Overpriced goods stay on the shelf.
+Sipariş ver (T) ⟶ Place an order (T)
+Tedarik panelinden bir ürüne +12 sipariş ver. Toptancı sabah gelir; \"Acil\" 1 saatte getirir. ⟶ In Supply, order +12 of a product. The wholesaler comes in the morning; "Urgent" arrives within the hour.
+Reyon görevlisi al (H) ⟶ Hire a shelf stacker (H)
+Kemal Usta hem kasaya hem rafa yetişemez. Personel panelinden bir reyon görevlisi al. ⟶ Kemal Usta can't mind the till and the shelves at once. Hire a shelf stacker in Staff.
+Bir eşya kur (B) ⟶ Build something (B)
+İnşa panelinden bir eşya seç (ör. saksı bitki ya da dondurma dolabı), dükkânda yerine tıkla. R ile döndür. ⟶ Pick an item in Build (e.g. a potted plant or the ice cream freezer) and click its spot in the shop. R rotates.
+Mahalleyi tanı (N) ⟶ Meet the neighbourhood (N)
+Mahalle panelinde müdavimler, veresiye defteri ve görevler var. Görevler sana her gün yapacak bir şey verir. ⟶ The Neighbourhood panel has your regulars, the credit book and quests. Quests give you something to aim for every day.
+Zamanı hızlandır (2–5) ⟶ Speed up time (2–5)
+Dükkân kendi kendine dönmeye başlayınca hızı artır. Sorun çıkınca uyarılar sol altta belirir. ⟶ Once the shop runs itself, speed things up. When something goes wrong, alerts appear bottom left.
+Kapıda bir kedi ⟶ A cat at the door
+Turuncu tekir bir kedi kapının önüne oturmuş, içeri bakıp miyavlıyor. Sahiplenirsen dükkânın maskotu olur: müşteriler bayılır ama arada bir raftan bir şey düşürür. Maması günde ₺15. ⟶ An orange tabby is sitting at the door, peering in and meowing. Adopt it and it becomes the shop's mascot: customers adore it, though now and then it knocks something off a shelf. Food costs ₺15 a day.
+Sahiplen, adı %s olsun ⟶ Adopt — name it $1
+Kovala ⟶ Shoo it away
+Miyav! ⟶ Meow!
+%s ne tatlı! Başını okşadım. ⟶ $1 is so sweet! I gave it a stroke.
+Kedili dükkân, ne güzel. ⟶ A shop with a cat, how lovely.
+%s bana baktı, gün güzel başladı. ⟶ $1 looked at me — the day's off to a good start.
+Pisi pisi! Sonra alışveriş. ⟶ Here, kitty kitty! Shopping can wait.
+%s mışıl mışıl uyuyor, sessiz olayım. ⟶ $1 is fast asleep, I'll be quiet.
+%s raftan bir %s düşürdü, yere saçıldı. Masum masum bakıyor. ⟶ $1 knocked a $2 off the shelf and it went everywhere. Now looking completely innocent.
+# ------------------------------------------------------------------ finance, supply extras
+Elektrik, su, doğalgaz: %s/gün. ⟶ Electricity, water, gas: $1/day.
+Elektrik, su, doğalgaz: %s/gün. En çok yakan: %s ⟶ Electricity, water, gas: $1/day. Biggest users: $2
+Elektrik, su, doğalgaz: %s/gün. En çok yakan: %s. Çatıya güneş paneli faturayı %40 düşürür (Gelişim). ⟶ Electricity, water, gas: $1/day. Biggest users: $2. Rooftop solar cuts the bill by 40% (Growth).
+Elektrik, su, doğalgaz: %s/gün.. Çatıya güneş paneli faturayı %40 düşürür (Gelişim). ⟶ Electricity, water, gas: $1/day. Rooftop solar cuts the bill by 40% (Growth).
+Mahallede payın %s ⟶ Your share $1
+Görevler yakında. ⟶ Quests coming soon.
+Dil / Language ⟶ Language / Dil
+# ------------------------------------------------------------------ mall
+Yürüyen Merdiven (yukarı) ⟶ Escalator (up)
+Yürüyen Merdiven (aşağı) ⟶ Escalator (down)
+Cam Asansör ⟶ Glass Lift
+Merdiven ⟶ Stairs
+Giyim ⟶ Clothing
+Zemin katı ve girişe yakınlığı sever ⟶ Likes the ground floor, close to the entrance
+Elektronik ⟶ Electronics
+Yürüyen merdiven / asansöre yakın olmak ister ⟶ Wants to be near the escalators / lift
+Kitabevi ⟶ Bookshop
+Gürültülü komşu (oyun salonu) istemez ⟶ Doesn't want a noisy neighbour (arcade)
+Oyuncakçı ⟶ Toy Shop
+Çocuk oyun alanına yakın olmayı sever ⟶ Likes being near the play area
+Kuaför ⟶ Hairdresser
+Sakin köşeler ve temiz koridor ister ⟶ Wants quiet corners and clean corridors
+Oyun Salonu ⟶ Arcade
+Gürültülüdür: yanındaki kiracıları rahatsız eder ⟶ Noisy: bothers the tenants next door
+Spor ⟶ Sports
+Kalabalık koridor ve üst katta vitrin sever ⟶ Likes busy corridors and an upstairs shop window
+Sinema ⟶ Cinema
+Büyük birim ister (45 m² üstü). Yemek katında en az iki restoran olunca daha çok seyirci gelir ⟶ Needs a big unit (over 45 m²). Draws more viewers with at least two restaurants in the food court
+Kahveci ⟶ Coffee Shop
+Yemek katında yeterli masa (≥8 koltuk) ister ⟶ Wants enough tables in the food court (≥8 seats)
+Burgerci ⟶ Burger Bar
+Yemek katında yeterli masa ve temiz masalar ister ⟶ Wants enough tables in the food court, and clean ones
+Pideci ⟶ Pide House
+Temiz masa ve aile ziyaretçileri sever ⟶ Likes clean tables and family visitors
+Genç ⟶ Youngster
+Profesyonel ⟶ Professional
+Emekli Çift ⟶ Retired Couple
+Akşam Konseri ⟶ Evening Concert
+Yemek katında sahne kurulur, akşam kalabalık gelir. Gürültülüdür. ⟶ A stage goes up in the food court and crowds come in the evening. It's loud.
+İmza Günü ⟶ Book Signing
+Sevilen bir yazar kitabevinde. Kitabevi satışları üç katına çıkar. ⟶ A beloved author at the bookshop. Bookshop sales triple.
+Bayram İndirimleri ⟶ Holiday Sales
+Her yer süslenir, herkes alışverişte. Süpermarket de kazanır. ⟶ Decorations everywhere, everyone's shopping. The supermarket gains too.
+Çocuk Şenliği ⟶ Kids' Festival
+Balonlar, palyaço, oyun alanında etkinlik. Aileler akın eder. ⟶ Balloons, a clown, fun in the play area. Families pour in.
+Sözleşme feshedildi ⟶ Lease ended
+%s (%s) çıktı: %s. Birim yeniden kiralık. ⟶ $1 ($2) left: $3. The unit is to let again.
+%s'dan alışveriş yaptım. ⟶ Shopped at $1.
+%s'da beğendiğim bir şey yoktu. ⟶ Nothing I liked at $1.
+Temel memnuniyet ⟶ Base satisfaction
+Bugünkü ziyaretçi (%d) ⟶ Visitors today ($1)
+Zemin katta, girişe yakın ⟶ Ground floor, near the entrance
+Üst katta, girişten uzak ⟶ Upstairs, far from the entrance
+Yürüyen merdiven / asansöre yakın ⟶ Near the escalators / lift
+Merdiven ve asansörden uzak ⟶ Far from the escalators and lift
+Çocuk oyun alanı yakında ⟶ Play area nearby
+Yakında oyun alanı yok ⟶ No play area nearby
+Üst kat vitrini ⟶ Upstairs window
+Koridorlar kirli ⟶ Dirty corridors
+Koridorlar temiz ⟶ Clean corridors
+Konser gürültüsü ⟶ Concert noise
+Yemek katında %d koltuk ⟶ $1 seats in the food court
+Sadece %d koltuk var ⟶ Only $1 seats
+%d kirli masa ⟶ $1 dirty tables
+Yanında gürültülü oyun salonu ⟶ Noisy arcade next door
+Yürüyen merdiven arızalı ⟶ Escalator broken
+AVM'de tuvalet yok ⟶ No toilets in the mall
+Tuvaletler kirli ⟶ Toilets dirty
+Yemek katında %d restoran ⟶ $1 restaurants in the food court
+Yemek katı cılız ⟶ Thin food court
+%s etkinliği ⟶ $1 event
+teknisyen tarafından onarıldı ⟶ repaired by the technician
+tamir edildi ⟶ repaired
+Tamir için yeterli nakit yok. ⟶ Not enough cash for the repair.
+O gün için zaten bir etkinlik var. ⟶ There's already an event that day.
+Çocuk Şenliği için önce bir oyun alanı kur. ⟶ Build a play area before the Kids' Festival.
+Bu etkinlik için ilgili kiracı (kitabevi) gerekli. ⟶ This event needs the right tenant (a bookshop).
+Etkinlik için yeterli nakit yok. ⟶ Not enough cash for the event.
+Bugün: %s! Kalabalık bekleniyor. ⟶ Today: $1! Expect a crowd.
+memnun kalmadı ⟶ wasn't happy
+%s memnun değil (%d). Sebepleri kiracı kartında. ⟶ $1 is unhappy ($2). The reasons are on the tenant card.
+%s arızalandı! Teknisyen yolda. ⟶ $1 broke down! The technician is on the way.
+%s arızalandı! Ziyaretçiler dolaşmak zorunda. Tıklayıp tamir ettir ya da teknisyen al. ⟶ $1 broke down! Visitors have to go the long way round. Click to repair it or hire a technician.
+Kalabalıkta itiş kakış çıktı! ⟶ Pushing and shoving in the crowd!
+Etkinlik kalabalığında arbede çıktı! Güvenlik görevlisi olmadan büyük etkinlik riskli. ⟶ A scuffle broke out in the event crowd! Big events are risky without a guard.
+Film başlıyor, patlamısır aldım! ⟶ The film's starting — got my popcorn!
+Film harikaydı! ⟶ The film was great!
+Karnım doydu. ⟶ I'm full.
+Çocuk bayıldı, çıkarmak zor oldu! ⟶ The kid loved it — hard to get them out!
+Bu koca AVM'de tuvalet yok mu?! ⟶ No toilets in this whole mall?!
+Acıktım ama yemek yeri yok! ⟶ I'm hungry but there's nowhere to eat!
+Oraya nasıl gidilir ki? ⟶ How do you even get up there?
+Tuvaletler berbat durumda… ⟶ The toilets are a mess…
+Oturacak masa yok, ayakta yiyorum… ⟶ No table free, eating standing up…
+Masalar kirli, kimse toplamıyor mu? ⟶ The tables are dirty — doesn't anyone clear them?
+AVM pek temiz değil. ⟶ The mall isn't very clean.
+Çok kalabalık! ⟶ So crowded!
+%s! Tam zamanında geldik. ⟶ $1! We came at just the right time.
+AVM'ye giriyor ⟶ Entering the mall
+%s mağazasına gidiyor ⟶ Going to $1
+Mağaza ⟶ Shop
+Yemek katına gidiyor ⟶ Going to the food court
+Geziniyor ⟶ Strolling
+Mağazada bakınıyor ⟶ Browsing a shop
+Yemek sipariş ediyor ⟶ Ordering food
+Masaya geçiyor ⟶ Going to a table
+Yemek yiyor ⟶ Eating
+Ayakta yemek yiyor ⟶ Eating standing up
+Sinemada film izliyor ⟶ Watching a film
+Tuvalette ⟶ In the toilets
+Çocuk oyun alanında ⟶ At the play area
+Bankta dinleniyor ⟶ Resting on a bench
+Gitti ⟶ Gone
+%s: \"%s getirir misin?\" · %s ⟶ $1: "Could you get $2?" · $3
+%s: \"%s getirir misin?\" · %s · rafta var ⟶ $1: "Could you get $2?" · $3 · on the shelf
+%d gün kaldı ⟶ $1 days left
+bugün son gün ⟶ last day today
+Teneffüste sakız dağıtır, sınıfın en sevileni. ⟶ Hands out gum at break time — the most popular kid in class.
+Çayın yanına bisküvisiz oturmaz. ⟶ Never has tea without biscuits.
+Dersten çıkınca uğrar, cebindeki son bozukluğu harcar. ⟶ Drops in after class and spends their last coins.
+Sınav haftası atıştırmalığa abanır. ⟶ Lives on snacks during exam week.
+İşe giderken aceleyle uğrar, kuyruk görünce kaşları çatılır. ⟶ Rushes in on the way to work and frowns at any queue.
+Öğle arasında koşa koşa gelir. ⟶ Dashes over in the lunch break.
+Sabahın ilk müşterisidir, fiyatları ezbere bilir. ⟶ First customer every morning; knows all the prices by heart.
+Kasada mahallenin bütün haberlerini anlatır. ⟶ Shares all the neighbourhood news at the till.
+Çocuklarıyla gelir, liste hep uzundur. ⟶ Comes with the kids; the list is always long.
+Okul çıkışı çocukları alıp uğrar. ⟶ Drops by after picking the kids up from school.
+Cumartesi arabayla gelip bagajı doldurur. ⟶ Comes by car on Saturday and fills the boot.
+Listesini telefondan okur, hiçbir şeyi unutmaz. ⟶ Reads the list off their phone and never forgets a thing.

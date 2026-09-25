@@ -49,7 +49,8 @@ Mac ve Linux için de aynı adımları izle; 2. adımda kendi işletim sistemini
 | Orta tık + sürükle / `Q` `E` | Kamerayı döndür |
 | Tekerlek | Yakınlaş / uzaklaş. Uzaklaşınca cephe, tente ve tabela görünür |
 | `B` `P` `T` `H` `F` `U` | İnşa · Ürün & Fiyat · Tedarik · Personel · Finans · Gelişim |
-| `K` `V` | Kampanyalar · AVM paneli (kiracılar, etkinlikler, tesis) |
+| `K` `V` `N` | Kampanyalar · AVM paneli (kiracılar, etkinlikler, tesis) · Mahalle paneli (veresiye defteri, müdavimler, görevler, rakip) |
+| `Ctrl+Z` · `Ctrl+D` | İnşada son yerleştirme, taşıma ya da satışı geri al · Seçili eşyanın aynısını yön ve ürünleriyle kopyala |
 | `M` · `G` | Akış ısı haritası · Güvenlik katmanı (kamera ve güvenlik görevlisinin görmediği kör noktalar kırmızı) |
 | `PageUp` `PageDown` (ya da `]` `[`) | AVM'de kat değiştir. Dock'taki kat düğmesi de aynı işi yapar |
 | `R` | Yerleştirirken döndür. `Shift`+tık: arka arkaya yerleştir. Sağ tık / `Esc`: iptal |
@@ -120,12 +121,31 @@ Dört aşamanın dördü de oynanabilir: **Büfe → Mahalle Marketi → Süperm
   - **Ziyaretçiler:** 4 arketip (genç, aile, profesyonel, emekli çift). Aileler çocuklarıyla gelir. Ziyaretçiye tıklayınca aklından geçenler görünür.
   - **Görünüm:** kamera kat değiştirince üst kat gizlenir, uzaklaşınca tüm bina ve çatıdaki "KÖŞEBAŞI AVM" tabelası görünür. Kameraya bakan duvarlar ve vitrinler yakınlaşınca iner.
 - **Ortak sistemler:**
-  - 15 ürün, 26 eşya ve 6 müşteri arketipi.
-  - Personel rolleri: kasiyer, reyon görevlisi, temizlik, güvenlik, fırıncı ve teknisyen.
+  - 34 ürün, 28 eşya ve 6 müşteri arketipi. Büfede gazete, sakız, dondurma, salep ve defter; markette yumurta, yoğurt, zeytin, şampuan, hurma ve şemsiye; süpermarkette un, şeker, yağ, donuk pizza, bebek bezi ve şarküteri (sucuk, kaşar) var.
+  - **Dondurma dolabı** (büfeden itibaren) ve **şarküteri tezgâhı** (süpermarket). Şarküteriden alışveriş için tezgâhın arkasında bir **Şarküteri Ustası** durmalı; usta kesip tartar, tezgâhı kendisi doldurur.
+  - Personel rolleri: kasiyer, reyon görevlisi, temizlik, güvenlik, fırıncı, şarküteri ustası ve teknisyen.
+  - **Personel kişilikleri:** adayların çoğunun bir huyu var. Geveze kasiyer yavaş ama müşteriyi güldürür; titiz olan hızlı doldurur; çevik hızlı yürür; güler yüzlü herkesi mutlu eder; dikkatli hırsızı uzaktan görür; keyfine düşkün ve dalgın olanlar ucuzdur ama yavaştır. Çalıştıkça beceri artar, **Eğit** düğmesiyle hızlandırılabilir. Arada biri **zam ister**: reddedersen morali düşer, çok küserse istifa eder.
   - Tedarik: toptancı günde bir kez, sabah 07:05'te gelir. Saat 18:00'de o günkü satışa göre ertesi sabahın siparişi kendiliğinden verilir. Gün içinde lazım olursa **Acil +12** (%25 fazlasına, 1 saatte gelir) var. Depolar büyük: büfe deposu 240, market depo odası 600 ürün alır.
   - **Mahalle olayları:** günde 2–3 kez ekranın üstünde bir kart çıkar ve senden karar ister. Toptancı fırsatı (%30–40 indirimli parti), apartmana toplu sipariş (%20 fazlası ödenir), derbi akşamı (kola/cips talebi 2,5 kat, afiş asarsan +%30 müşteri), zabıta denetimi (çöp ve boş raf cezası ya da puan) ve muhtarın övgüsü.
-  - Gün sonu raporu: hırsızlık, kayma, yorgunluk ve AVM satırlarıyla, tavsiyelerle birlikte.
+  - Gün sonu raporu: hırsızlık, kayma, yorgunluk, veresiye, rakip ve AVM satırlarıyla, tavsiyelerle ve yarının hava tahminiyle birlikte.
   - 9 yükseltme; uyarılar, ısı haritası, fare üstü bilgiler.
+- **Mahalle hayatı (Mahalle paneli, `N`):**
+  - **Müdavimler:** mahallenin isimli sakinleri (Kerime Teyze, Selim Bey, Öğretmen Serap…). Her birinin sevdiği ürünler, alışveriş saati ve sadakati var. Mutlu ayrılan müdavimin sadakati artar; sevdiği ürün yoksa ya da kuyrukta bekletilirse düşer, küserse gelmez olur. Arada biri bir ürün **ister**; 3 gün içinde rafa koyarsan çok sevinir.
+  - **Veresiye defteri:** kime yazılacağını (kimseye / sadık müdavimlere / bütün mahalleye) ve kişi başı sınırı sen seçersin. Parası yetmeyen tanıdık deftere yazdırır. Kimi hemen öder, kimi unutur, kimi hiç ödemez. Borçluya **hatırlatabilir** ya da borcu **silebilirsin**; silmek mahallede adını büyütür.
+  - **Görevler:** aynı anda üç küçük hedef ("Bugün 45 simit sat", "2 gün hırsızlıksız", "Defterden ₺300 tahsil et"…). Ödüller nakit, puan ya da bedava eşya. Sol üstte ilerlemeleri görünür.
+  - **Rakip, UCUZA:** market aşamasına geçtikten iki gün sonra karşı kaldırımda bir indirim zinciri açılır. Temel ürünlerde senden ucuzdur; emekliler ve aileler karşıya geçer (yolda yürüdüklerini görürsün). Fiyatları eşleyebilir, "Taze & Yakın" afişi asabilir, sadık müdavimleri toplayabilir ya da süpermarkette satın alabilirsin. Pazarın %75'ini 7 gün tutarsan kepenk indirir.
+  - **Mahalle kedisi:** bir sabah kapıda bir tekir belirir. Sahiplenirsen dükkânda gezinir, depo rafının üstünde uyur; müşteriler bayılır ama arada raftan bir şey düşürür.
+  - **Radyo Köşebaşı:** dükkânın hoparlöründen iki saatte bir espri, hava durumu ve mahalle haberleri.
+- **Takvim ve hava:** 7 günlük hafta (hafta sonu aileler çoğalır), 14'er günlük mevsimler, okulların açılışı, Ramazan (iftar öncesi ekmek ve pide akını, hurma), Ramazan ve Kurban bayramları, arife. Hava her gün değişir: güneşli, sıcak (dondurma ve soğuk içecek uçar), bulutlu, yağmurlu (şemsiye satılır, kapının önü çamur olur), karlı (salep aranır, sokak sakinleşir). Yağmur ve kar ekranda yağar; yarının tahmini saat kartında ve gün sonu raporunda.
+- **Ekonomi:**
+  - Elektrik faturası dolap, dondurucu, fırın ve soğuk oda sayısına göre hesaplanır; çatıya güneş paneli %40 düşürür.
+  - Toptancı haftada bir zam yapar; müşterilerin "normal fiyat" beklentisi de artar. Ürün & Fiyat panelindeki düğmeyle bütün fiyatlar bir kerede güncellenir.
+  - Mahalle Bankası'ndan üç büyüklükte kredi çekilebilir; taksit her gün sonunda düşülür, erken kapatılabilir.
+  - Süpermarkette **Köşebaşı Markası** yükseltmesi temel ürünlerin maliyetini %20 düşürür.
+  - **Ürün analizi** (Ürün & Fiyat → Analiz): son 7 günün satışları, kâr, kaçan satış, rafın boş kaldığı süre, kimin aldığı ve her ürün için bir öneri ("Rafa koy!", "Fiyat yüksek", "Stok yetmiyor", "Durgun").
+- **Mahalleler (senaryolar) ve başarımlar:** açılış ekranındaki **Mahalleler** düğmesinden: Moda Sahili (batmak üzere olan marketi 30 günde kurtar), Kampüs Yolu (12 günde 1.500 mutlu öğrenci), Çarşı (karşıdaki güçlü UCUZA'yı 28 günde kapattır) ve Serbest Mod (₺250.000, hedefsiz). Kazanılan mahallelere madalya işlenir. 23 başarım var; menüden görülebilir.
+- **Rehber:** yeni oyunda sol üstte 8 adımlık bir kontrol listesi, sıradaki adımın dock düğmesini yanıp söndürür. Kapatılabilir, bir kez bitince bir daha çıkmaz.
+- **Dil:** Ayarlar → Dil / Language ile İngilizce seçilebilir.
 - **Kayıt ve ayarlar:**
   - Oyun her sabah otomatik kaydedilir. Açılış ekranında "Devam et" düğmesi çıkar.
   - Menüden (`Esc`) 3 kayıt yuvasına kaydedip yükleyebilirsin. Yüklenen oyun o günün sabahından başlar.
@@ -138,6 +158,8 @@ Dört aşamanın dördü de oynanabilir: **Büfe → Mahalle Marketi → Süperm
 
 ## Sınırlar (açıkça)
 
+- İngilizce çeviri arayüzü, uyarıları, müşteri düşüncelerini, verileri ve radyoyu kapsıyor; dükkân tabelaları, ürün ambalajları gibi 3B yazılar bilerek Türkçe kaldı. Bazı fare üstü bilgilerde Türkçe parça kalabilir.
+- "Şubeler" tek bir oyunda birden çok dükkânı aynı anda yönetmek değil: her mahalle ayrı bir oyun olarak başlar.
 - Kayıt gün içindeki anı saklamaz: yüklenen oyun o günün 07:00'sinden başlar, o an içerideki müşteriler kaydedilmez.
 - Depoda hazır bir `.exe` yok. Oyun editörden F5 ile çalışır.
   - Tek dosyalık `.exe` istersen: editörde **Proje → Dışa Aktar** (Project → Export) menüsüne gir. Godot bir kez "Export Templates" indirmeni isteyecek, kabul et. Ardından hazır **Windows** ayarıyla **Proje Dışa Aktar**'a bas; `export/Tezgah.exe` oluşur.

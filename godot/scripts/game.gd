@@ -49,6 +49,27 @@ var match_night := {}
 var inspection_at := 0.0
 var praise_until := 0.0
 var _next_event_at := 1440.0 + Cfg.DAY_OPEN + 60.0
+var neighborhood := Neighborhood.new()
+var calendar := Calendar.new()
+var product_log: Array = [] # last 14 days: {day, sold, missed, expensive, oos, price, cost}
+signal quests_changed()
+var quests := Quests.new()
+var rival := Rival.new()
+var vouchers := {} # fixture id -> free builds won from quests
+## economy: wholesale prices creep up every week; customers' price expectations follow
+var cost_mul := 1.0
+var price_mul := 1.0 # inflation already passed on through "update all prices"
+var _next_hike_day := 8
+var loan := {} # {amount, total, left, daily}
+var cat: ShopCat
+var manual_orders := 0
+var scenario := {} # {id, start, ...} for the other neighbourhoods; empty = career
+signal announced(text: String)
+signal achievement(id: String)
+signal scenario_result(result: String)
+var _next_announce := 1440.0 + Cfg.DAY_OPEN + 40.0
+var _ach_acc := 0.0
+var undo_stack: Array = [] # [{kind: place|move|sell, ...}]
 var fixtures: Array = []
 var customers: Array = []
 var staff: Array = []
@@ -62,7 +83,7 @@ var backstock_fresh := {} # bakery pid -> 0..1
 var evening_bakery := false # bakery goods -40% after 19:00
 var _fresh_acc := 0.0
 var stats := {}
-var totals := {"served": 0, "happy": 0, "revenue": 0, "visitors": 0, "theft": 0}
+var totals := {"served": 0, "happy": 0, "revenue": 0, "visitors": 0, "theft": 0, "credit_paid": 0, "requests": 0}
 var history: Array = []
 var candidates: Array = []
 var alerts: Array = []
@@ -88,7 +109,8 @@ static func new_stats() -> Dictionary:
 		"missed": {}, "expensive": {}, "sold": {}, "mood_sum": 0.0, "mood_n": 0,
 		"theft": 0, "theft_count": 0, "shrink": 0, "theft_seen": 0, "alarms": 0, "caught": 0, "caught_guard": 0,
 		"slips": 0, "spills": 0, "mall_income": 0, "mall_visitors": 0,
-		"stale": 0, "stale_cost": 0, "spoiled": 0, "spoiled_cost": 0, "multi": 0, "endcap": 0, "wc": 0, "no_wc": 0}
+		"stale": 0, "stale_cost": 0, "spoiled": 0, "spoiled_cost": 0, "multi": 0, "endcap": 0, "wc": 0, "no_wc": 0,
+		"credit": 0, "credit_paid": 0, "credit_lost": 0, "buyers": {}, "oos_min": {}, "loan": 0, "rival_lost": 0}
 
 func _ready() -> void:
 	stats = new_stats()
@@ -118,6 +140,12 @@ func _ready() -> void:
 	hire({"role": "owner", "name": "Kemal Usta", "wage": 0, "skill": 1.1}, true)
 	roll_candidates()
 	refresh_all()
+	calendar.tomorrow = calendar.roll_weather(2)
+	sky.set_weather(calendar.weather)
+	neighborhood.generate(self)
+	neighborhood.start_day(self)
+	quests.refill(self)
+	cat = ShopCat.new(); add_child(cat); cat.build(); cat.start_day(self)
 	for i in 6: _spawn_walker(true)
 
 func _add(id: String, x: int, z: int, r: int, prods := []) -> Fixture:
@@ -194,7 +222,28 @@ func wages_per_day() -> int:
 	for s in staff: n += s.wage
 	return n
 func rent() -> int: return DB.STAGES[stage]["rent"]
-func utilities() -> int: return DB.STAGES[stage]["utilities"]
+## electricity, water and gas: a base for the building plus every fridge, freezer and oven
+func utilities() -> int:
+	var u := float(DB.STAGES[stage]["utilities"])
+	var pw := 0.0
+	for f in fixtures: pw += float(f.def.get("power", 0))
+	if upgrades.has("gunes"): pw *= 0.6
+	return int(round((u + pw) * cost_mul))
+func power_breakdown() -> Array:
+	var out := {}
+	for f in fixtures:
+		var w := float(f.def.get("power", 0))
+		if w > 0.0: out[f.def["name"]] = float(out.get(f.def["name"], 0.0)) + w * (0.6 if upgrades.has("gunes") else 1.0) * cost_mul
+	var arr := []
+	for k in out: arr.append([k, int(round(out[k]))])
+	arr.sort_custom(func(a, b): return a[1] > b[1])
+	return arr
+func cost_of(pid: String) -> int:
+	var c := float(DB.product(pid)["cost"]) * cost_mul
+	if upgrades.has("ozelmarka") and DB.PRIVATE.has(pid): c *= 0.8
+	return maxi(1, int(round(c)))
+## what shoppers consider a normal price today (rises with inflation)
+func ref_price(pid: String) -> float: return float(DB.product(pid)["base"]) * cost_mul
 func patience_mul() -> float:
 	var plants := fixtures.filter(func(f): return f.def["kind"] == "plant" and f.lvl == 0).size()
 	return (1.0 + minf(0.25, plants * 0.06)) * (1.2 if upgrades.has("sadakat") else 1.0)
@@ -210,7 +259,7 @@ func effective_price(pid: String) -> int:
 	return p
 func is_match_time() -> bool: return match_night.get("day", -1) == day and clock >= NeighborEvents.MATCH_FROM and clock < Cfg.DAY_CLOSE
 func demand_mul(pid: String) -> float:
-	return (2.5 if is_match_time() and (pid == "kola" or pid == "cips") else 1.0) * (1.8 if is_discounted(pid) else 1.0) * (1.5 if is_multi(pid) else 1.0) * (1.5 if campaigns.has("tadim") and (pid == "simit" or pid == "ekmek" or pid == "peynir") else 1.0)
+	return calendar.demand(day, hour(), pid) * (2.5 if is_match_time() and (pid == "kola" or pid == "cips") else 1.0) * (1.8 if is_discounted(pid) else 1.0) * (1.5 if is_multi(pid) else 1.0) * (1.5 if campaigns.has("tadim") and (pid == "simit" or pid == "ekmek" or pid == "peynir") else 1.0)
 func has_cold_room() -> bool: return fixtures.any(func(f): return f.def.get("cold", false))
 ## freshness of the bakery goods a customer would pick from this slot
 func slot_fresh(s: Dictionary) -> float: return float(s.get("fresh", 1.0))
@@ -270,6 +319,7 @@ func goals() -> Array:
 	return out
 func can_expand() -> bool:
 	if expansion() == null: return false
+	if scenario.get("id", "") == "serbest": return money >= expansion()["cost"]
 	for g in goals(): if not g["done"]: return false
 	return true
 
@@ -494,7 +544,8 @@ func start_placement(id: String, moving: Fixture = null) -> void:
 	ghost.add_child(m["root"])
 	add_child(ghost)
 	_ghostify(ghost)
-	placing = {"def": d, "rot": moving.rot if moving else 0, "ghost": ghost, "moving": moving, "x": -1, "z": -1, "ok": false, "reason": "Bir konum seç"}
+	placing = {"def": d, "rot": moving.rot if moving else 0, "ghost": ghost, "moving": moving, "x": -1, "z": -1, "ok": false, "reason": "Bir konum seç",
+		"old": [moving.gx, moving.gz, moving.rot] if moving else [], "copy": []}
 	if moving: moving.visible = false
 	placing_changed.emit()
 
@@ -512,7 +563,7 @@ func update_placement(x: int, z: int) -> void:
 	var gz := z - int(fp["fd"] / 2)
 	placing["x"] = gx; placing["z"] = gz
 	var v := validate(d, gx, gz, placing["rot"], placing["moving"])
-	var afford: bool = placing["moving"] != null or money >= d["cost"]
+	var afford: bool = placing["moving"] != null or money >= d["cost"] or int(vouchers.get(d["id"], 0)) > 0
 	placing["ok"] = v["ok"] and afford
 	placing["reason"] = v["reason"] if not v["ok"] else ("" if afford else "Yeterli para yok")
 	fp = Fixture.footprint(d, gx, gz, placing["rot"])
@@ -567,12 +618,20 @@ func confirm_placement(keep := false) -> bool:
 			for t in mv.fp["tiles"]: g.fixture[g.idx(t.x, t.y)] = mv.uid
 		mv.visible = true
 		g.version += 1
+		push_undo({"kind": "move", "fixture": mv, "x": placing["old"][0], "z": placing["old"][1], "rot": placing["old"][2]})
 		layout_changed()
 		cancel_placement(true)
 		return true
-	money -= d["cost"]; stats["other"] += int(d["cost"])
+	var free := int(vouchers.get(d["id"], 0)) > 0
+	if free: vouchers[d["id"]] = int(vouchers[d["id"]]) - 1
+	else: money -= d["cost"]; stats["other"] += int(d["cost"])
 	var f := add_fixture(d, placing["x"], placing["z"], placing["rot"], view_floor)
-	float_text(f.center() + Vector3(0, float(f.model["height"]) + 0.3, 0), "−" + Cfg.fmt_money(d["cost"]), Cfg.TERRA)
+	float_text(f.center() + Vector3(0, float(f.model["height"]) + 0.3, 0), "Bedava!" if free else "−" + Cfg.fmt_money(d["cost"]), Cfg.GOOD if free else Cfg.TERRA)
+	push_undo({"kind": "place", "fixture": f, "cost": 0 if free else int(d["cost"]), "voucher": free})
+	var cps: Array = placing.get("copy", [])
+	for i in mini(cps.size(), f.slots.size()):
+		if cps[i] != "": f.slots[i]["pid"] = cps[i]
+	if not cps.is_empty(): f.refresh(self)
 	GameAudio.play("place", -2.0)
 	if keep and money >= d["cost"]:
 		update_placement(int(placing["x"]), int(placing["z"]))
@@ -589,8 +648,15 @@ func cancel_placement(done := false) -> void:
 	overlays.set_marks([], 0.0)
 	placing_changed.emit()
 
+## place another one just like this: same fixture, rotation and product assignment
+func copy_fixture(f: Fixture) -> void:
+	start_placement(f.def["id"])
+	placing["rot"] = f.rot
+	placing["copy"] = f.slots.map(func(s): return s["pid"])
+
 func sell_fixture(f: Fixture) -> void:
 	var refund := int(f.def["cost"] * 0.5)
+	push_undo({"kind": "sell", "id": f.def["id"], "x": f.gx, "z": f.gz, "rot": f.rot, "lvl": f.lvl, "refund": refund, "slots": f.slots.map(func(s): return s["pid"])})
 	money += refund
 	float_text(f.center() + Vector3(0, 1.8, 0), "+" + Cfg.fmt_money(refund), Cfg.GOOD)
 	remove_fixture(f)
@@ -619,12 +685,13 @@ func order(pid: String, qty: int, is_auto := false, urgent := false) -> bool:
 		alert("depofull", "box", ("Depo dolu: otomatik sipariş (%s) verilemedi. Depo rafı ekle ya da yavaş satan ürünü azalt." % p["name"]) if is_auto else "Depo dolu — sipariş verilemedi. Depo rafı ekleyin.", "warn", null, 120.0 if is_auto else 45.0)
 		return false
 	qty = mini(qty, room)
-	var cost: int = int(round(qty * int(p["cost"]) * (URGENT_FEE if urgent else 1.0)))
+	var cost: int = int(round(qty * cost_of(pid) * (URGENT_FEE if urgent else 1.0)))
 	if money < cost:
 		alert("nomoney", "wallet", "Sipariş için yeterli nakit yok.", "bad")
 		return false
 	money -= cost
 	stats["purchases"] += cost
+	if not is_auto: manual_orders += 1
 	# regular orders ride on tomorrow morning's round; urgent ones come by a separate van within the hour
 	var eta := next_delivery()
 	if urgent and clock + 60.0 < Cfg.DAY_CLOSE: eta = abs_minutes() + 60.0
@@ -638,17 +705,21 @@ func order(pid: String, qty: int, is_auto := false, urgent := false) -> bool:
 # ------------------------------------------------------------------ staff
 func roll_candidates() -> void:
 	candidates.clear()
-	var roles := ["stocker", "cashier", "cleaner", "technician", "security", "baker", "stocker"].filter(func(r): return DB.ROLE_STAGE[r] <= stage)
+	var roles := ["stocker", "cashier", "cleaner", "technician", "security", "baker", "deli", "stocker"].filter(func(r): return DB.ROLE_STAGE[r] <= stage)
 	if stage == 0: roles = ["stocker", "stocker", "cashier"]
-	for role in roles.slice(0, 5):
+	for role in roles.slice(0, 6):
 		var skill := 0.85 + randf() * 0.35
 		var base: int = DB.ROLE_WAGE[role]
-		candidates.append({"role": role, "name": Cfg.NAMES.pick_random(), "wage": int(round(base * (0.8 + skill * 0.3) / 10.0)) * 10, "skill": skill})
+		var tr := ""
+		if randf() < 0.7: tr = DB.TRAITS.keys().pick_random()
+		var w := base * (0.8 + skill * 0.3) * (0.85 if tr == "keyfi" else (0.9 if tr == "dalgin" else 1.0))
+		candidates.append({"role": role, "name": Cfg.NAMES.pick_random(), "wage": int(round(w / 10.0)) * 10, "skill": skill, "trait": tr})
 
 func hire(c: Dictionary, free := false, shift := "full") -> Staff:
 	var s := Staff.new()
 	agents_node.add_child(s)
-	s.setup_staff(c["role"], c["name"], c["wage"], c["skill"], shift)
+	s.setup_staff(c["role"], c["name"], c["wage"], c["skill"], shift, c.get("trait", ""))
+	s.raise_day = day
 	s.position = Vector3(grid.layout["doors"][0] + 0.5, 0.02, grid.front_z() + 0.5)
 	staff.append(s)
 	if not free:
@@ -669,12 +740,14 @@ func fire(s: Staff) -> void:
 	if is_selected(s): select({})
 	changed.emit()
 
-func find_restock_task(st: Staff, threshold: float) -> Variant:
+func find_restock_task(st: Staff, threshold: float, only: Fixture = null) -> Variant:
 	var depots := fixtures.filter(func(f): return f.def["kind"] == "depot")
 	if depots.is_empty(): return null
 	var best = null
 	for f in fixtures:
-		if not f.is_display(): continue
+		if not f.is_display() or (only != null and f != only): continue
+		# the deli counter is the usta's: other staff only fill it when there is no usta at all
+		if only == null and f.def.get("staffed", false) and has_role("deli"): continue
 		for i in f.slots.size():
 			var s: Dictionary = f.slots[i]
 			if s["pid"] == "" or s["claimed"]: continue
@@ -721,7 +794,7 @@ func find_bake_task(st: Staff) -> Variant:
 		if f.def["kind"] == "oven" and not f.claimed: o = f; break
 	if o == null: return null
 	var want := func(pid: String) -> bool: return is_stocked(pid) and int(backstock.get(pid, 0)) < maxi(8, int(round(shelf_cap(pid) * 0.8)))
-	if not (want.call("simit") or want.call("ekmek")) or depot_capacity() - backstock_total() < 4: return null
+	if not DB.BAKERY.any(func(b): return calendar.product_active(day, b) and want.call(b)) or depot_capacity() - backstock_total() < 4: return null
 	if clock > 19 * 60: return null # no point baking what will be thrown away tonight
 	o.claimed = st.id; st.has_goal = false; st.dest = {}
 	return {"kind": "bake", "oven": o, "phase": "go"}
@@ -775,7 +848,7 @@ func watch_info(t: Vector2i, l := 0) -> Dictionary:
 	var p := Vector3(t.x + 0.5, l * Cfg.FLOOR_H + 0.02, t.y + 0.5)
 	var watcher = null
 	for s in staff:
-		if s.present and s.lvl == l and s.position.distance_to(p) < (5.5 if s.role == "security" else 3.2): watcher = s; break
+		if s.present and s.lvl == l and s.position.distance_to(p) < (5.5 if s.role == "security" else 3.2) * (1.4 if s.persona == "dikkatli" else 1.0): watcher = s; break
 	var g := floor_grid(l)
 	var cam := false
 	for f in fixtures:
@@ -971,6 +1044,26 @@ func sale(c: Customer, total: int) -> void:
 	var at: Vector3 = c.register.center() + Vector3(0, 1.9, 0) if c.register else c.position + Vector3(0, 2.0, 0)
 	float_text(at, "+" + Cfg.fmt_money(total), Color("1a7f5a"))
 
+## the till: a normal sale, or a line in the veresiye defteri for a regular
+func checkout(c: Customer) -> void:
+	var total := c.spent()
+	for b in c.basket:
+		var by: Dictionary = stats["buyers"].get(b["pid"], {})
+		by[c.arch["id"]] = int(by.get(c.arch["id"], 0)) + 1
+		stats["buyers"][b["pid"]] = by
+	if neighborhood.at_till(self, c, total) == "credit":
+		for b in c.basket: stats["sold"][b["pid"]] = int(stats["sold"].get(b["pid"], 0)) + 1
+		var at: Vector3 = c.register.center() + Vector3(0, 1.9, 0) if c.register else c.position + Vector3(0, 2.0, 0)
+		float_text(at, "Deftere yazıldı " + Cfg.fmt_money(total), Cfg.VIOLET)
+		GameAudio.play("ui", -8.0)
+		return
+	sale(c, total)
+
+## the deli counter only serves when its usta stands behind it
+func deli_staffed(f: Fixture) -> bool:
+	var s = f.cashier
+	return s != null and is_instance_valid(s) and staff.has(s) and s.present and s.role == "deli" and s.at_register(f)
+
 func record_visit(c: Customer, paid: bool) -> void:
 	stats["mood_n"] += 1; stats["mood_sum"] += c.mood
 	rating += (c.mood / 20.0 - rating) * (0.03 if upgrades.has("sadakat") else 0.045)
@@ -1006,6 +1099,7 @@ func _update_neighbor_events() -> void:
 				if s["pid"] != "" and int(s["stock"]) == 0: empty += 1
 		if dirt + empty == 0:
 			rating = minf(5.0, rating + 0.15)
+			if Progress.unlock("denetim"): achievement.emit("denetim")
 			alert("inspect", "star", "Zabıta denetimi: dükkân tertemiz, raflar dolu. Puanın yükseldi!", "good", null, 0.0)
 		else:
 			var fine := 150 * dirt + 100 * empty
@@ -1032,8 +1126,10 @@ func auto_order() -> void:
 	for p in unlocked_products():
 		var pid: String = p["id"]
 		if not auto[pid] or not is_stocked(pid) or (oven and DB.BAKERY.has(pid)): continue # own oven bakes the bread
+		var exp := calendar.expected(day + 1, pid)
+		if exp <= 0.0: continue # e.g. no pide outside Ramazan
 		var sold := maxi(int(last_sold.get(pid, 0)), int(stats["sold"].get(pid, 0)))
-		var target := mini(fair, maxi(shelf_cap(pid) * 2, int(round(sold * 1.25))))
+		var target := mini(int(fair * clampf(exp, 0.5, 2.0)), maxi(shelf_cap(pid) * 2, int(round(sold * 1.25 * clampf(exp / maxf(0.2, calendar.expected(day, pid)), 0.3, 3.0)))))
 		var have := int(backstock[pid]) + incoming(pid)
 		var room := depot_capacity() - reserve - backstock_total() - incoming_total()
 		if have < target and room >= 4:
@@ -1052,6 +1148,8 @@ func _attract() -> float:
 	if stage >= 1: a *= 1.3
 	if stage >= 2: a *= 1.45
 	if campaigns.has("brosur"): a *= 1.35
+	if cat != null and cat.adopted: a *= 1.04
+	a *= float(scenario.get("traffic", 1.0))
 	if mall != null:
 		a *= 1.0 + minf(0.45, mall.visitors.size() * 0.012)
 		if not mall.event.is_empty(): a *= float(mall.event["def"]["store"])
@@ -1075,22 +1173,33 @@ func _spawn_walker(anywhere := false) -> void:
 	c.go_to(self, Vector2i(c.exit_x, ez))
 	customers.append(c)
 
-func _spawn_shopper() -> void:
+func spawn_resident(r: Dictionary) -> void:
+	_spawn_shopper(Neighborhood._arch(r["arch"]), r)
+
+func _spawn_shopper(forced := {}, res := {}) -> void:
 	var h := hour()
-	var pool := DB.ARCHETYPES.filter(func(a): return a["stage"] <= stage)
-	var ws := []
-	var tot := 0.0
-	for a in pool:
-		var w := DB.curve(a, h) * (1.6 if a["id"] == "haftalik" and upgrades.has("otopark") else 1.0) * (1.5 if a.get("thief", false) and stage >= 2 else 1.0)
-		ws.append(w); tot += w
-	var r := randf() * tot
-	var arch: Dictionary = pool[-1]
-	for i in pool.size():
-		r -= ws[i]
-		if r <= 0.0: arch = pool[i]; break
+	var arch: Dictionary = forced
+	if arch.is_empty():
+		var pool := DB.ARCHETYPES.filter(func(a): return a["stage"] <= stage)
+		var ws := []
+		var tot := 0.0
+		var base_t := calendar.traffic(day, h)
+		for a in pool:
+			var w := DB.curve(a, h) * (1.6 if a["id"] == "haftalik" and upgrades.has("otopark") else 1.0) * (1.5 if a.get("thief", false) and stage >= 2 else 1.0)
+			w *= calendar.traffic(day, h, a["id"]) / maxf(0.01, base_t)
+			w *= float(scenario.get("arch", {}).get(a["id"], 1.0))
+			ws.append(w); tot += w
+		var r := randf() * tot
+		arch = pool[-1]
+		for i in pool.size():
+			r -= ws[i]
+			if r <= 0.0: arch = pool[i]; break
+	if rival.active and randf() < rival.diversion(self, arch["id"], res):
+		_spawn_to_rival(arch, res)
+		return
 	var c := Customer.new()
 	agents_node.add_child(c)
-	c.setup_customer(arch, true, self)
+	c.setup_customer(arch, true, self, res)
 	if arch.get("cart", false) and upgrades.has("otopark"):
 		var slot := street.request_car()
 		if slot >= 0:
@@ -1117,6 +1226,25 @@ func _spawn_shopper() -> void:
 	c.go_to(self, Vector2i(c.door_x, grid.interior().end.y))
 	customers.append(c)
 
+## a shopper who picked UCUZA today: walks past, crosses at the zebra and goes in over there
+func _spawn_to_rival(arch: Dictionary, res := {}) -> void:
+	rival.lost_today += 1; stats["rival_lost"] += 1
+	var c := Customer.new()
+	agents_node.add_child(c)
+	c.setup_customer(arch, false, self, res)
+	var from_left := randf() < 0.5
+	var z := Cfg.SIDEWALK_Z0 + randi() % 3
+	var x := 0 if from_left else Cfg.MAP_W - 1
+	if not grid.walkable(x, z):
+		c.queue_free(); return
+	c.position = Vector3(x + 0.5, 0.02, z + 0.5)
+	c.state = "walkby"
+	c.flags["to_rival"] = true
+	c.exit_x = 2
+	c.go_to(self, Vector2i(2, Cfg.FAR_WALK_Z0 + 1))
+	if not res.is_empty(): c.log_thought("price", "UCUZA'da süt daha ucuzmuş, bugün oradan alayım.", self, false)
+	customers.append(c)
+
 func _demand(h: float) -> float:
 	var pool := DB.ARCHETYPES.filter(func(a): return a["stage"] <= stage and not a.get("thief", false))
 	var s := 0.0
@@ -1141,6 +1269,7 @@ func _process(real_dt: float) -> void:
 		if not (a is Staff and not a.present): a.visible = _agent_visible(a, far) and not a.hidden_agent
 	if mall != null: mall.sync_children(view_dt)
 	sky.set_time(hour())
+	sky.follow(rig.target, real_dt)
 	var cam_dir := -rig.cam.global_transform.basis.z
 	var agent_pos := []
 	for a in all: agent_pos.append(a.position)
@@ -1210,7 +1339,7 @@ func tick(dt: float) -> void:
 		_walk_acc -= randf() * 2.0
 		if customers.size() < 50: _spawn_walker()
 	if is_open():
-		_spawn_acc += dt * 0.34 * _demand(h) * _attract()
+		_spawn_acc += dt * 0.34 * _demand(h) * _attract() * calendar.traffic(day, h)
 		while _spawn_acc > 1.0:
 			_spawn_acc -= 1.0
 			if customers.size() < 60 + stage * 20: _spawn_shopper()
@@ -1223,6 +1352,21 @@ func tick(dt: float) -> void:
 			if not f.is_display(): continue
 			for sl in f.slots:
 				if DB.BAKERY.has(sl["pid"]) and int(sl["stock"]) > 0: sl["fresh"] = maxf(0.0, float(sl.get("fresh", 1.0)) - k)
+	if is_open(): neighborhood.update(self)
+	cat.maybe_arrive(self)
+	cat.update(dt, self)
+	if cat.adopted and randf() < dt * 0.0011: cat.mischief(self)
+	if is_open() and abs_minutes() >= _next_announce:
+		_next_announce = abs_minutes() + randf_range(100.0, 170.0)
+		announced.emit(Announcer.pick(self))
+	_ach_acc += dt
+	if _ach_acc > 5.0:
+		_ach_acc = 0.0
+		for id in Progress.check(self): achievement.emit(id)
+	# rainy days: muddy footprints by the doors
+	if calendar.weather in ["yagmur", "kar"] and is_open() and randf() < dt * 0.0012 * maxf(1.0, customers_inside() * 0.25):
+		var drs: Array = grid.layout["doors"]
+		spill_at(Vector2i(drs.pick_random(), grid.interior().end.y - 1), 0, "Yağmurdan gelenler kapının önünü çamur etti")
 	for c in customers: c.update(dt, self)
 	for s in staff: s.update(dt, self)
 	if mall != null: mall.update(dt)
@@ -1263,6 +1407,7 @@ func tick(dt: float) -> void:
 	if _status_acc > 0.25:
 		_status_acc = 0.0
 		_update_statuses()
+		quests.check(self)
 	if prev < 19 * 60 and clock >= 19 * 60 and evening_bakery:
 		refresh_all()
 		alert("evening", "tag", "19:00: akşam indirimi başladı, simit ve ekmek %40 ucuz.", "info")
@@ -1272,6 +1417,15 @@ func tick(dt: float) -> void:
 	if clock >= Cfg.DAY_CLOSE and ((customers_inside() == 0 and not mall_busy) or clock > Cfg.DAY_CLOSE + 50): end_day()
 
 func _update_statuses() -> void:
+	if is_open():
+		var oos: Dictionary = stats["oos_min"]
+		var seen := {}
+		for f in fixtures:
+			if not f.is_display(): continue
+			for sl in f.slots:
+				if sl["pid"] == "" or seen.has(sl["pid"]): continue
+				seen[sl["pid"]] = true
+				if shelf_stock(sl["pid"]) == 0: oos[sl["pid"]] = float(oos.get(sl["pid"], 0.0)) + 0.25 * Cfg.MIN_PER_SEC
 	for f in fixtures:
 		var k := ""
 		if f.is_display():
@@ -1321,7 +1475,7 @@ func _update_van(dt: float) -> void:
 					var put := mini(room, int(o["qty"]))
 					if put > 0 and DB.BAKERY.has(o["pid"]): add_fresh(o["pid"], put, 0.8)
 					backstock[o["pid"]] += put; n += put
-					if int(o["qty"]) - put > 0: overflow += (int(o["qty"]) - put) * int(DB.product(o["pid"])["cost"])
+					if int(o["qty"]) - put > 0: overflow += (int(o["qty"]) - put) * cost_of(o["pid"])
 				if overflow > 0:
 					money += overflow; stats["purchases"] -= overflow
 					alert("overflow", "box", "Depo doldu, %s tutarında mal iade edildi." % Cfg.fmt_money(overflow), "warn")
@@ -1337,6 +1491,17 @@ func _update_van(dt: float) -> void:
 func end_day() -> void:
 	if day_ended_flag: return
 	last_sold = (stats["sold"] as Dictionary).duplicate()
+	var unit_costs := {}
+	for p in DB.PRODUCTS: unit_costs[p["id"]] = cost_of(p["id"])
+	product_log.append({"day": day, "sold": (stats["sold"] as Dictionary).duplicate(), "missed": (stats["missed"] as Dictionary).duplicate(),
+		"expensive": (stats["expensive"] as Dictionary).duplicate(), "oos": (stats["oos_min"] as Dictionary).duplicate(), "price": prices.duplicate(), "cost": unit_costs})
+	if product_log.size() > 14: product_log.pop_front()
+	neighborhood.end_day(self)
+	rival.end_day(self)
+	quests.end_day(self)
+	_pay_loan()
+	if cat.adopted: money -= 15; stats["other"] += 15
+	_staff_day()
 	for c in customers:
 		if c.inside():
 			if c.register: c.register.queue.erase(c)
@@ -1352,11 +1517,15 @@ func end_day() -> void:
 	money -= wages + rent() + utilities()
 	stats["wages"] = wages; stats["rent"] = rent(); stats["utilities"] = utilities()
 	var income: int = stats["revenue"] + stats["mall_income"]
-	var costs: int = stats["purchases"] + wages + rent() + utilities() + stats["other"]
-	history.append({"day": day, "revenue": income, "costs": costs, "profit": income - costs, "rating": rating})
+	var costs: int = stats["purchases"] + wages + rent() + utilities() + stats["other"] + int(stats["loan"])
+	history.append({"day": day, "revenue": income, "costs": costs, "profit": income - costs, "rating": rating, "happy": stats["happy"]})
 	day_ended_flag = true
 	GameAudio.play("coin", -4.0)
 	day_ended.emit({"day": day, "stats": stats, "costs": costs, "income": income, "rating": rating, "money": money, "mall": mall_sum})
+	for id in Progress.check(self): achievement.emit(id)
+	if not scenario.is_empty():
+		var res := Scenarios.check(self)
+		if res != "": scenario_result.emit(res)
 
 ## unsold bread goes stale overnight; without a cold room, 30% of chilled backstock spoils
 func _overnight_losses() -> void:
@@ -1364,12 +1533,12 @@ func _overnight_losses() -> void:
 		if not f.is_display(): continue
 		for sl in f.slots:
 			if DB.BAKERY.has(sl["pid"]) and int(sl["stock"]) > 0:
-				stats["stale"] += int(sl["stock"]); stats["stale_cost"] += int(sl["stock"]) * int(DB.product(sl["pid"])["cost"])
+				stats["stale"] += int(sl["stock"]); stats["stale_cost"] += int(sl["stock"]) * cost_of(sl["pid"])
 				sl["stock"] = 0
 	for pid in DB.BAKERY:
 		var b := int(backstock.get(pid, 0))
 		if b > 0:
-			stats["stale"] += b; stats["stale_cost"] += b * int(DB.product(pid)["cost"])
+			stats["stale"] += b; stats["stale_cost"] += b * cost_of(pid)
 			backstock[pid] = 0
 	if stage >= 1 and not has_cold_room():
 		for p in unlocked_products():
@@ -1377,7 +1546,7 @@ func _overnight_losses() -> void:
 			var lost := int(floor(int(backstock[p["id"]]) * 0.3))
 			if lost > 0:
 				backstock[p["id"]] -= lost
-				stats["spoiled"] += lost; stats["spoiled_cost"] += lost * int(p["cost"])
+				stats["spoiled"] += lost; stats["spoiled_cost"] += lost * cost_of(p["id"])
 	refresh_all(); depot_changed()
 
 func add_fresh(pid: String, qty: int, fresh: float) -> void:
@@ -1392,11 +1561,11 @@ func _morning_bread() -> void:
 	for f in fixtures:
 		if not f.is_display(): continue
 		for sl in f.slots:
-			if not DB.BAKERY.has(sl["pid"]) or not auto.get(sl["pid"], true): continue
+			if not DB.BAKERY.has(sl["pid"]) or not auto.get(sl["pid"], true) or not calendar.product_active(day, sl["pid"]): continue
 			var n: int = f.cap() - int(sl["stock"])
 			if n <= 0: continue
 			sl["stock"] = f.cap(); sl["fresh"] = 1.0 if oven else 0.85
-			total_cost += int(round(n * (DB.BAKED[sl["pid"]] if oven else float(DB.product(sl["pid"])["cost"]))))
+			total_cost += int(round(n * (DB.BAKED[sl["pid"]] if oven else float(cost_of(sl["pid"])))))
 	if total_cost > 0:
 		money -= total_cost; stats["purchases"] += total_cost
 		alert("morningbread", "star", ("Fırıncının gece pişirdiği sıcak ekmek ve simit raflarda (%s)." if oven else "Fırından sabah ekmek teslimatı raflara dizildi (%s).") % Cfg.fmt_money(total_cost), "good", null, 0.0)
@@ -1408,6 +1577,15 @@ func start_next_day() -> void:
 	day += 1
 	clock = float(Cfg.DAY_OPEN)
 	stats = new_stats()
+	calendar.advance(day)
+	sky.set_weather(calendar.weather)
+	neighborhood.start_day(self)
+	rival.start_day(self)
+	quests.refill(self)
+	_inflation()
+	cat.start_day(self)
+	_next_announce = day * 1440.0 + Cfg.DAY_OPEN + randf_range(30.0, 90.0)
+	_announce_day()
 	day_ended_flag = false
 	campaigns.clear(); discounts = []; multi = []
 	refresh_all()
@@ -1420,6 +1598,146 @@ func start_next_day() -> void:
 	if mall != null: mall.start_day()
 	SaveGame.save(self, 0)
 	changed.emit()
+
+# ------------------------------------------------------------------ economy
+## once a week the wholesaler raises prices; shoppers' idea of a fair price rises with them
+func _inflation() -> void:
+	if day < _next_hike_day: return
+	_next_hike_day = day + 7
+	var hike := randf_range(0.02, 0.045)
+	cost_mul *= 1.0 + hike
+	alert("inflation", "chart", "Toptancı zam yaptı: ortalama %%%.1f. Müşterilerin \"normal fiyat\" beklentisi de arttı. Ürün & Fiyat panelinden fiyatlarını güncellemeyi unutma." % (hike * 100.0), "warn", null, 0.0)
+	refresh_all(); changed.emit()
+
+func pending_inflation() -> float: return cost_mul / price_mul - 1.0
+
+## pass the inflation since the last update on to every shelf price
+func apply_inflation_to_prices() -> void:
+	var k := cost_mul / price_mul
+	if k <= 1.001: return
+	for pid in prices: prices[pid] = maxi(1, int(round(prices[pid] * k)))
+	price_mul = cost_mul
+	refresh_all(); changed.emit()
+
+func take_loan(i: int) -> bool:
+	if not loan.is_empty() or i < 0 or i >= DB.LOANS.size(): return false
+	var l: Dictionary = DB.LOANS[i]
+	if l["stage"] > stage: return false
+	var total := int(round(l["amount"] * (1.0 + l["rate"])))
+	loan = {"amount": l["amount"], "total": total, "left": total, "daily": int(ceil(total / float(l["days"])))}
+	money += l["amount"]
+	alert("loan", "bank", "Mahalle Bankası'ndan %s kredi çektin. Her gün sonunda %s taksit düşülecek." % [Cfg.fmt_money(l["amount"]), Cfg.fmt_money(loan["daily"])], "info", null, 0.0)
+	changed.emit()
+	return true
+
+func repay_loan() -> void:
+	if loan.is_empty() or money < loan["left"]: return
+	money -= loan["left"]; stats["loan"] += int(loan["left"])
+	loan = {}
+	alert("loan_done", "bank", "Kredinin tamamını erken kapattın.", "good", null, 0.0)
+	if Progress.unlock("borcsuz"): achievement.emit("borcsuz")
+	changed.emit()
+
+func _pay_loan() -> void:
+	if loan.is_empty(): return
+	var pay := mini(int(loan["daily"]), int(loan["left"]))
+	money -= pay; stats["loan"] = pay
+	loan["left"] = int(loan["left"]) - pay
+	if int(loan["left"]) <= 0:
+		loan = {}
+		alert("loan_done", "bank", "Kredi borcu bitti. Tebrikler!", "good", null, 0.0)
+		if Progress.unlock("borcsuz"): achievement.emit("borcsuz")
+
+# ------------------------------------------------------------------ staff life
+## experience, raise requests and notices, once a day
+func _staff_day() -> void:
+	var asked := false
+	for s in staff.duplicate():
+		if s.role == "owner": continue
+		s.days_worked += 1
+		s.skill = minf(1.45, s.skill + 0.006)
+		if s.quit_day >= 0 and day >= s.quit_day:
+			alert("quit%d" % s.get_instance_id(), "staff", "%s istifa etti ve bugün son günüydü. Personel panelinden yenisini al." % s.person_name, "bad", null, 0.0)
+			fire(s); continue
+		s.morale = clampf(s.morale + (1.5 if not s.tired() else -3.0), 0.0, 100.0)
+		if not asked and day - s.raise_day >= 9 and randf() < 0.35:
+			asked = true
+			s.raise_day = day
+			var nw := int(round(s.base_wage * 1.1 / 10.0)) * 10
+			push_event({"kind": "raise", "title": "%s zam istiyor" % s.person_name, "icon": "staff", "expires": (day + 1) * 1440.0 + Cfg.DAY_OPEN + 240.0,
+				"text": "%s (%s) %d gündür burada çalışıyor, maaşının %s'den %s'ye çıkmasını istiyor. Reddedersen morali düşer; çok küserse istifa edebilir." % [s.person_name, DB.ROLE_LABEL[s.role], s.days_worked, Cfg.fmt_money(s.base_wage), Cfg.fmt_money(nw)],
+				"choices": [{"label": "Zam yap · +%s/gün" % Cfg.fmt_money(nw - s.base_wage), "primary": true}, {"label": "Şimdi olmaz"}], "data": {"staff": s.get_instance_id(), "wage": nw}})
+
+func staff_by_iid(iid: int) -> Staff:
+	for s in staff:
+		if s.get_instance_id() == iid: return s
+	return null
+
+func train(s: Staff) -> bool:
+	var cost := 300 * (stage + 1)
+	if money < cost or day - s.trained_day < 3 or s.skill >= 1.45: return false
+	money -= cost; stats["other"] += cost
+	s.skill = minf(1.45, s.skill + 0.08); s.morale = minf(100.0, s.morale + 8.0); s.trained_day = day
+	float_text(s.position + Vector3(0, 2.3, 0), "Eğitim +beceri", Cfg.VIOLET)
+	changed.emit()
+	return true
+
+## a mahalle olayı card raised by the game itself (cat at the door, a raise request)
+func push_event(ev: Dictionary) -> void:
+	ev["id"] = NeighborEvents.next_id()
+	neighbor_events.append(ev)
+	events_changed.emit()
+	GameAudio.play("bell", -6.0)
+
+# ------------------------------------------------------------------ undo & copy (build mode)
+func push_undo(a: Dictionary) -> void:
+	undo_stack.append(a)
+	if undo_stack.size() > 20: undo_stack.pop_front()
+
+func undo() -> bool:
+	if undo_stack.is_empty() or not placing.is_empty(): return false
+	var a: Dictionary = undo_stack.pop_back()
+	match a["kind"]:
+		"place":
+			var f = a["fixture"]
+			if not is_instance_valid(f) or not fixtures.has(f): return undo()
+			money += int(a["cost"]); stats["other"] -= int(a["cost"])
+			if a.get("voucher", false): vouchers[f.def["id"]] = int(vouchers.get(f.def["id"], 0)) + 1
+			remove_fixture(f)
+			float_text(f.center() + Vector3(0, 1.8, 0), "Geri alındı", Cfg.BLUE)
+		"move":
+			var f2 = a["fixture"]
+			if not is_instance_valid(f2) or not fixtures.has(f2): return undo()
+			var g := floor_grid(f2.lvl)
+			if not f2.noblock():
+				for t in f2.fp["tiles"]: g.fixture[g.idx(t.x, t.y)] = 0
+			f2.place(a["x"], a["z"], a["rot"])
+			if not f2.noblock():
+				for t in f2.fp["tiles"]: g.fixture[g.idx(t.x, t.y)] = f2.uid
+			g.version += 1
+			layout_changed()
+		"sell":
+			if money < int(a["refund"]): return false
+			money -= int(a["refund"])
+			var f3 := add_fixture(DB.fixture(a["id"]), a["x"], a["z"], a["rot"], a["lvl"])
+			for i in mini(f3.slots.size(), a["slots"].size()):
+				f3.slots[i]["pid"] = a["slots"][i]
+			f3.refresh(self)
+	changed.emit()
+	return true
+
+## morning news: what kind of day it is and what tomorrow looks like
+func _announce_day() -> void:
+	var sp := calendar.special(day)
+	var w := calendar.weather_info()
+	var msg := "%s, %s." % [calendar.label(day), (w["name"] as String).to_lower()]
+	if not sp.is_empty(): msg += " %s: %s" % [sp["name"], sp["desc"]]
+	var tip := ""
+	match calendar.weather:
+		"sicak": tip = " Dondurma, su ve kola dolapta hazır olsun."
+		"yagmur": tip = " Şemsiye satılır, kapının önü çamur olur."
+		"kar": tip = " Salep aranır, müşteri azdır."
+	alert("day", sp.get("icon", w["icon"]), msg + tip, "info", null, 0.0)
 
 ## upgrade visuals after loading a save
 func apply_upgrade_visuals() -> void:
@@ -1461,6 +1779,7 @@ func expand() -> bool:
 	if e == null or not can_expand(): return false
 	money -= e["cost"]; stats["other"] += int(e["cost"])
 	apply_stage(e["to"])
+	neighborhood.grow(self)
 	var msg: String = ["", "Mahalle Marketi açıldı! Yeni reyonlar, manav ve aile alışverişçileri seni bekliyor.",
 		"Süpermarket açıldı! Bantlı kasalar, fırın, reyon levhaları ve araba parkı kilidi açıldı.",
 		"Köşebaşı AVM açıldı! Kiracı birimlerini AVM panelinden (V) doldur, üst kata PageUp ile çık."][e["to"]]

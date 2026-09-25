@@ -10,6 +10,8 @@ static var fullscreen := false
 static var ui_scale := 1.0
 static var cutaway := true
 static var edge_pan := false
+static var lang := "tr"
+static var tutorial := true
 static var vol := {"Master": 0.8, "Music": 0.55, "SFX": 0.8, "Ambience": 0.6}
 static var _loaded := false
 
@@ -22,6 +24,9 @@ static func load_settings() -> void:
 	fullscreen = bool(c.get_value("video", "fullscreen", fullscreen))
 	ui_scale = float(c.get_value("video", "ui_scale", ui_scale))
 	cutaway = bool(c.get_value("game", "cutaway", cutaway))
+	lang = str(c.get_value("game", "lang", lang))
+	tutorial = bool(c.get_value("game", "tutorial", tutorial))
+	Loc.set_lang(lang)
 	for k in vol: vol[k] = float(c.get_value("audio", k, vol[k]))
 
 static func save_settings() -> void:
@@ -30,6 +35,8 @@ static func save_settings() -> void:
 	c.set_value("video", "fullscreen", fullscreen)
 	c.set_value("video", "ui_scale", ui_scale)
 	c.set_value("game", "cutaway", cutaway)
+	c.set_value("game", "lang", lang)
+	c.set_value("game", "tutorial", tutorial)
 	for k in vol: c.set_value("audio", k, vol[k])
 	c.save(FILE)
 

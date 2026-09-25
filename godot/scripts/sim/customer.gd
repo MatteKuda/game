@@ -30,6 +30,8 @@ var has_cart := false
 var slip_t := 0.0
 var search_t := 0.0
 var car_slot := -1 # parking-lot slot when the shopper came by car
+var resident: Dictionary = {} # a named regular from the Neighborhood, or empty
+var deli_wait := 0.0
 
 func thief() -> bool: return arch != null and arch.get("thief", false)
 
@@ -49,17 +51,27 @@ static func random_look(a) -> Dictionary:
 		"height": randf_range(0.9, 0.97) if (a != null and a["id"] == "ogrenci") else randf_range(0.96, 1.05),
 	}
 
-func setup_customer(a, is_shopper: bool, game) -> void:
+func setup_customer(a, is_shopper: bool, game, res := {}) -> void:
 	arch = a
 	shopper = is_shopper
-	init_agent(random_look(a), Cfg.NAMES.pick_random())
+	resident = res
+	if not res.is_empty(): init_agent(res["look"], res["name"])
+	else: init_agent(random_look(a), Cfg.NAMES.pick_random())
 	budget = int(randf_range(a["budget"][0], a["budget"][1])) if a != null else 0
 	speed = a["speed"] * randf_range(0.92, 1.08) if a != null else randf_range(1.1, 1.5)
 	if a != null and is_shopper:
 		var n := int(round(randf_range(a["list"][0], a["list"][1])))
 		var pool := []
 		for pid in a["wants"]:
-			if DB.product(pid)["stage"] <= game.stage: pool.append([pid, float(a["wants"][pid])])
+			# people know what the shop carries: products it never stocks are asked for far less often
+			if DB.product(pid)["stage"] <= game.stage: pool.append([pid, float(a["wants"][pid]) * (1.0 if game.is_stocked(pid) else 0.15)])
+		if not res.is_empty():
+			for pid in game.neighborhood.wants_for(res):
+				if DB.product(pid)["stage"] > game.stage or wants.any(func(w): return w["pid"] == pid): continue
+				wants.append({"pid": pid, "qty": 1, "status": "pending", "tried": {}})
+				for e in pool:
+					if e[0] == pid: pool.erase(e); break
+				n -= 1
 		for i in n:
 			if pool.is_empty(): break
 			var tot := 0.0
@@ -154,6 +166,22 @@ func update(dt: float, game) -> void:
 		"browse":
 			v.play("reach")
 			_inside_tick(dt, game)
+			if shelf and shelf.def.get("staffed", false) and not thief():
+				# the deli counter needs its usta: wait a little, then give up
+				if not game.deli_staffed(shelf):
+					deli_wait += dt; v.play("idle")
+					if deli_wait > 9.0:
+						deli_wait = 0.0; mood -= 8
+						log_thought("nocashier", "Şarküteride kimse yok, bekledim bekledim…", game)
+						for w in wants:
+							if w["status"] == "pending" and DB.product(w["pid"])["display"] == "deli":
+								w["status"] = "notfound"
+								game.stats["missed"][w["pid"]] = int(game.stats["missed"].get(w["pid"], 0)) + 1
+						next_want(game)
+					return
+				elif not flags.has("deli_served"):
+					flags["deli_served"] = true; timer += 2.2
+					log_thought("happy", "Usta ince ince kesti, tarttı.", game, false)
 			timer -= dt
 			if timer <= 0.0: _evaluate_shelf(game)
 		"to_queue", "queue":
@@ -184,6 +212,14 @@ func update(dt: float, game) -> void:
 					state = "paying"
 					var sk: float = 1.0 if self_s else reg.cashier.eff_skill()
 					timer = (2.0 + 0.55 * basket.size()) * (0.65 if game.upgrades.has("pos") else 1.0) * float(reg.def.get("service", 1.0)) / sk
+					if not self_s:
+						var tr: String = reg.cashier.persona
+						if tr == "geveze":
+							timer *= 1.15; mood += 5
+							if randf() < 0.3: log_thought("happy", "%s hal hatır sordu, ne tatlı insan." % reg.cashier.person_name, game, false)
+						elif tr == "guleryuz":
+							mood += 6
+							if randf() < 0.3: log_thought("happy", "Kasadaki %s hep gülümsüyor." % reg.cashier.person_name, game, false)
 				elif idx == 0 and not staffed and not flags.has("nocashier"):
 					flags["nocashier"] = true; log_thought("nocashier", "Kasada kimse yok!", game)
 			else:
@@ -196,7 +232,7 @@ func update(dt: float, game) -> void:
 				if register and register.def.get("self", false) and basket.size() > 2 and randf() < 0.08:
 					var b: Dictionary = basket.pop_back()
 					game.record_shrink(b["pid"])
-				game.sale(self, spent())
+				game.checkout(self)
 				if register: register.queue.erase(self)
 				if wait < arch["patience"] * 0.3: mood += 6
 				finish_visit(game, true)
@@ -228,6 +264,7 @@ func be_caught(game) -> void:
 	state = "caught"; timer = 2.2; path = []; has_goal = false
 	for pid in stolen: game.backstock[pid] = int(game.backstock.get(pid, 0)) + 1
 	game.stats["caught"] += 1
+	game.totals["caught"] = int(game.totals.get("caught", 0)) + 1
 	stolen.clear()
 	view.set_basket_items([])
 	log_thought("angry", "Yakalandım…", game)
@@ -275,7 +312,8 @@ func next_want(game) -> void:
 		if cands.is_empty():
 			w["status"] = "oos" if not w["tried"].is_empty() else "notfound"
 			if w["status"] == "notfound" and not thief():
-				mood -= 13
+				# a regular's favourite or a staple hurts; an odd request the shop never carried barely does
+				mood -= 13 if DB.product(w["pid"]).get("staple", false) or not resident.is_empty() else 3
 				log_thought("notfound", "%s arıyordum, satılmıyor mu?" % DB.product(w["pid"])["name"], game)
 				game.stats["missed"][w["pid"]] = int(game.stats["missed"].get(w["pid"], 0)) + 1
 			continue
@@ -300,6 +338,7 @@ func next_want(game) -> void:
 	var bw: Dictionary = best[0]
 	var bf: Fixture = best[1]
 	shelf = bf
+	deli_wait = 0.0
 	bw["tried"][bf.uid] = true
 	if game.stage >= 2 and not thief() and not game.sign_near(bf):
 		search_t = 2.4; mood -= 3
@@ -347,7 +386,7 @@ func _evaluate_shelf(game) -> void:
 			_try_steal(game, w, slot, f); continue
 		var price: int = game.effective_price(w["pid"])
 		var tol: float = arch["tol"] + game.tolerance_bonus()
-		if price > p["base"] * (1.0 + tol) and not game.is_discounted(w["pid"]):
+		if price > game.ref_price(w["pid"]) * (1.0 + tol) and not game.is_discounted(w["pid"]):
 			w["status"] = "expensive"; mood -= 12
 			log_thought("price", "%s ₺%d? Çok pahalı!" % [p["name"], price], game)
 			game.stats["expensive"][w["pid"]] = int(game.stats["expensive"].get(w["pid"], 0)) + 1
@@ -363,9 +402,13 @@ func _evaluate_shelf(game) -> void:
 		var multi: bool = game.is_multi(w["pid"])
 		var want_n := maxi(int(w["qty"]), 3) if multi else int(w["qty"])
 		var took := 0
+		var credit_room: int = game.neighborhood.headroom(resident) if not resident.is_empty() else 0
 		for q in want_n:
 			var unit_price := 0 if multi and (q + 1) % 3 == 0 else price
-			if spent() + unit_price > budget or slot["stock"] <= 0: break
+			if slot["stock"] <= 0: break
+			if spent() + unit_price > budget:
+				if spent() + unit_price > budget + credit_room: break
+				flags["credit_need"] = true
 			slot["stock"] -= 1
 			basket.append({"pid": w["pid"], "price": unit_price}); took += 1
 		if multi and took >= 3:
@@ -378,7 +421,7 @@ func _evaluate_shelf(game) -> void:
 		if game.is_discounted(w["pid"]):
 			mood += 4
 			if randf() < 0.6: log_thought("cheap", "%s indirimde, iyi denk geldi!" % p["name"], game)
-		elif price <= p["base"] * 0.9 and randf() < 0.5:
+		elif price <= game.ref_price(w["pid"]) * 0.9 and randf() < 0.5:
 			mood += 4; log_thought("cheap", "%s ucuzmuş!" % p["name"], game)
 		if DB.BAKERY.has(w["pid"]) and fresh >= 0.75 and not flags.has("fresh"):
 			flags["fresh"] = true; mood += 5; log_thought("happy", "%s sıcacık, fırından yeni çıkmış!" % p["name"], game)
@@ -426,7 +469,7 @@ func _check_impulse(game) -> void:
 				if b["pid"] == p["id"]: has = true
 			if has: continue
 			var price: int = game.effective_price(p["id"])
-			if price > p["base"] * (1.0 + arch["tol"]) or spent() + price > budget: continue
+			if price > game.ref_price(p["id"]) * (1.0 + arch["tol"]) or spent() + price > budget: continue
 			if randf() < arch["impulse"] * game.impulse_mul():
 				s["stock"] -= 1
 				basket.append({"pid": p["id"], "price": price})
@@ -449,7 +492,7 @@ func _check_endcap(game) -> void:
 		if basket.any(func(b): return b["pid"] == pid) or wants.any(func(w): return w["pid"] == pid): continue
 		var p: Dictionary = DB.product(pid)
 		var price: int = game.effective_price(pid)
-		if price > p["base"] * (1.0 + arch["tol"]) or spent() + price > budget: continue
+		if price > game.ref_price(p["id"]) * (1.0 + arch["tol"]) or spent() + price > budget: continue
 		if randf() < (0.2 + arch["impulse"]) * game.impulse_mul() * (1.4 if game.is_discounted(pid) or game.is_multi(pid) else 1.0):
 			s["stock"] -= 1
 			basket.append({"pid": pid, "price": price})
@@ -494,6 +537,9 @@ func _abandon(game) -> void:
 func finish_visit(game, paid: bool) -> void:
 	mood = clampf(mood, 0.0, 100.0)
 	if not thief(): game.record_visit(self, paid)
+	if not resident.is_empty() and not flags.has("visited"):
+		flags["visited"] = true
+		game.neighborhood.after_visit(game, self)
 	if paid and mood >= 60: log_thought("happy", "Güzel dükkân, yine gelirim!", game)
 	elif paid and mood < 40: log_thought("angry", "Aldım ama memnun kalmadım.", game)
 	state = "leaving"

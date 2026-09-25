@@ -5,6 +5,9 @@ class_name NeighborEvents
 const MATCH_FROM := 19 * 60
 const NAMES := ["Selim Bey", "Nuriye Hanım", "Muhtar Ahmet", "Kerime Teyze", "Hakan Abi", "Sevgi Hanım"]
 static var _next_id := 1
+static func next_id() -> int:
+	_next_id += 1
+	return _next_id - 1
 
 ## returns {id, kind, title, text, icon, expires, choices: [{label, hint, primary, disabled}], data} or {}
 static func roll(g) -> Dictionary:
@@ -24,7 +27,7 @@ static func roll(g) -> Dictionary:
 			var p: Dictionary = (pool if not pool.is_empty() else stocked).pick_random()
 			var qty := int(round((24 + randf() * 24) * scale / 6.0)) * 6
 			var off: float = [0.3, 0.35, 0.4].pick_random()
-			var cost := int(round(qty * int(p["cost"]) * (1.0 - off)))
+			var cost := int(round(qty * g.cost_of(p["id"]) * (1.0 - off)))
 			var room: int = g.depot_capacity() - g.backstock_total() - g.incoming_total()
 			ev.merge({"title": "Toptancıdan fırsat", "icon": "truck",
 				"text": "Toptancının elinde fazla %s kaldı: %d adet %%%d indirimle, 1 saat içinde getirir." % [p["name"], qty, int(off * 100)],
@@ -100,6 +103,23 @@ static func resolve(g, ev: Dictionary, choice: int) -> String:
 				for L in g.litter.duplicate(): g.remove_litter(L)
 			g.inspection_at = g.abs_minutes() + 60.0
 			return "Temizlikçi yerleri pırıl pırıl yaptı." if choice == 1 else "Denetim 1 saat içinde."
+		"raise":
+			var s: Staff = g.staff_by_iid(int(d["staff"]))
+			if s == null: return ""
+			if choice == 0:
+				s.base_wage = int(d["wage"]); s.set_shift(s.shift); s.morale = minf(100.0, s.morale + 20.0)
+				return "%s'e zam yapıldı, çok memnun." % s.person_name
+			s.morale -= 25.0
+			if s.morale < 35.0 and randf() < 0.6:
+				s.quit_day = g.day + 2
+				g.alert("notice%d" % s.get_instance_id(), "staff", "%s kırıldı ve istifasını verdi: 2 gün sonra ayrılıyor." % s.person_name, "bad", null, 0.0)
+			return "%s zam alamadı, morali bozuk." % s.person_name
+		"cat":
+			if choice == 0:
+				g.cat.adopt(g)
+				return "%s artık dükkânın kedisi! Maması kapının yanında." % g.cat.cat_name
+			g.cat.shoo(g)
+			return ""
 		_:
 			g.praise_until = g.abs_minutes() + 360.0
 	return ""

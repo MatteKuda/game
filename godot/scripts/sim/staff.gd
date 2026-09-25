@@ -16,6 +16,12 @@ var timer := 0.0
 var idle_t := 0.0
 var register: Fixture = null
 var activity := "Hazır"
+var persona := ""
+var morale := 70.0
+var days_worked := 0
+var raise_day := 0 # last day a raise was asked for or given
+var trained_day := -99
+var quit_day := -1 # set when an unhappy worker hands in notice
 
 static func look_for(r: String) -> Dictionary:
 	var skin: Color = Customer.SKIN.pick_random()
@@ -27,13 +33,14 @@ static func look_for(r: String) -> Dictionary:
 		"security": return {"body": "knight", "skin": skin, "hair": hair, "top": Color("24324a"), "bottom": Color("1b2130"), "shoes": Color("1a1a1e"), "accent": Color("f2b33d"), "height": 1.06}
 		"technician": return {"body": "barbarian", "skin": skin, "hair": hair, "top": Color("e8962c"), "bottom": Color("2b3a55"), "shoes": Color("2a2a2e"), "accent": Color("f2b33d"), "height": 1.02}
 		"baker": return {"body": "barbarian", "skin": skin, "hair": hair, "top": Color("f6f1e7"), "bottom": Color("e8e2d6"), "shoes": Color("2a2a2e"), "accent": Color("f6f1e7"), "height": 1.0}
+		"deli": return {"body": "barbarian", "skin": skin, "hair": hair, "top": Color("f6f1e7"), "bottom": Color("8a2f2a"), "shoes": Color("2a2a2e"), "accent": Color("8a2f2a"), "height": 1.02}
 		_: return {"body": "knight", "skin": skin, "hair": hair, "top": Color("2f5d8a"), "bottom": Color("24324a"), "shoes": Color("2a2a2e"), "accent": Cfg.MUSTARD, "height": 1.0}
 
-func setup_staff(r: String, nm: String, w: int, sk: float, sh := "full") -> void:
-	role = r; base_wage = w; skill = sk; shift = sh
+func setup_staff(r: String, nm: String, w: int, sk: float, sh := "full", tr := "") -> void:
+	role = r; base_wage = w; skill = sk; shift = sh; persona = tr
 	wage = int(round(base_wage * DB.SHIFT_WAGE[shift]))
 	init_agent(look_for(r), nm)
-	speed = 1.6
+	speed = 1.6 * (1.15 if persona == "cevik" else 1.0)
 
 func set_shift(sh: String) -> void:
 	shift = sh
@@ -42,7 +49,12 @@ func set_shift(sh: String) -> void:
 static var room_bonus := 1.0 # set by the game when a break room exists
 
 func tired() -> bool: return energy < 30.0
-func eff_skill() -> float: return skill * (0.7 if tired() else 1.0) * room_bonus
+func eff_skill() -> float:
+	var k := skill * (0.7 if tired() else 1.0) * room_bonus * (0.85 + morale * 0.003)
+	if persona == "titiz" and task != null and task["kind"] in ["restock", "clean", "mop", "table", "wc"]: k *= 1.25
+	if persona == "dalgin": k *= 0.9
+	return k
+func trait_name() -> String: return DB.TRAITS[persona]["name"] if DB.TRAITS.has(persona) else ""
 
 ## rooms are solid fixtures on the grid: staff step straight in through the door and back out
 func _step_to(p: Vector3, dt: float) -> bool:
@@ -72,7 +84,7 @@ func update(dt: float, game) -> void:
 	if not present: return
 	# fatigue
 	var working: bool = task != null and task["kind"] != "rest"
-	var drain := (1.0 if shift == "full" else 0.55) * (0.6 if role == "owner" else 1.0) * (1.0 if working else 0.5)
+	var drain := (1.0 if shift == "full" else 0.55) * (0.6 if role == "owner" else 1.0) * (1.0 if working else 0.5) * (1.3 if persona == "keyfi" else 1.0)
 	if task == null or task["kind"] != "rest": energy = maxf(0.0, energy - dt * 0.11 * drain * Cfg.MIN_PER_SEC)
 	speed_mul = (0.72 if tired() else 1.0) * (1.35 if task != null and task["kind"] == "chase" else 1.0)
 	if tired():
@@ -88,6 +100,8 @@ func update(dt: float, game) -> void:
 				task = {"kind": "rest", "spot": spot, "phase": "go"}; dest = {}
 	if role == "owner" or role == "cashier":
 		_cashier_logic(dt, game); return
+	if role == "deli":
+		_counter_logic(dt, game); return
 	if task == null: task = _find_work(game)
 	if task != null:
 		_do_task(dt, game); return
@@ -171,6 +185,37 @@ func _cashier_logic(dt: float, game) -> void:
 		if t2 == null: t2 = game.find_clean_task(self)
 		if t2 != null: task = t2
 		else: view.play("idle")
+
+## the şarküteri usta keeps to the deli counter: serves from behind it, refills it when it runs low
+func _counter_logic(dt: float, game) -> void:
+	if register == null or not game.fixtures.has(register) or register.cashier != self:
+		register = null
+		for f in game.fixtures:
+			if f.def.get("staffed", false) and (f.cashier == null or f.cashier == self or not game.staff.has(f.cashier) or not f.cashier.present):
+				register = f; break
+		if register: register.cashier = self
+		has_goal = false; dest = {}
+	var ctr := register
+	if task != null:
+		_do_task(dt, game); return
+	if ctr == null:
+		activity = "Şarküteri tezgâhı yok — boşta"; view.play("idle"); return
+	var waiting: bool = game.customers.any(func(c): return c.shelf == ctr and c.state in ["to_shelf", "browse"])
+	if not waiting:
+		idle_t += dt
+		if idle_t > 1.5:
+			idle_t = 0.0
+			var t = game.find_restock_task(self, 0.5, ctr)
+			if t != null: task = t; return
+	var b: Vector2i = ctr.back()[0]
+	if not same_dest(b, 0): go_to_any(game, b, 0)
+	if move(dt, game):
+		var a: Vector2i = ctr.access()[ctr.access().size() / 2]
+		look_at_pt = Vector3(a.x + 0.5, 0, a.y + 0.5)
+		view.play("work" if waiting else "idle")
+		activity = "Müşteriye kesip tartıyor" if waiting else "Tezgâhın başında"
+	else:
+		view.play("walk"); activity = "Tezgâha dönüyor"
 
 func _go_home(dt: float, game) -> void:
 	if task != null and task["kind"] != "chase": cancel_task(game)
@@ -372,10 +417,12 @@ func _do_task(dt: float, game) -> void:
 				timer -= dt
 				if timer <= 0.0:
 					O.baking = false; O.claimed = 0
+					# bake whichever stocked bread is lowest (pide only in Ramazan)
 					var pid := "simit"
-					if not game.is_stocked("ekmek"): pid = "simit"
-					elif not game.is_stocked("simit"): pid = "ekmek"
-					elif int(game.backstock.get("simit", 0)) > int(game.backstock.get("ekmek", 0)): pid = "ekmek"
+					var low := 1 << 30
+					for b in DB.BAKERY:
+						if game.is_stocked(b) and game.calendar.product_active(game.day, b) and int(game.backstock.get(b, 0)) < low:
+							low = int(game.backstock.get(b, 0)); pid = b
 					var n := mini(8, game.depot_capacity() - game.backstock_total())
 					if n > 0:
 						game.add_fresh(pid, n, 1.0)

@@ -15,6 +15,8 @@ var right_a: Node3D # eczane/berber block (removed for the Süpermarket)
 var right_b: Node3D # kırtasiye block (removed for the AVM)
 var left_a: Node3D # çay ocağı block (removed for the AVM)
 var lot: Node3D # car park across the road (Otopark upgrade)
+var rival_node: Node3D # UCUZA discount store across the road (rival)
+var rival_poster: Label3D
 var back_row: Array = [] # apartments behind the block
 var park_slots: Array = [] # [{x, state: free|arriving|parked|leaving, node, path, seg, reverse}]
 const CROSS_X0 := 30
@@ -399,3 +401,47 @@ func remove_for_stage(n: int) -> void:
 		if left_a: left_a.queue_free(); left_a = null
 		# the AVM's back wall sits on z=0: step the apartments (and their balconies) back behind it
 		for a in back_row: (a as Node3D).position.z = -2.2
+
+## UCUZA, the discount chain across the road; a closed rival gets its shutters down and a KİRALIK sign
+func build_rival(closed: bool) -> void:
+	if rival_node: rival_node.queue_free()
+	rival_node = Node3D.new(); add_child(rival_node)
+	rival_node.position = Vector3(-0.2, 0, 27.35)
+	rival_node.rotation.y = PI # facade looks at the street (-Z)
+	var r := rival_node
+	var wall := Art.mat(Color("eeeeea"), 0.7)
+	Art.box(r, Vector3(9.6, 4.4, 6.0), wall, Vector3(0, 2.2, -3.0), 0.04)
+	Art.box(r, Vector3(9.8, 0.35, 6.2), Art.mat(Color("5b6570"), 0.6), Vector3(0, 0.17, -3.0), 0.02)
+	Art.box(r, Vector3(9.9, 0.25, 6.3), Art.mat(Color("c9c9c4"), 0.6), Vector3(0, 4.5, -3.0), 0.02)
+	var yellow := Color("f5c518") if not closed else Color("b9b39a")
+	Art.box(r, Vector3(9.8, 1.1, 0.25), Art.mat(yellow, 0.5), Vector3(0, 3.65, 0.05), 0.04)
+	Art.box(r, Vector3(9.8, 0.14, 0.27), Art.mat(Color("d6333a") if not closed else Color("8a8a84"), 0.5), Vector3(0, 3.05, 0.06), 0.0)
+	Art.label(r, "UCUZA", 190, Color("d6333a") if not closed else Color("6b6b66"), Vector3(-1.2, 3.68, 0.2), 0.0, "display", 10, Color.WHITE)
+	Art.label(r, "indirim marketi", 52, Cfg.INK if not closed else Color("6b6b66"), Vector3(2.6, 3.5, 0.2), 0.0, "display700")
+	if closed:
+		for i in 2:
+			var sh := Art.box(r, Vector3(4.2, 2.5, 0.08), Art.shader_mat("stripes", {"color_a": Color("a7aaae"), "color_b": Color("8d9095"), "count": 18.0}), Vector3(-2.3 + i * 4.6, 1.6, 0.1), 0.0)
+			sh.rotation.z = PI / 2 # horizontal ribs
+			sh.scale = Vector3(1, 1, 1)
+		Art.box(r, Vector3(2.2, 0.9, 0.05), Art.mat(Color("fff7e8"), 0.7), Vector3(0, 1.8, 0.2), 0.02)
+		Art.label(r, "KİRALIK", 90, Cfg.BAD, Vector3(0, 1.9, 0.24), 0.0, "display")
+		Art.label(r, "0 532 ··· ·· ··", 32, Cfg.INK, Vector3(0, 1.55, 0.24), 0.0, "display700")
+		rival_poster = null
+		Art.stylize(r)
+		return
+	# glass front with a sliding door, price posters and a cart corral
+	Art.box(r, Vector3(9.0, 2.5, 0.05), Art.glass(Color(0.82, 0.93, 1.0), 0.3), Vector3(0, 1.6, 0.05), 0.0)
+	for sx in [-4.5, -1.5, 1.5, 4.5]: Art.box(r, Vector3(0.1, 2.6, 0.12), Art.mat(Color("8d9095"), 0.4, 0.5), Vector3(sx, 1.6, 0.07), 0.01)
+	var cols := [Color("d6333a"), Color("f5c518"), Color("d6333a")]
+	var posters := ["SÜT", "EKMEK", "DETERJAN"]
+	for i in 3:
+		var px := -3.2 + i * 1.3 + (4.0 if i == 2 else 0.0)
+		Art.box(r, Vector3(1.0, 1.2, 0.03), Art.mat(cols[i], 0.6), Vector3(px, 1.7, 0.1), 0.02)
+		Art.label(r, posters[i], 34, Color.WHITE if i != 1 else Cfg.INK, Vector3(px, 2.05, 0.13), 0.0, "display")
+		Art.label(r, "%%%d" % [15, 12, 18][i], 64, Color.WHITE if i != 1 else Color("d6333a"), Vector3(px, 1.55, 0.13), 0.0, "display")
+	rival_poster = Art.label(r, "", 40, Cfg.INK, Vector3(1.4, 2.7, 0.14), 0.0, "display")
+	for k in 3:
+		var cart := Node3D.new(); cart.position = Vector3(3.3 + k * 0.28, 0, 0.9); r.add_child(cart)
+		Art.box(cart, Vector3(0.5, 0.35, 0.7), Art.mat(Color("d6333a"), 0.5, 0.3), Vector3(0, 0.6, 0), 0.02)
+		for wx in [-0.2, 0.2]: Art.cyl(cart, 0.05, 0.05, 0.03, Art.mat(Color("2d3348")), Vector3(wx, 0.05, 0.25))
+	Art.stylize(r)

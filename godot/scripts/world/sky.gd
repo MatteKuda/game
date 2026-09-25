@@ -7,6 +7,12 @@ var sun: DirectionalLight3D
 var fill: DirectionalLight3D
 var sky_mat: ProceduralSkyMaterial
 var night := 0.0 # 0 day .. 1 night
+var overcast := 0.0 # 0 clear .. 1 grey (eased towards _oc_target)
+var _oc_target := 0.0
+var weather := "gunes"
+var rain: GPUParticles3D
+var snow: GPUParticles3D
+var _hour := 9.0
 
 func _ready() -> void:
 	var we := WorldEnvironment.new()
@@ -57,7 +63,54 @@ func _ready() -> void:
 	fill.light_energy = 0.18
 	fill.rotation_degrees = Vector3(-35, 150, 0)
 	add_child(fill)
+	rain = _precip(false); snow = _precip(true)
 	set_time(9.0)
+
+## falling rain streaks / snow flakes in a box that follows the camera target
+func _precip(is_snow: bool) -> GPUParticles3D:
+	var p := GPUParticles3D.new()
+	p.amount = 900 if is_snow else 1800
+	p.lifetime = 5.0 if is_snow else 1.1
+	p.visibility_aabb = AABB(Vector3(-30, -20, -30), Vector3(60, 40, 60))
+	var pm := ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	pm.emission_box_extents = Vector3(24, 0.5, 18)
+	pm.direction = Vector3(0.15 if is_snow else 0.08, -1, 0)
+	pm.spread = 12.0 if is_snow else 2.0
+	pm.initial_velocity_min = 1.2 if is_snow else 16.0
+	pm.initial_velocity_max = 2.0 if is_snow else 19.0
+	pm.gravity = Vector3(0, -0.6 if is_snow else -9.0, 0)
+	if is_snow:
+		pm.turbulence_enabled = true; pm.turbulence_noise_strength = 0.6; pm.turbulence_noise_scale = 3.0
+	p.process_material = pm
+	var q := QuadMesh.new()
+	q.size = Vector2(0.09, 0.09) if is_snow else Vector2(0.025, 0.55)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.albedo_color = Color(1, 1, 1, 0.9) if is_snow else Color(0.8, 0.88, 1.0, 0.38)
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED if is_snow else BaseMaterial3D.BILLBOARD_FIXED_Y
+	m.billboard_keep_scale = true
+	q.material = m
+	p.draw_pass_1 = q
+	p.emitting = false
+	p.visible = false
+	add_child(p)
+	return p
+
+func set_weather(kind: String) -> void:
+	weather = kind
+	_oc_target = {"gunes": 0.0, "sicak": -0.15, "bulut": 0.45, "yagmur": 0.8, "kar": 0.65}.get(kind, 0.0)
+	rain.emitting = kind == "yagmur"; rain.visible = rain.emitting
+	snow.emitting = kind == "kar"; snow.visible = snow.emitting
+
+## keep the precipitation above what the camera looks at and ease the sky colour
+func follow(target: Vector3, dt: float) -> void:
+	rain.position = target + Vector3(0, 14, 0)
+	snow.position = target + Vector3(0, 12, 0)
+	if absf(overcast - _oc_target) > 0.001:
+		overcast = move_toward(overcast, _oc_target, dt * 0.25)
+		set_time(_hour)
 
 func set_quality(q: String) -> void:
 	env.ssil_enabled = q == "high"
@@ -66,6 +119,7 @@ func set_quality(q: String) -> void:
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL if q == "low" else DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 
 func set_time(h: float) -> void:
+	_hour = h
 	# sun arc: rises ~6:30 east, sets ~20:30 west
 	var t := clampf((h - 6.0) / 15.0, 0.0, 1.0)
 	var elev := sin(t * PI) * 58.0
@@ -85,3 +139,16 @@ func set_time(h: float) -> void:
 	env.ambient_light_energy = lerpf(0.62, 0.3, night)
 	env.fog_light_color = sky_mat.sky_horizon_color
 	env.tonemap_exposure = lerpf(0.95, 1.25, night)
+	# weather: grey the sky, soften the sun, thicken the haze (a hot day goes the other way)
+	var oc := clampf(overcast, 0.0, 1.0) * (1.0 - night * 0.5)
+	var grey := Color("9aa3b0") if weather != "kar" else Color("c9d2dc")
+	sky_mat.sky_top_color = sky_mat.sky_top_color.lerp(grey.darkened(0.15), oc)
+	sky_mat.sky_horizon_color = sky_mat.sky_horizon_color.lerp(grey, oc)
+	sky_mat.ground_horizon_color = sky_mat.sky_horizon_color
+	sun.light_energy *= 1.0 - oc * 0.62
+	env.ambient_light_energy += oc * 0.12
+	env.fog_light_color = sky_mat.sky_horizon_color
+	env.fog_density = 0.0022 + oc * 0.006
+	if overcast < 0.0:
+		sun.light_color = sun.light_color.lerp(Color("ffcf8a"), -overcast * 2.0)
+		sun.light_energy *= 1.0 - overcast * 0.6

@@ -5,6 +5,7 @@ class_name SaveGame
 
 const VERSION := 1
 static var pending: Dictionary = {} # set before reloading the scene; main applies it
+static var pending_scenario := "" # a new game in another neighbourhood (Scenarios)
 
 static func path(slot: int) -> String:
 	return "user://tezgah_%s.json" % ("otomatik" if slot == 0 else "kayit%d" % slot)
@@ -50,7 +51,7 @@ static func serialize(game) -> Dictionary:
 		fx.append({"id": f.def["id"], "x": f.gx, "z": f.gz, "r": f.rot, "l": f.lvl, "slots": slots, "dirty": f.dirty, "uses": f.get_meta("uses", 0)})
 	var st := []
 	for s in game.staff:
-		st.append({"role": s.role, "name": s.person_name, "wage": s.base_wage, "skill": s.skill, "shift": s.shift})
+		st.append({"role": s.role, "name": s.person_name, "wage": s.base_wage, "skill": s.skill, "shift": s.shift, "trait": s.persona, "morale": s.morale, "days": s.days_worked, "raise_day": s.raise_day})
 	var d := {
 		"version": VERSION,
 		"saved_at": Time.get_datetime_string_from_system(false, true),
@@ -59,6 +60,14 @@ static func serialize(game) -> Dictionary:
 		"orders": game.orders, "upgrades": game.upgrades.keys(), "totals": game.totals, "history": game.history,
 		"evening_bakery": game.evening_bakery, "fixtures": fx, "staff": st, "last_sold": game.last_sold,
 		"camera": [game.rig.target.x, game.rig.target.z],
+		"neighborhood": game.neighborhood.serialize(),
+		"weather": [game.calendar.weather, game.calendar.tomorrow],
+		"product_log": game.product_log,
+		"quests": game.quests.serialize(),
+		"cat": game.cat.serialize(),
+		"scenario": game.scenario,
+		"rival": game.rival.serialize(),
+		"economy": {"cost_mul": game.cost_mul, "price_mul": game.price_mul, "next_hike": game._next_hike_day, "loan": game.loan, "vouchers": game.vouchers},
 	}
 	if game.mall != null:
 		var m = game.mall
@@ -98,6 +107,26 @@ static func apply(game, d: Dictionary) -> void:
 	for k in d.get("totals", {}): game.totals[k] = int(d["totals"][k])
 	game.history = []
 	for h in d.get("history", []): game.history.append(h)
+	game.neighborhood.apply(d.get("neighborhood", {}))
+	if game.neighborhood.residents.is_empty(): game.neighborhood.generate(game)
+	var wt: Array = d.get("weather", [])
+	if wt.size() == 2: game.calendar.weather = wt[0]; game.calendar.tomorrow = wt[1]
+	game.sky.set_weather(game.calendar.weather)
+	game.product_log = []
+	for e in d.get("product_log", []): game.product_log.append(e)
+	var eco: Dictionary = d.get("economy", {})
+	game.cost_mul = float(eco.get("cost_mul", 1.0)); game.price_mul = float(eco.get("price_mul", 1.0))
+	game._next_hike_day = int(eco.get("next_hike", game.day + 7))
+	game.loan = {}
+	var ln: Dictionary = eco.get("loan", {})
+	for k in ln: game.loan[k] = int(ln[k])
+	game.vouchers = {}
+	for k in eco.get("vouchers", {}): game.vouchers[k] = int(eco["vouchers"][k])
+	game.rival.apply(game, d.get("rival", {}))
+	game.cat.apply(game, d.get("cat", {}))
+	game.scenario = d.get("scenario", {})
+	if game.scenario.has("start"): game.scenario["start"] = int(game.scenario["start"])
+	game.quests.apply(d.get("quests", {}))
 	for fd in d.get("fixtures", []):
 		var def := DB.fixture(fd["id"])
 		if def.is_empty(): continue
@@ -113,7 +142,8 @@ static func apply(game, d: Dictionary) -> void:
 				f.set_meta("uses", 99); game.use_wc(f)
 		elif int(fd.get("uses", 0)) > 0: f.set_meta("uses", int(fd["uses"]))
 	for sd in d.get("staff", []):
-		game.hire({"role": sd["role"], "name": sd["name"], "wage": int(sd["wage"]), "skill": float(sd["skill"])}, true, sd.get("shift", "full"))
+		var ns: Staff = game.hire({"role": sd["role"], "name": sd["name"], "wage": int(sd["wage"]), "skill": float(sd["skill"]), "trait": sd.get("trait", "")}, true, sd.get("shift", "full"))
+		ns.morale = float(sd.get("morale", 70.0)); ns.days_worked = int(sd.get("days", 0)); ns.raise_day = int(sd.get("raise_day", game.day))
 	for u in d.get("upgrades", []): game.upgrades[u] = true
 	game.apply_upgrade_visuals()
 	if d.has("mall") and game.mall != null:
@@ -141,5 +171,8 @@ static func apply(game, d: Dictionary) -> void:
 		m.recalc_sat()
 		game.mall_changed.emit()
 	game.resume_day()
+	game.neighborhood.start_day(game)
+	game.quests.refill(game)
+	game.cat.start_day(game)
 	var cam: Array = d.get("camera", [])
 	if cam.size() == 2: game.rig.focus(float(cam[0]), float(cam[1]))

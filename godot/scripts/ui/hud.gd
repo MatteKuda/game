@@ -8,6 +8,9 @@ const ICON_COLOR := {
 	"crowd": Color("d9822b"), "wallet": Color("b0546a"), "queue": Color("e0663c"), "nocashier": Color("d6333a"), "star": Color("f2b33d"), "box": Color("2f5d8a"),
 	"alarm": Color("d6333a"), "sneak": Color("4a3a6a"), "slip": Color("2f7fd8"), "tired": Color("8a6ab8"), "wrench": Color("5b6570"),
 	"shop": Color("1f8a86"), "food": Color("e0663c"), "fun": Color("7a5ae0"),
+	"sun": Color("f2a93b"), "cloud": Color("7b8698"), "rain": Color("2f6fb5"), "snow": Color("5aa0d0"), "moon": Color("5b4a9a"), "people": Color("1f8a86"),
+	"rival": Color("d6333a"), "note": Color("7a5ae0"), "bank": Color("2f5d8a"), "chart": Color("e8962c"), "question": Color("7a5ae0"), "trophy": Color("f2b33d"),
+	"heart": Color("e0663c"), "book": Color("2f6fb5"), "cart": Color("1f8a86"), "megaphone2": Color("d6333a"), "tag": Color("e0663c"), "flag": Color("e0663c"), "cat": Color("c9803e"),
 }
 const ICON_GLYPH := {
 	"empty": "box", "low": "box", "noproduct": "plus", "price": "tag", "cheap": "tag", "wait": "clock", "happy": "heart", "angry": "alert",
@@ -58,6 +61,16 @@ var build_tab := "Teşhir"
 var mall_tab := "Kiracılar"
 var picks := {"indirim": [], "ucal": []}
 var hire_shift := {} # candidate name -> shift
+var hood_tab := "Defter"
+var prod_tab := "Fiyatlar"
+var cal_lbl: Label
+var weather_icon: TextureRect
+var quest_card: PanelContainer
+var radio: PanelContainer
+var radio_lbl: Label
+var tutorial := Tutorial.new()
+var tut_card: PanelContainer
+var _tut_sig := -2
 
 func setup(g: Game, t: Thumbs) -> void:
 	game = g; thumbs = t
@@ -99,6 +112,22 @@ func setup(g: Game, t: Thumbs) -> void:
 	events_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(events_box)
 	game.events_changed.connect(_render_events)
+	radio = UIKit.card(Color(0.12, 0.16, 0.27, 0.92), 14, Vector4(12, 7, 14, 7), 8)
+	radio.anchor_left = 0.5; radio.anchor_right = 0.5; radio.anchor_top = 1.0; radio.anchor_bottom = 1.0
+	radio.offset_top = -150; radio.offset_left = -330; radio.offset_right = 330
+	radio.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var rh := UIKit.hbox(10)
+	var rb := PanelContainer.new(); rb.add_theme_stylebox_override("panel", UIKit.sb(Cfg.TERRA, 8, Color(0, 0, 0, 0), 0, 0, Vector4(6, 3, 6, 3)))
+	rb.add_child(UIKit.label("RADYO KÖŞEBAŞI", 10, Color.WHITE, "body", 900)); rb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	rh.add_child(rb)
+	radio_lbl = UIKit.wrap(UIKit.label("", 13, Color.WHITE, "body", 700), 540)
+	radio_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rh.add_child(radio_lbl)
+	radio.add_child(rh); radio.visible = false
+	root.add_child(radio)
+	game.announced.connect(_announce)
+	game.achievement.connect(_achievement)
+	game.scenario_result.connect(_scenario_result)
 	game.alert_added.connect(func(_a): _render_alerts())
 	game.selection_changed.connect(func(): slot_picker = -1; insp_sig = ""; _render_inspector())
 	game.day_ended.connect(_show_day_end)
@@ -138,11 +167,22 @@ func _build_top() -> void:
 	goal_card.mouse_filter = Control.MOUSE_FILTER_STOP
 	goal_card.gui_input.connect(func(e): if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT: toggle_panel("growth"))
 	top_left.add_child(goal_card)
+	quest_card = PanelContainer.new()
+	quest_card.add_theme_stylebox_override("panel", UIKit.sb(Color(1.0, 0.98, 0.95, 0.94), 16, Color(0, 0, 0, 0), 0, 8, Vector4(12, 10, 12, 10)))
+	quest_card.mouse_filter = Control.MOUSE_FILTER_STOP
+	quest_card.tooltip_text = Loc.t("Görevler — Mahalle paneli (N)")
+	quest_card.gui_input.connect(func(e): if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT: hood_tab = "Görevler"; toggle_panel("hood"))
+	top_left.add_child(quest_card)
+	tut_card = PanelContainer.new()
+	tut_card.add_theme_stylebox_override("panel", UIKit.sb(Color("fff3d6"), 16, Cfg.MUSTARD, 3, 8, Vector4(12, 10, 12, 10)))
+	tut_card.visible = false
+	top_left.add_child(tut_card)
+	top_left.move_child(tut_card, 1)
 	# time
 	var tp := _pill(Color("fffaf2"))
 	tp.anchor_left = 0.5; tp.anchor_right = 0.5
-	tp.offset_left = -240; tp.offset_right = 240; tp.offset_top = 16
-	tp.custom_minimum_size = Vector2(480, 0)
+	tp.offset_left = -270; tp.offset_right = 270; tp.offset_top = 16
+	tp.custom_minimum_size = Vector2(540, 0)
 	var th := UIKit.hbox(10)
 	th.alignment = BoxContainer.ALIGNMENT_CENTER
 	sun_icon = UIKit.icon("sun", 22, Cfg.MUSTARD)
@@ -154,11 +194,16 @@ func _build_top() -> void:
 	tv.add_child(trow)
 	day_prog = UIKit.bar(0.0, Cfg.MUSTARD, 120, 5)
 	tv.add_child(day_prog)
+	cal_lbl = UIKit.label("", 11, Cfg.INK3, "body", 800)
+	tv.add_child(cal_lbl)
 	th.add_child(tv)
+	weather_icon = UIKit.icon("sun", 22, Cfg.MUSTARD)
+	weather_icon.mouse_filter = Control.MOUSE_FILTER_STOP
+	th.add_child(weather_icon)
 	var sp := UIKit.hbox(4)
 	for v in [[0.0, "pause", "Duraklat (Boşluk)"], [1.0, "play", "Normal (1)"], [2.0, "fast", "Hızlı (2)"], [4.0, "fast", "Çok hızlı (3)"], [8.0, "fast", "Süper hızlı (4)"], [16.0, "fast", "Işık hızı (5)"]]:
 		var b := Button.new()
-		b.icon = UIKit.icon_tex(v[1]); b.tooltip_text = v[2]; b.focus_mode = Control.FOCUS_NONE
+		b.icon = UIKit.icon_tex(v[1]); b.tooltip_text = Loc.t(v[2]); b.focus_mode = Control.FOCUS_NONE
 		b.custom_minimum_size = Vector2(38, 34)
 		b.add_theme_constant_override("icon_max_width", 16)
 		if v[0] >= 4.0: b.text = str(int(v[0])); b.add_theme_font_size_override("font_size", 10)
@@ -208,7 +253,7 @@ func _build_dock() -> void:
 	dock = UIKit.hbox(4)
 	d.add_child(dock)
 	var items := [["build", "build", "İnşa", "B"], ["products", "tag", "Ürün & Fiyat", "P"], ["supply", "truck", "Tedarik", "T"],
-		["staff", "staff", "Personel", "H"], ["campaign", "megaphone", "Kampanya", "K"], ["mall", "mall", "AVM", "V"], ["finance", "chart", "Finans", "F"], ["growth", "arrowUp", "Gelişim", "U"],
+		["staff", "staff", "Personel", "H"], ["campaign", "megaphone", "Kampanya", "K"], ["hood", "people", "Mahalle", "N"], ["mall", "mall", "AVM", "V"], ["finance", "chart", "Finans", "F"], ["growth", "arrowUp", "Gelişim", "U"],
 		["|", "", "", ""], ["heat", "route", "Akış", "M"], ["security", "shield", "Güvenlik", "G"], ["floor", "floors", "Zemin Kat", "PgUp/PgDn"],
 		["|", "", "", ""], ["menu", "settings", "Menü", "Esc"]]
 	for it in items:
@@ -217,7 +262,7 @@ func _build_dock() -> void:
 		var b := Button.new()
 		b.focus_mode = Control.FOCUS_NONE
 		b.custom_minimum_size = Vector2(84, 62)
-		b.tooltip_text = "%s (%s)" % [it[2], it[3]]
+		b.tooltip_text = Loc.t("%s (%s)" % [it[2], it[3]])
 		var v := UIKit.vbox(2); v.alignment = BoxContainer.ALIGNMENT_CENTER; v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		v.set_anchors_preset(Control.PRESET_FULL_RECT)
 		var ic := UIKit.icon(it[1], 24, Color(1, 1, 1, 0.85)); ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -267,28 +312,48 @@ func _process(dt: float) -> void:
 	if _acc < 0.12: return
 	_acc = 0.0
 	time_lbl.text = Cfg.clock_str(game.clock)
-	day_lbl.text = "Gün %d" % game.day
+	day_lbl.text = Loc.t("Gün %d" % game.day)
+	var sp: Dictionary = game.calendar.special(game.day)
+	cal_lbl.text = Loc.t(game.calendar.label(game.day) + ((" · " + sp["name"]) if not sp.is_empty() else ""))
+	var wi: Dictionary = game.calendar.weather_info()
+	weather_icon.texture = UIKit.icon_tex(wi["icon"])
+	weather_icon.modulate = {"sun": Cfg.MUSTARD, "cloud": Cfg.INK3, "rain": Cfg.BLUE, "snow": Color("7fb8e0")}.get(wi["icon"], Cfg.INK2)
+	weather_icon.tooltip_text = Loc.t("Bugün: %s\nYarın: %s" % [wi["name"], game.calendar.weather_info(game.calendar.tomorrow)["name"]])
+	_render_quests()
+	if tutorial.check(self):
+		GameAudio.play("good", -6.0)
+		if not tutorial.active:
+			_toast("Rehber tamam! Artık dükkân senin.")
+			Settings.tutorial = false; Settings.save_settings()
+	_render_tutorial()
 	sun_icon.texture = UIKit.icon_tex("moon" if game.sky.night > 0.5 else "sun")
 	var prog := clampf((game.clock - Cfg.DAY_OPEN) / float(Cfg.DAY_CLOSE - Cfg.DAY_OPEN), 0, 1)
 	(day_prog.get_child(0) as Control).anchor_right = prog
 	money_lbl.text = Cfg.fmt_money(game.money)
+	# event cards sit top-centre, or just right of an open side panel so they never cover it
+	if panel.visible and panel_id != "build":
+		events_box.anchor_left = 0.0; events_box.anchor_right = 0.0
+		events_box.offset_left = panel.position.x + panel.size.x + 14; events_box.offset_right = events_box.offset_left + 440
+	else:
+		events_box.anchor_left = 0.5; events_box.anchor_right = 0.5
+		events_box.offset_left = -220; events_box.offset_right = 220
 	for ev in game.neighbor_events:
 		var bar = event_bars.get(ev["id"])
 		if bar and is_instance_valid(bar): (bar as Control).anchor_right = clampf((ev["expires"] - game.abs_minutes()) / 60.0, 0.0, 1.0)
 	var profit: int = game.stats["revenue"] - game.stats["purchases"] - game.stats["other"]
-	money_delta.text = "bugün %s%s" % ["+" if profit >= 0 else "", Cfg.fmt_money(profit)]
+	money_delta.text = Loc.t("bugün %s%s" % ["+" if profit >= 0 else "", Cfg.fmt_money(profit)])
 	rating_lbl.text = "%.1f" % game.rating
 	var r := game.rating
 	for i in 5: (rating_box.get_child(i) as TextureRect).modulate = Cfg.MUSTARD if r - i > 0.5 else Color(0.12, 0.16, 0.27, 0.18)
 	var qn := 0
 	for f in game.fixtures: qn += f.queue.size()
-	inside_lbl.text = "%d%s" % [game.customers_inside(), ("  · kuyruk %d" % qn) if qn > 0 else ""]
+	inside_lbl.text = Loc.t("%d%s" % [game.customers_inside(), ("  · kuyruk %d" % qn) if qn > 0 else ""])
 	for i in speed_btns.size():
 		var on: bool = (game.paused and i == 0) or (not game.paused and [0.0, 1.0, 2.0, 4.0, 8.0, 16.0][i] == game.speed)
 		speed_btns[i].add_theme_stylebox_override("normal", UIKit.sb(Cfg.INK if on else Color(1, 1, 1, 0), 10, Color(0, 0, 0, 0), 0, 0, Vector4(6, 4, 6, 4)))
 		speed_btns[i].add_theme_color_override("icon_normal_color", Color.WHITE if on else Cfg.INK2)
 		speed_btns[i].add_theme_color_override("font_color", Color.WHITE if on else Cfg.INK2)
-	(top_left.get_child(0).find_child("StageLbl", true, false) as Label).text = "%s · Aşama %d" % [DB.STAGES[game.stage]["name"], game.stage + 1]
+	(top_left.get_child(0).find_child("StageLbl", true, false) as Label).text = Loc.t("%s · Aşama %d" % [DB.STAGES[game.stage]["name"], game.stage + 1])
 	_render_goal()
 	if panel_id != "":
 		var sig := _sig_panel()
@@ -307,11 +372,33 @@ var _goal_sig := ""
 func _render_goal() -> void:
 	var e = game.expansion()
 	var gs := game.goals()
-	var sig := str(gs) + str(game.can_expand())
+	var srows := Scenarios.goal_rows(game) if not game.scenario.is_empty() else []
+	var sig := str(gs) + str(game.can_expand()) + str(srows)
 	if sig == _goal_sig: return
 	_goal_sig = sig
 	UIKit.clear(goal_card)
 	var v := UIKit.vbox(6)
+	if not srows.is_empty():
+		var sd := Scenarios.get_def(game.scenario["id"])
+		var hs := UIKit.hbox(8)
+		hs.add_child(UIKit.icon(sd["icon"], 18, Cfg.VIOLET))
+		hs.add_child(UIKit.label("%s · %s" % [sd["name"], sd["sub"]], 16, Cfg.INK, "display"))
+		v.add_child(hs)
+		for r in srows:
+			var row := UIKit.hbox(6)
+			var l := UIKit.label(r[1], 12, Cfg.INK2, "body", 700); l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_child(l)
+			var val := ""
+			match r[0]:
+				"rating": val = "%.1f / %.1f★" % [r[2], r[3]]
+				"cash": val = "%s / %s" % [Cfg.fmt_money(r[2]), Cfg.fmt_money(r[3])]
+				"days": val = "%d" % int(r[2])
+				"rival": val = "%%%d / %%%d" % [int(r[2]), int(r[3])]
+				_: val = "%d / %d" % [int(r[2]), int(r[3])]
+			row.add_child(UIKit.label(val, 12, Cfg.BAD if r[0] == "days" and r[2] <= 3 else Cfg.INK, "body", 800))
+			v.add_child(row)
+			if r[0] != "days": v.add_child(UIKit.bar(float(r[2]) / maxf(0.01, float(r[3])), Cfg.VIOLET, 0, 6))
+		goal_card.add_child(v); return
 	if e == null:
 		v.add_child(UIKit.label("Köşebaşı AVM açık!", 16, Cfg.INK, "display"))
 		var occ := 0
@@ -337,6 +424,91 @@ func _render_goal() -> void:
 	var st: StyleBoxFlat = goal_card.get_theme_stylebox("panel")
 	st.border_color = Cfg.MUSTARD; st.set_border_width_all(3 if game.can_expand() else 0)
 
+func _announce(text: String) -> void:
+	radio_lbl.text = Loc.t(text)
+	radio.visible = true
+	radio.modulate.a = 0.0
+	var tw := radio.create_tween()
+	tw.tween_property(radio, "modulate:a", 1.0, 0.3)
+	tw.tween_interval(9.0)
+	tw.tween_property(radio, "modulate:a", 0.0, 0.6)
+	tw.tween_callback(func(): radio.visible = false)
+	GameAudio.play("bell", -12.0, 0.8)
+
+func _achievement(id: String) -> void:
+	var a := Progress.ach_def(id)
+	if a.is_empty(): return
+	game.alert("ach_" + id, "trophy", "Başarım açıldı: %s — %s" % [a["name"], a["desc"]], "good", null, 0.0)
+
+func _render_tutorial() -> void:
+	var cur := tutorial.current()
+	var sig := tutorial.step if tutorial.active else -1
+	if sig == _tut_sig: return
+	_tut_sig = sig
+	UIKit.clear(tut_card)
+	tut_card.visible = not cur.is_empty()
+	for id in dock_btns: (dock_btns[id] as Button).modulate = Color.WHITE
+	if cur.is_empty(): return
+	var v := UIKit.vbox(4)
+	var h := UIKit.hbox(6)
+	h.add_child(UIKit.icon("book", 16, Cfg.TERRA))
+	var tl := UIKit.label("Rehber %d/%d · %s" % [tutorial.step + 1, Tutorial.STEPS.size(), cur["title"]], 14, Cfg.INK, "display"); tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(tl)
+	var x := Button.new(); x.flat = true; x.icon = UIKit.icon_tex("close"); x.focus_mode = Control.FOCUS_NONE; x.tooltip_text = Loc.t("Rehberi kapat")
+	x.add_theme_constant_override("icon_max_width", 12)
+	x.pressed.connect(func(): tutorial.active = false; _tut_sig = -2; Settings.tutorial = false; Settings.save_settings())
+	h.add_child(x)
+	v.add_child(h)
+	v.add_child(UIKit.wrap(UIKit.label(cur["text"], 12, Cfg.INK2, "body", 700), 260))
+	tut_card.add_child(v)
+	if cur["dock"] != "" and dock_btns.has(cur["dock"]):
+		var b: Button = dock_btns[cur["dock"]]
+		var tw := b.create_tween().set_loops(8)
+		tw.tween_property(b, "modulate", Color(1.6, 1.3, 0.8), 0.45)
+		tw.tween_property(b, "modulate", Color.WHITE, 0.45)
+
+func _scenario_result(res: String) -> void:
+	var id: String = game.scenario.get("id", "")
+	var d := Scenarios.get_def(id)
+	if res == "win":
+		Progress.give_medal(id)
+		if Progress.unlock(id): _achievement(id)
+	UIKit.clear(modal)
+	modal.visible = true
+	game.paused = true
+	var dim := ColorRect.new(); dim.color = Color(0.12, 0.16, 0.27, 0.5); dim.set_anchors_preset(Control.PRESET_FULL_RECT); modal.add_child(dim)
+	var c := PanelContainer.new()
+	c.add_theme_stylebox_override("panel", UIKit.sb(Color("fffaf2"), 24, Color(0, 0, 0, 0), 0, 24, Vector4(30, 26, 30, 26)))
+	c.custom_minimum_size = Vector2(520, 0)
+	var v := UIKit.vbox(12)
+	v.add_child(UIKit.icon("trophy" if res == "win" else "alert", 56, Cfg.MUSTARD if res == "win" else Cfg.BAD))
+	var t := UIKit.label(("%s kazanıldı!" if res == "win" else "%s kaybedildi") % d["name"], 34, Cfg.INK, "display"); t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; v.add_child(t)
+	v.add_child(UIKit.wrap(UIKit.label("Madalya mahalle haritasına eklendi. Başka bir mahallede şansını dene ya da burada devam et." if res == "win" else "Hedefe ulaşamadın. Yeniden dene ya da haritadan başka bir mahalle seç.", 14, Cfg.INK2, "body", 700), 460))
+	var bh := UIKit.hbox(8)
+	var b1 := UIKit.button("Burada devam et", "play", res == "win"); b1.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b1.pressed.connect(func(): modal.visible = false; game.scenario = {}; game.paused = false)
+	var b2 := UIKit.button("Mahalle haritası", "map", res != "win"); b2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b2.pressed.connect(func(): modal.visible = false; open_menu("map"))
+	bh.add_child(b1); bh.add_child(b2); v.add_child(bh)
+	c.add_child(v); modal.add_child(c)
+	c.reset_size(); c.position = (root.get_viewport_rect().size - c.size) * 0.5
+
+var _quest_sig := ""
+func _render_quests() -> void:
+	var sig := ""
+	for q in game.quests.active: sig += "%d:%d," % [q["id"], int(game.quests.progress(game, q) * 40)]
+	if sig == _quest_sig: return
+	_quest_sig = sig
+	UIKit.clear(quest_card)
+	quest_card.visible = not game.quests.active.is_empty()
+	var v := UIKit.vbox(2)
+	var h := UIKit.hbox(6)
+	h.add_child(UIKit.icon("flag", 15, Cfg.TERRA))
+	h.add_child(UIKit.label("Görevler", 14, Cfg.INK, "display"))
+	v.add_child(h)
+	for q in game.quests.active: v.add_child(HudExtra.quest_card(q, game, false))
+	quest_card.add_child(v)
+
 # ================================================================== alerts
 func _render_alerts() -> void:
 	UIKit.clear(alerts_box)
@@ -351,7 +523,7 @@ func _render_alerts() -> void:
 		var h := UIKit.hbox(10)
 		var chip := PanelContainer.new()
 		chip.add_theme_stylebox_override("panel", UIKit.sb(ICON_COLOR.get(a["icon"], Cfg.TERRA), 9, Color(0, 0, 0, 0), 0, 0, Vector4(5, 5, 5, 5)))
-		chip.add_child(UIKit.icon(ICON_GLYPH.get(a["icon"], "info"), 16, Color.WHITE))
+		chip.add_child(UIKit.icon(ICON_GLYPH.get(a["icon"], a["icon"]), 16, Color.WHITE))
 		chip.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		h.add_child(chip)
 		var l := UIKit.wrap(UIKit.label(a["text"], 13, Cfg.INK, "body", 700), 250)
@@ -385,9 +557,9 @@ func open_panel(id: String) -> void:
 
 func _sig_panel() -> String:
 	match panel_id:
-		"build": return "%s|%d|%d|%s" % [build_tab, int(game.money / 100), game.stage, game.placing.is_empty()]
+		"build": return "%s|%d|%d|%s|%s" % [build_tab, int(game.money / 100), game.stage, game.placing.is_empty(), str(game.vouchers)]
 		"products":
-			var s := ""
+			var s := prod_tab + str(game.product_log.size()) + str(game.cost_mul)
 			for p in game.unlocked_products(): s += "%s%d%d%d%d," % [p["id"], game.prices[p["id"]], game.shelf_stock(p["id"]), game.backstock[p["id"]], game.stats["sold"].get(p["id"], 0)]
 			return s
 		"supply":
@@ -398,7 +570,13 @@ func _sig_panel() -> String:
 			var s3 := str(game.candidates.size())
 			for s in game.staff: s3 += s.activity + str(s.get_instance_id()) + s.shift + str(int(s.energy / 10)) + str(s.present)
 			return s3 + str(int(game.money / 100)) + str(hire_shift)
-		"finance": return "%d|%d|%d" % [game.stats["revenue"], game.stats["purchases"], game.history.size()]
+		"finance": return "%d|%d|%d|%s|%d" % [game.stats["revenue"], game.stats["purchases"], game.history.size(), str(game.loan), int(game.money / 500)]
+		"hood":
+			var s5: String = hood_tab + game.neighborhood.mode + str(game.neighborhood.limit) + str(game.neighborhood.total_debt()) + str(game.stats["credit_paid"]) + str(int(game.money / 200))
+			for r in game.neighborhood.residents: s5 += str(int(float(r["loyalty"]) / 5)) + str(r["reminded"]) + str(r["request"].size()) + str(r["last"])
+			for q in game.quests.active: s5 += str(q["id"]) + str(int(game.quests.progress(game, q) * 20))
+			if game.rival.active: s5 += str(game.rival.lost_today) + str(game.rival.prices) + str(game.prices)
+			return s5
 		"growth": return "%d|%d|%s|%s" % [int(game.money / 100), game.stage, str(game.upgrades.keys()), game.can_expand()]
 		"campaign": return "%s|%s|%s|%d" % [str(game.campaigns.keys()), str(game.discounts + game.multi), str(picks), int(game.money / 100)]
 		"mall":
@@ -451,8 +629,8 @@ func _place_panel(build := false) -> void:
 		panel.position = Vector2((vs.x - panel.custom_minimum_size.x) * 0.5, vs.y - 110 - 300)
 		panel.size = Vector2(panel.custom_minimum_size.x, 300)
 	else:
-		panel.position = Vector2(18, 16)
-		panel.size = Vector2(panel.custom_minimum_size.x, vs.y - 16 - 120)
+		panel.position = Vector2(18, 92)
+		panel.size = Vector2(panel.custom_minimum_size.x, vs.y - 92 - 116)
 
 func _render_panel() -> void:
 	match panel_id:
@@ -464,6 +642,9 @@ func _render_panel() -> void:
 		"growth": _p_growth()
 		"campaign": _p_campaign()
 		"mall": _p_mall()
+		"hood":
+			var body := _frame("Mahalle", "Komşular, veresiye defteri, görevler ve karşıdaki rakip.", "people", Color("b0546a"), 760)
+			HudExtra.hood(self, body)
 	_place_panel(panel_id == "build")
 
 # ---------------------------------------------------------------- build
@@ -497,7 +678,7 @@ func _p_build() -> void:
 		card.add_theme_stylebox_override("pressed", UIKit.sb(Color("fff1e0"), 16, Cfg.TERRA, 3, 0, Vector4(8, 8, 8, 8)))
 		card.add_theme_stylebox_override("disabled", UIKit.sb(Color(1, 1, 1, 0.5), 16, Color(0.12, 0.16, 0.27, 0.08), 2, 0, Vector4(8, 8, 8, 8)))
 		card.disabled = locked
-		card.tooltip_text = d["desc"]
+		card.tooltip_text = Loc.t(d["desc"])
 		var v := UIKit.vbox(2); v.set_anchors_preset(Control.PRESET_FULL_RECT); v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		v.offset_left = 8; v.offset_top = 8; v.offset_right = -8; v.offset_bottom = -8
 		var img := TextureRect.new(); img.custom_minimum_size = Vector2(124, 96); img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -507,7 +688,9 @@ func _p_build() -> void:
 		v.add_child(imgbg)
 		v.add_child(UIKit.label(d["name"], 14, Cfg.INK, "body", 800))
 		v.add_child(UIKit.label("%d×%d m%s" % [d["w"], d["d"], (" · %d bölme" % d["slots"]) if d.has("slots") else ""], 11, Cfg.INK3, "body", 700))
-		var pr := UIKit.label(Cfg.fmt_money(d["cost"]) if not locked else "%s aşamasında" % DB.STAGES[d["stage"]]["name"], 18 if not locked else 12, Cfg.BAD if poor else Cfg.TERRA, "display" if not locked else "body", 800)
+		var vch := int(game.vouchers.get(d["id"], 0))
+		if vch > 0: poor = false
+		var pr := UIKit.label(("Bedava ×%d" % vch) if vch > 0 and not locked else (Cfg.fmt_money(d["cost"]) if not locked else "%s aşamasında" % DB.STAGES[d["stage"]]["name"]), 18 if not locked else 12, Cfg.GOOD if vch > 0 else (Cfg.BAD if poor else Cfg.TERRA), "display" if not locked else "body", 800)
 		v.add_child(pr)
 		card.add_child(v)
 		if locked: card.modulate = Color(1, 1, 1, 0.55)
@@ -520,7 +703,21 @@ func _p_build() -> void:
 
 # ---------------------------------------------------------------- products & prices
 func _p_products() -> void:
-	var body := _frame("Ürün & Fiyat", "Her arketip farklı fiyat toleransına sahip. Pahalı ürün satılmaz, ucuz ürün kâr bırakmaz.", "tag", Cfg.TEAL, 760)
+	var body := _frame("Ürün & Fiyat", "Her arketip farklı fiyat toleransına sahip. Pahalı ürün satılmaz, ucuz ürün kâr bırakmaz.", "tag", Cfg.TEAL, 880)
+	body.add_child(HudExtra._tabs(self, prod_tab, ["Fiyatlar", "Analiz"], func(t): prod_tab = t; panel_sig = ""))
+	if prod_tab == "Analiz":
+		HudExtra.analysis(self, body); return
+	var infl: float = game.pending_inflation()
+	if infl > 0.005:
+		var ib := UIKit.hbox(10)
+		ib.add_child(UIKit.icon("chart", 18, Cfg.WARN))
+		var il := UIKit.wrap(UIKit.label("Son fiyat güncellemesinden beri toptancı fiyatları %%%.1f arttı; müşteriler de buna alıştı." % (infl * 100.0), 12, Cfg.INK, "body", 800), 520)
+		il.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		ib.add_child(il)
+		var ub := UIKit.button("Tüm fiyatları %%%.0f artır" % ceilf(infl * 100.0), "arrowUp", true, true)
+		ub.pressed.connect(func(): game.apply_inflation_to_prices())
+		ib.add_child(ub)
+		body.add_child(ib)
 	var head := UIKit.hbox(8)
 	for c in [["", 44], ["ÜRÜN", 150], ["FİYAT", 150], ["KİM ALIR?", 190], ["RAF", 56], ["DEPO", 56], ["SATIŞ", 56]]:
 		var l := UIKit.label(c[0], 11, Cfg.INK3, "body", 800); l.custom_minimum_size.x = c[1]; head.add_child(l)
@@ -532,7 +729,7 @@ func _p_products() -> void:
 		img.texture = thumbs.products.get(pid); row.add_child(img)
 		var nv := UIKit.vbox(-2); nv.custom_minimum_size.x = 150
 		nv.add_child(UIKit.label(p["name"], 15, Cfg.INK, "body", 800))
-		nv.add_child(UIKit.label("%s · maliyet ₺%d" % [DB.DISPLAY_LABEL[p["display"]], p["cost"]], 11, Cfg.INK3, "body", 700))
+		nv.add_child(UIKit.label("%s · maliyet ₺%d" % [DB.DISPLAY_LABEL[p["display"]], game.cost_of(pid)], 11, Cfg.INK3, "body", 700))
 		row.add_child(nv)
 		var ph := UIKit.hbox(4); ph.custom_minimum_size.x = 150
 		var minus := UIKit.button("", "minus", false, true); minus.pressed.connect(func(): game.set_price(pid, game.prices[pid] - 1))
@@ -541,7 +738,7 @@ func _p_products() -> void:
 		var pv := UIKit.vbox(-4); pv.custom_minimum_size.x = 58
 		var price: int = game.prices[pid]
 		var pl := UIKit.label("₺%d" % price, 20, Cfg.INK, "display"); pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; pv.add_child(pl)
-		var margin := int(round((price - p["cost"]) * 100.0 / price))
+		var margin := int(round((price - game.cost_of(pid)) * 100.0 / price))
 		var ml := UIKit.label("%%%d kâr" % margin, 10, Cfg.GOOD if margin > 30 else Cfg.WARN, "body", 800); ml.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; pv.add_child(ml)
 		ph.add_child(pv); ph.add_child(plus)
 		row.add_child(ph)
@@ -549,7 +746,7 @@ func _p_products() -> void:
 		acc.add_theme_constant_override("h_separation", 3); acc.add_theme_constant_override("v_separation", 3)
 		for a in DB.ARCHETYPES:
 			if a["stage"] > game.stage or not a["wants"].has(pid): continue
-			var ok: bool = price <= p["base"] * (1.0 + a["tol"] + game.tolerance_bonus())
+			var ok: bool = price <= game.ref_price(pid) * (1.0 + a["tol"] + game.tolerance_bonus())
 			acc.add_child(UIKit.chip(a["name"].split(" ")[0], Cfg.GOOD if ok else Cfg.BAD, Color.WHITE, 10))
 		row.add_child(acc)
 		for v in [game.shelf_stock(pid), game.backstock[pid], game.stats["sold"].get(pid, 0)]:
@@ -574,16 +771,16 @@ func _p_supply() -> void:
 		row.add_child(nv)
 		for q in [12, 24, 48]:
 			var b := UIKit.button("+%d" % q, "", false, true)
-			b.tooltip_text = "₺%d · yarın sabahki teslimatla gelir" % (q * p["cost"])
+			b.tooltip_text = Loc.t("₺%d · yarın sabahki teslimatla gelir" % (q * game.cost_of(pid)))
 			var qq: int = q
 			b.pressed.connect(func(): game.order(pid, qq))
 			row.add_child(b)
 		var ub := UIKit.button("Acil +12", "", false, true)
-		ub.tooltip_text = "₺%d · 1 saat içinde ayrı minibüsle gelir (%%25 pahalı)" % int(round(12 * p["cost"] * 1.25))
+		ub.tooltip_text = Loc.t("₺%d · 1 saat içinde ayrı minibüsle gelir (%%25 pahalı)" % int(round(12 * game.cost_of(pid) * 1.25)))
 		ub.add_theme_color_override("font_color", Cfg.TERRA)
 		ub.pressed.connect(func(): game.order(pid, 12, false, true))
 		row.add_child(ub)
-		var tg := CheckButton.new(); tg.text = "Oto"; tg.button_pressed = game.auto[pid]; tg.focus_mode = Control.FOCUS_NONE
+		var tg := CheckButton.new(); tg.text = Loc.t("Oto"); tg.button_pressed = game.auto[pid]; tg.focus_mode = Control.FOCUS_NONE
 		tg.add_theme_font_size_override("font_size", 12)
 		tg.toggled.connect(func(on): game.auto[pid] = on)
 		row.add_child(tg)
@@ -601,6 +798,14 @@ func _p_staff() -> void:
 		var nv := UIKit.vbox(-2); nv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		nv.add_child(UIKit.label(s.person_name, 16, Cfg.INK, "body", 800))
 		nv.add_child(UIKit.label("%s · %s" % [DB.ROLE_LABEL[s.role], s.activity if s.present else "vardiya dışında"], 12, Cfg.INK2, "body", 700))
+		if s.role != "owner":
+			var th := UIKit.hbox(6)
+			if s.persona != "":
+				var tc := UIKit.chip(s.trait_name(), Cfg.TEAL if DB.TRAITS[s.persona]["good"] else Cfg.WARN, Color.WHITE, 10); tc.tooltip_text = Loc.t(DB.TRAITS[s.persona]["desc"])
+				th.add_child(tc)
+			th.add_child(UIKit.label("beceri %d%% · moral %d · %d gün" % [int(s.skill * 100), int(s.morale), s.days_worked], 11, Cfg.BAD if s.morale < 35 else Cfg.INK3, "body", 800))
+			if s.quit_day >= 0: th.add_child(UIKit.chip("istifa etti", Cfg.BAD, Color.WHITE, 10))
+			nv.add_child(th)
 		var eh := UIKit.hbox(6)
 		eh.add_child(UIKit.icon("tired" if s.tired() else "sun", 12, Cfg.BAD if s.tired() else Cfg.MUSTARD))
 		var eb := UIKit.bar(s.energy / 100.0, Cfg.BAD if s.tired() else (Cfg.WARN if s.energy < 55 else Cfg.GOOD), 110, 6); eb.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -612,7 +817,13 @@ func _p_staff() -> void:
 		if s.role != "owner": row.add_child(_shift_seg(s.shift, func(sh): game.set_shift(sref, sh)))
 		row.add_child(UIKit.label(Cfg.fmt_money(s.wage) if s.wage > 0 else "sahip", 15, Cfg.INK2, "display"))
 		if s.role != "owner":
-			var f := UIKit.button("", "close", false, true); f.tooltip_text = "İşten çıkar"
+			var tb := UIKit.button("Eğit", "book", false, true)
+			tb.tooltip_text = Loc.t("Kurs ve usta yanında pratik: beceri +8, moral +8. %s · 3 günde bir." % Cfg.fmt_money(300 * (game.stage + 1)))
+			tb.disabled = game.money < 300 * (game.stage + 1) or game.day - s.trained_day < 3 or s.skill >= 1.45
+			var sref2: Staff = s
+			tb.pressed.connect(func(): game.train(sref2))
+			row.add_child(tb)
+			var f := UIKit.button("", "close", false, true); f.tooltip_text = Loc.t("İşten çıkar")
 			var ss: Staff = s
 			f.pressed.connect(func(): game.fire(ss))
 			row.add_child(f)
@@ -627,7 +838,14 @@ func _p_staff() -> void:
 		var nv := UIKit.vbox(-2); nv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		nv.add_child(UIKit.label("%s — %s" % [c["name"], DB.ROLE_LABEL[c["role"]]], 15, Cfg.INK, "body", 800))
 		nv.add_child(UIKit.wrap(UIKit.label(DB.ROLE_DESC[c["role"]], 11, Cfg.INK3, "body", 700), 330))
-		nv.add_child(UIKit.label("Beceri %d%%" % int(c["skill"] * 100), 11, Cfg.TEAL, "body", 800))
+		var ch := UIKit.hbox(6)
+		ch.add_child(UIKit.label("Beceri %d%%" % int(c["skill"] * 100), 11, Cfg.TEAL, "body", 800))
+		var ctr: String = c.get("trait", "")
+		if ctr != "":
+			var tc2 := UIKit.chip(DB.TRAITS[ctr]["name"], Cfg.TEAL if DB.TRAITS[ctr]["good"] else Cfg.WARN, Color.WHITE, 10)
+			ch.add_child(tc2)
+			ch.add_child(UIKit.label(DB.TRAITS[ctr]["desc"], 10, Cfg.INK3, "body", 700))
+		nv.add_child(ch)
 		row.add_child(nv)
 		var cc: Dictionary = c
 		var key: String = c["name"]
@@ -653,6 +871,42 @@ func _p_finance() -> void:
 		c.add_child(v); c.custom_minimum_size.x = 210
 		grid.add_child(c)
 	body.add_child(grid)
+	body.add_child(UIKit.section("Faturalar (gün sonunda)"))
+	var ut := UIKit.hbox(10)
+	ut.add_child(UIKit.icon("bolt", 18, Cfg.MUSTARD))
+	var pb: Array = game.power_breakdown()
+	var ptxt := "Elektrik, su, doğalgaz: %s/gün." % Cfg.fmt_money(game.utilities())
+	if not pb.is_empty(): ptxt += " En çok yakan: " + ", ".join(pb.slice(0, 3).map(func(x): return "%s ₺%d" % [x[0], x[1]]))
+	if not game.upgrades.has("gunes") and game.stage >= 1: ptxt += ". Çatıya güneş paneli faturayı %40 düşürür (Gelişim)."
+	ut.add_child(UIKit.wrap(UIKit.label(ptxt, 12, Cfg.INK2, "body", 800), 400))
+	body.add_child(ut)
+	if game.cost_mul > 1.001:
+		body.add_child(UIKit.label("Toptancı fiyat endeksi: %d (başlangıç 100)" % int(round(game.cost_mul * 100.0)), 12, Cfg.WARN, "body", 800))
+	body.add_child(UIKit.section("Mahalle Bankası"))
+	if game.loan.is_empty():
+		body.add_child(UIKit.wrap(UIKit.label("Büyümek için nakit mi lazım? Kredi hemen gelir, taksitler her gün sonunda düşülür.", 12, Cfg.INK2, "body", 700), 440))
+		for i in DB.LOANS.size():
+			var l: Dictionary = DB.LOANS[i]
+			var row := UIKit.hbox(8)
+			var lt := UIKit.label("%s · %d gün · faiz %%%d · günlük %s" % [Cfg.fmt_money(l["amount"]), l["days"], int(l["rate"] * 100), Cfg.fmt_money(ceilf(l["amount"] * (1.0 + l["rate"]) / l["days"]))], 13, Cfg.INK if l["stage"] <= game.stage else Cfg.INK3, "body", 800)
+			lt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_child(lt)
+			var b := UIKit.button("Çek" if l["stage"] <= game.stage else DB.STAGES[l["stage"]]["short"] + "'te", "bank", l["stage"] <= game.stage, true)
+			b.disabled = l["stage"] > game.stage
+			var ii: int = i
+			b.pressed.connect(func(): game.take_loan(ii))
+			row.add_child(b)
+			body.add_child(row)
+	else:
+		var row2 := UIKit.hbox(8)
+		var lt2 := UIKit.label("Kalan borç %s · günlük taksit %s" % [Cfg.fmt_money(game.loan["left"]), Cfg.fmt_money(game.loan["daily"])], 14, Cfg.VIOLET, "body", 900)
+		lt2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row2.add_child(lt2)
+		var rb := UIKit.button("Erken kapat", "check", true, true)
+		rb.disabled = game.money < game.loan["left"]
+		rb.pressed.connect(func(): game.repay_loan())
+		row2.add_child(rb)
+		body.add_child(row2)
 	body.add_child(UIKit.section("Son günler"))
 	if game.history.is_empty():
 		body.add_child(UIKit.label("İlk gün sonunda burada kâr grafiği çıkacak.", 13, Cfg.INK2, "body", 700))
@@ -819,7 +1073,7 @@ func _insp_fixture(v: VBoxContainer, f: Fixture) -> void:
 				var flow := HFlowContainer.new(); flow.add_theme_constant_override("h_separation", 6); flow.add_theme_constant_override("v_separation", 6)
 				for p in game.unlocked_products():
 					if p["display"] != d["display"]: continue
-					var pb := Button.new(); pb.focus_mode = Control.FOCUS_NONE; pb.tooltip_text = "%s · ₺%d" % [p["name"], game.prices[p["id"]]]
+					var pb := Button.new(); pb.focus_mode = Control.FOCUS_NONE; pb.tooltip_text = Loc.t("%s · ₺%d" % [p["name"], game.prices[p["id"]]])
 					pb.icon = thumbs.products.get(p["id"]); pb.expand_icon = true; pb.custom_minimum_size = Vector2(58, 58)
 					pb.add_theme_stylebox_override("normal", UIKit.sb(Color("f6ecde"), 12, Color(0, 0, 0, 0), 0, 0, Vector4(4, 4, 4, 4)))
 					pb.add_theme_stylebox_override("hover", UIKit.sb(Color("fff1e0"), 12, Cfg.TERRA, 2, 0, Vector4(4, 4, 4, 4)))
@@ -856,7 +1110,9 @@ func _insp_fixture(v: VBoxContainer, f: Fixture) -> void:
 	var mv := UIKit.button("Taşı", "move", false, true); mv.pressed.connect(func(): game.start_placement(d["id"], f); open_panel("build"))
 	if d.get("display", "") == "basket": _evening_toggle(b)
 	var sl := UIKit.button("Sat · " + Cfg.fmt_money(int(d["cost"] * 0.5)), "trash", false, true); sl.pressed.connect(func(): game.sell_fixture(f))
-	acts.add_child(mv); acts.add_child(sl)
+	var cp := UIKit.button("Kopyala", "copy", false, true); cp.tooltip_text = Loc.t("Aynısından bir tane daha: yön ve ürünler kopyalanır (Ctrl+D)")
+	cp.pressed.connect(func(): game.copy_fixture(f); open_panel("build"))
+	acts.add_child(mv); acts.add_child(cp); acts.add_child(sl)
 	b.add_child(UIKit.sep_h()); b.add_child(acts)
 
 func _insp_customer(v: VBoxContainer, c: Customer) -> void:
@@ -869,6 +1125,14 @@ func _insp_customer(v: VBoxContainer, c: Customer) -> void:
 	if a == null:
 		b.add_child(UIKit.label("Sadece geçip gidiyor. Vitrin ve tabela onu içeri çekebilir.", 13, Cfg.INK2, "body", 700)); return
 	b.add_child(UIKit.wrap(UIKit.label(a["blurb"], 12, Cfg.INK2, "body", 700), 310))
+	if not c.resident.is_empty():
+		var r: Dictionary = c.resident
+		var rc := UIKit.card(Color(0.69, 0.33, 0.42, 0.1), 12, Vector4(10, 8, 10, 8), 0)
+		var rv := UIKit.vbox(2)
+		rv.add_child(UIKit.label("Müdavim · sadakat %d%s" % [int(r["loyalty"]), (" · borç " + Cfg.fmt_money(r["debt"])) if int(r["debt"]) > 0 else ""], 13, Color("8a3b50"), "body", 900))
+		rv.add_child(UIKit.wrap(UIKit.label(r["quirk"], 12, Cfg.INK2, "body", 700), 290))
+		if not r["request"].is_empty(): rv.add_child(UIKit.label("İstediği: " + DB.product(r["request"]["pid"])["name"], 12, Cfg.VIOLET, "body", 800))
+		rc.add_child(rv); b.add_child(rc)
 	var mh := UIKit.hbox(8)
 	mh.add_child(UIKit.label("Keyif", 13, Cfg.INK, "body", 800))
 	var mb := UIKit.bar(c.mood / 100.0, col, 180, 9); mb.size_flags_vertical = Control.SIZE_SHRINK_CENTER; mh.add_child(mb)
@@ -901,6 +1165,8 @@ func _insp_staff(v: VBoxContainer, s: Staff) -> void:
 	var b := _body(v)
 	b.add_child(UIKit.wrap(UIKit.label(DB.ROLE_DESC[s.role], 13, Cfg.INK2, "body", 700), 310))
 	b.add_child(UIKit.label("Beceri %d%% · maaş %s/gün" % [int(s.skill * 100), Cfg.fmt_money(s.wage)], 13, Cfg.INK, "body", 800))
+	if s.persona != "": b.add_child(UIKit.wrap(UIKit.label("%s: %s" % [s.trait_name(), DB.TRAITS[s.persona]["desc"]], 12, Cfg.TEAL, "body", 800), 310))
+	if s.role != "owner": b.add_child(UIKit.label("Moral %d · %d gündür burada" % [int(s.morale), s.days_worked], 12, Cfg.INK2, "body", 800))
 	if s.role != "owner":
 		var f := UIKit.button("İşten çıkar", "close", false, true)
 		f.pressed.connect(func(): game.fire(s))
@@ -925,7 +1191,7 @@ func _render_place_hint() -> void:
 	var chip := UIKit.chip(("Yerleştirilebilir" if ok else String(p["reason"])), Color(0.35, 0.82, 0.6, 0.3) if ok else Color(0.9, 0.3, 0.3, 0.35), Color("a7f3cf") if ok else Color("ffc2c4"), 13)
 	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	h.add_child(chip)
-	var keys := UIKit.label("Sol tık: yerleştir · R: döndür · Sağ tık/Esc: iptal", 12, Color(1, 1, 1, 0.8), "body", 700)
+	var keys := UIKit.label("Sol tık: yerleştir · R: döndür · Sağ tık/Esc: iptal · Ctrl+Z: geri al", 12, Color(1, 1, 1, 0.8), "body", 700)
 	keys.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	h.add_child(keys)
 	place_hint.add_child(h)
@@ -982,10 +1248,17 @@ func _key(k: InputEventKey) -> void:
 		KEY_M: _dock_pressed("heat")
 		KEY_G: if game.stage >= 1: _dock_pressed("security")
 		KEY_K: toggle_panel("campaign")
+		KEY_N: toggle_panel("hood")
 		KEY_V: if game.stage >= 3: toggle_panel("mall")
 		KEY_PAGEUP, KEY_BRACKETRIGHT: game.set_view_floor(game.view_floor + 1)
 		KEY_PAGEDOWN, KEY_BRACKETLEFT: game.set_view_floor(game.view_floor - 1)
 		KEY_R: game.rotate_placement()
+		KEY_Z:
+			if k.ctrl_pressed or k.meta_pressed:
+				if game.undo(): _toast("Geri alındı")
+		KEY_D:
+			if (k.ctrl_pressed or k.meta_pressed) and game.selection.get("obj") is Fixture:
+				game.copy_fixture(game.selection["obj"]); open_panel("build")
 		KEY_C: game.shop.cutaway = not game.shop.cutaway
 
 func _click(pos: Vector2, shift: bool) -> void:
@@ -1033,7 +1306,7 @@ func _hover(pos: Vector2) -> void:
 		if u["tenant"].is_empty(): txt = "[b]Birim %s · KİRALIK[/b]\n%d teklif var, tıkla" % [u["def"]["id"], u["offers"].size()]
 		else: txt = "[b]%s[/b]\n%s · memnuniyet %d" % [u["tenant"]["def"]["brand"], u["tenant"]["def"]["name"], int(u["tenant"]["sat"])]
 	tooltip.visible = txt != ""
-	tooltip_lbl.text = txt
+	tooltip_lbl.text = Loc.t(txt)
 	tooltip.reset_size()
 
 func _update_tooltip_pos() -> void:
@@ -1121,8 +1394,22 @@ func _insights(st: Dictionary, ms := {}) -> Array:
 	var exp: Dictionary = st["expensive"]
 	for pid in exp:
 		if exp[pid] >= 3: out.append(["tag", "%s %d kişiye pahalı geldi." % [DB.product(pid)["name"], exp[pid]]]); break
+	if st.get("rival_lost", 0) >= 5:
+		out.append(["rival", "%d kişi bugün alışverişi karşıdaki UCUZA'da yaptı. Mahalle panelinden (N) fiyatları karşılaştır." % st["rival_lost"]])
+	if st.get("credit", 0) > 0 or st.get("credit_paid", 0) > 0:
+		out.append(["note", "Veresiye: bugün %s deftere yazıldı, %s tahsil edildi. Defterde toplam %s alacak var." % [Cfg.fmt_money(st["credit"]), Cfg.fmt_money(st["credit_paid"]), Cfg.fmt_money(game.neighborhood.total_debt())]])
 	if out.is_empty(): out.append(["heart", "Sakin bir gün. Müşteriler aradığını buldu."])
-	return out.slice(0, 3)
+	var tw: Dictionary = game.calendar.weather_info(game.calendar.tomorrow)
+	var tsp: Dictionary = game.calendar.special(game.day + 1)
+	var fc := "Yarın: %s, %s." % [game.calendar.label(game.day + 1), (tw["name"] as String).to_lower()]
+	if not tsp.is_empty(): fc += " " + tsp["name"] + "!"
+	match game.calendar.tomorrow:
+		"sicak": fc += " Dondurma ve soğuk içecek stokla."
+		"yagmur": fc += " Şemsiye satılır, müşteri biraz azalır."
+		"kar": fc += " Salep aranır, sokak sakin olur."
+	var res := out.slice(0, 3)
+	res.append([tw["icon"], fc])
+	return res
 
 # ================================================================== welcome
 func _show_welcome() -> void:
@@ -1165,6 +1452,9 @@ func _show_welcome() -> void:
 	lb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lb.pressed.connect(func(): open_menu("load"))
 	saves.add_child(lb)
+	var mp := UIKit.button("Mahalleler", "map", false)
+	mp.pressed.connect(func(): open_menu("map"))
+	saves.add_child(mp)
 	var sb2 := UIKit.button("Ayarlar", "settings", false)
 	sb2.pressed.connect(func(): open_menu("settings"))
 	saves.add_child(sb2)
@@ -1186,6 +1476,7 @@ func start(loaded := false) -> void:
 		game.alert("loaded", "star", "Kayıt yüklendi: %s, Gün %d. Gün sabah 07:00'den başlıyor." % [DB.STAGES[game.stage]["name"], game.day], "good", null, 0.0)
 	else:
 		game.alert("hello", "star", "Hoş geldin! Boş bölmeye tıklayıp ürün ata, rafları dolu tut. Sorunlar önce dükkânın içinde görünür.", "good", null, 0.0)
+		if game.scenario.is_empty() and Settings.tutorial: tutorial.start(game)
 
 # ================================================================== shifts
 func _shift_seg(cur: String, cb: Callable) -> HBoxContainer:
@@ -1193,7 +1484,7 @@ func _shift_seg(cur: String, cb: Callable) -> HBoxContainer:
 	h.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	for sh in ["full", "morning", "evening"]:
 		var b := Button.new(); b.focus_mode = Control.FOCUS_NONE
-		b.text = DB.SHIFT_SHORT[sh]; b.tooltip_text = DB.SHIFT_LABEL[sh]
+		b.text = DB.SHIFT_SHORT[sh]; b.tooltip_text = Loc.t(DB.SHIFT_LABEL[sh])
 		b.add_theme_font_override("font", Art.body_font(800)); b.add_theme_font_size_override("font_size", 11)
 		var on: bool = sh == cur
 		b.add_theme_stylebox_override("normal", UIKit.sb(Cfg.VIOLET if on else Color(0.12, 0.16, 0.27, 0.07), 8, Color(0, 0, 0, 0), 0, 0, Vector4(8, 4, 8, 4)))
@@ -1242,7 +1533,7 @@ func _p_campaign() -> void:
 			for p in game.unlocked_products():
 				var pid: String = p["id"]
 				var on: bool = disc_pick.has(pid)
-				var pb := Button.new(); pb.focus_mode = Control.FOCUS_NONE; pb.tooltip_text = "%s · ₺%d → ₺%d" % [p["name"], game.prices[pid], int(round(game.prices[pid] * 0.85))]
+				var pb := Button.new(); pb.focus_mode = Control.FOCUS_NONE; pb.tooltip_text = Loc.t("%s · ₺%d → ₺%d" % [p["name"], game.prices[pid], int(round(game.prices[pid] * 0.85))])
 				pb.icon = thumbs.products.get(pid); pb.expand_icon = true; pb.custom_minimum_size = Vector2(50, 50)
 				pb.add_theme_stylebox_override("normal", UIKit.sb(Color("ffe3df") if on else Color("f6ecde"), 12, Color("d6333a") if on else Color(0, 0, 0, 0), 3 if on else 0, 0, Vector4(4, 4, 4, 4)))
 				pb.add_theme_stylebox_override("hover", UIKit.sb(Color("fff1e0"), 12, Color("d6333a"), 2, 0, Vector4(4, 4, 4, 4)))
@@ -1497,7 +1788,7 @@ func _insp_visitor(v: VBoxContainer, c: Visitor) -> void:
 		b.add_child(row2)
 
 func _evening_toggle(b: VBoxContainer) -> void:
-	var tg := CheckButton.new(); tg.text = "Akşam indirimi: 19:00'dan sonra simit ve ekmek %40 ucuz"
+	var tg := CheckButton.new(); tg.text = Loc.t("Akşam indirimi: 19:00'dan sonra simit ve ekmek %40 ucuz")
 	tg.button_pressed = game.evening_bakery; tg.focus_mode = Control.FOCUS_NONE
 	tg.add_theme_font_size_override("font_size", 12); tg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tg.custom_minimum_size.x = 310
@@ -1526,7 +1817,7 @@ func _render_menu() -> void:
 	c.custom_minimum_size = Vector2(520, 0)
 	var v := UIKit.vbox(10)
 	var head := UIKit.hbox(10)
-	var title: String = {"main": "Menü", "save": "Oyunu Kaydet", "load": "Kayıt Yükle", "settings": "Ayarlar"}[menu_page]
+	var title: String = {"main": "Menü", "save": "Oyunu Kaydet", "load": "Kayıt Yükle", "settings": "Ayarlar", "map": "Mahalle Haritası", "ach": "Başarımlar"}[menu_page]
 	var tl := UIKit.label(title, 30, Cfg.INK, "display"); tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(tl)
 	if menu_page != "main" and started:
@@ -1542,6 +1833,8 @@ func _render_menu() -> void:
 		"save": _menu_slots(v, true)
 		"load": _menu_slots(v, false)
 		"settings": _menu_settings(v)
+		"map": _menu_map(v)
+		"ach": _menu_ach(v)
 	c.add_child(v)
 	menu.add_child(c)
 	c.reset_size()
@@ -1550,7 +1843,8 @@ func _render_menu() -> void:
 func _menu_main(v: VBoxContainer) -> void:
 	v.add_child(UIKit.label("Oyun duraklatıldı. Gün %d, %s" % [game.day, Cfg.clock_str(game.clock)], 13, Cfg.INK3, "body", 800))
 	for it in [["Devam et", "play", func(): close_menu(), true], ["Kaydet", "save", func(): menu_page = "save"; _render_menu(), false],
-		["Yükle", "box", func(): menu_page = "load"; _render_menu(), false], ["Ayarlar", "settings", func(): menu_page = "settings"; _render_menu(), false],
+		["Yükle", "box", func(): menu_page = "load"; _render_menu(), false], ["Mahalle haritası", "map", func(): menu_page = "map"; _render_menu(), false],
+		["Başarımlar", "trophy", func(): menu_page = "ach"; _render_menu(), false], ["Ayarlar", "settings", func(): menu_page = "settings"; _render_menu(), false],
 		["Oyundan çık", "close", func(): get_tree().quit(), false]]:
 		var b := UIKit.button(it[0], it[1], it[3])
 		b.custom_minimum_size = Vector2(0, 46)
@@ -1611,11 +1905,12 @@ func _menu_settings(v: VBoxContainer) -> void:
 		Settings.save_settings(); Settings.apply(game, get_tree()); _render_menu()
 	v.add_child(UIKit.section("Görüntü"))
 	_set_row(v, "Grafik kalitesi", _seg(Settings.QUALITY, Settings.quality, func(i): Settings.quality = i; changed.call()))
+	_set_row(v, "Dil / Language", _seg(["Türkçe", "English"], 1 if Settings.lang == "en" else 0, func(i): Settings.lang = "en" if i == 1 else "tr"; Loc.set_lang(Settings.lang); Settings.save_settings(); get_tree().reload_current_scene()))
 	_set_row(v, "Arayüz boyutu", _seg(["%90", "%100", "%115", "%130"], Settings.UI_SCALES.find(Settings.ui_scale), func(i): Settings.ui_scale = Settings.UI_SCALES[i]; changed.call()))
-	var fs := CheckButton.new(); fs.text = "Tam ekran"; fs.button_pressed = Settings.fullscreen; fs.focus_mode = Control.FOCUS_NONE
+	var fs := CheckButton.new(); fs.text = Loc.t("Tam ekran"); fs.button_pressed = Settings.fullscreen; fs.focus_mode = Control.FOCUS_NONE
 	fs.toggled.connect(func(on): Settings.fullscreen = on; changed.call())
 	v.add_child(fs)
-	var cw := CheckButton.new(); cw.text = "Yakınlaşınca kameraya bakan duvarları indir (C)"; cw.button_pressed = Settings.cutaway; cw.focus_mode = Control.FOCUS_NONE
+	var cw := CheckButton.new(); cw.text = Loc.t("Yakınlaşınca kameraya bakan duvarları indir (C)"); cw.button_pressed = Settings.cutaway; cw.focus_mode = Control.FOCUS_NONE
 	cw.toggled.connect(func(on): Settings.cutaway = on; changed.call())
 	v.add_child(cw)
 	v.add_child(UIKit.section("Ses"))
@@ -1627,6 +1922,43 @@ func _menu_settings(v: VBoxContainer) -> void:
 		sl.drag_ended.connect(func(_c): Settings.save_settings())
 		_set_row(v, k[1], sl)
 	v.add_child(UIKit.label("Düşük kalite: gölge ve ortam ışığı sadeleşir, eski ekran kartlarında akıcı çalışır.", 11, Cfg.INK3, "body", 700))
+
+func _menu_map(v: VBoxContainer) -> void:
+	v.add_child(UIKit.wrap(UIKit.label("Her mahalle ayrı bir oyun başlatır. Kazandığın mahallelere madalya işlenir.", 12, Cfg.INK3, "body", 700), 560))
+	for sd in Scenarios.LIST:
+		var row := UIKit.card(Color.WHITE, 14, Vector4(12, 10, 12, 10), 0)
+		var h := UIKit.hbox(10)
+		var ib := PanelContainer.new(); ib.add_theme_stylebox_override("panel", UIKit.sb(Cfg.VIOLET if Progress.medal(sd["id"]) else Color(0.12, 0.16, 0.27, 0.08), 12, Color(0, 0, 0, 0), 0, 0, Vector4(8, 8, 8, 8)))
+		ib.add_child(UIKit.icon("medal" if Progress.medal(sd["id"]) else sd["icon"], 22, Color.WHITE if Progress.medal(sd["id"]) else Cfg.INK2)); ib.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		h.add_child(ib)
+		var tv := UIKit.vbox(0); tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tv.add_child(UIKit.label("%s · %s" % [sd["name"], sd["sub"]], 16, Cfg.INK, "body", 900))
+		tv.add_child(UIKit.wrap(UIKit.label(sd["desc"], 12, Cfg.INK2, "body", 700), 380))
+		tv.add_child(UIKit.wrap(UIKit.label("Hedef: " + sd["goal"], 12, Cfg.TEAL, "body", 800), 380))
+		h.add_child(tv)
+		var sid: String = sd["id"]
+		var b := UIKit.button("Başla", "play", true, true); b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		b.pressed.connect(func(): SaveGame.pending_scenario = sid; SaveGame.pending = {}; get_tree().reload_current_scene())
+		h.add_child(b)
+		row.add_child(h); v.add_child(row)
+
+func _menu_ach(v: VBoxContainer) -> void:
+	Progress.load_data()
+	var got := 0
+	for a in Progress.ACHIEVEMENTS: if Progress.has(a["id"]): got += 1
+	v.add_child(UIKit.label("%d / %d açıldı" % [got, Progress.ACHIEVEMENTS.size()], 13, Cfg.INK3, "body", 800))
+	var sc := ScrollContainer.new(); sc.custom_minimum_size = Vector2(560, 420); sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var list := UIKit.vbox(6); list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for a in Progress.ACHIEVEMENTS:
+		var on := Progress.has(a["id"])
+		var h := UIKit.hbox(10)
+		h.add_child(UIKit.icon("trophy" if on else "lock", 20, Cfg.MUSTARD if on else Cfg.INK3))
+		var tv := UIKit.vbox(-2); tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tv.add_child(UIKit.label(a["name"], 14, Cfg.INK if on else Cfg.INK3, "body", 900))
+		tv.add_child(UIKit.label(a["desc"], 12, Cfg.INK2 if on else Cfg.INK3, "body", 700))
+		h.add_child(tv)
+		list.add_child(h)
+	sc.add_child(list); v.add_child(sc)
 
 func _toast(text: String) -> void:
 	if toast: toast.queue_free()

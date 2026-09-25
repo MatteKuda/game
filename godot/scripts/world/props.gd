@@ -29,6 +29,8 @@ static func build(def: Dictionary) -> Dictionary:
 		"oyunalani": _play_area(m)
 		"bank": _bench(m)
 		"gondolbasi": _endcap(m)
+		"derin": _freezer(m)
+		"sarkuteri": _deli(m)
 		"depooda", "soguk", "molaodasi": _room(m, def)
 		"wc": _wc(m)
 	return m
@@ -620,3 +622,58 @@ static func _wc(m: Dictionary) -> void:
 		q.scale = Vector3(1, 1, 0.6)
 	m["dirt"] = dirt
 	m["height"] = H + 0.5
+
+# ------------------------------------------------------------------ Dondurma Dolabı (2x1 chest freezer)
+static func _freezer(m: Dictionary) -> void:
+	var r: Node3D = m["root"]
+	var body := Art.mat(Color("f7f6f2"), 0.35, 0.1)
+	Art.box(r, Vector3(1.86, 0.78, 0.8), body, Vector3(0, 0.39, 0), 0.05)
+	Art.box(r, Vector3(1.88, 0.12, 0.82), Art.mat(Cfg.STEEL_DARK, 0.5, 0.3), Vector3(0, 0.06, 0), 0.03)
+	# colourful band with the brand
+	Art.box(r, Vector3(1.87, 0.26, 0.02), Art.mat(Color("61b3ff"), 0.5), Vector3(0, 0.46, 0.405), 0.01)
+	for i in 5: Art.sphere(r, 0.06, Art.mat([Color("f7d6e0"), Color("fff1dc"), Color("8a5a35"), Color("86d6b4"), Color("f2b33d")][i], 0.6), Vector3(-0.72 + i * 0.36, 0.46, 0.41), 0.4)
+	Art.label(r, "DONDURMA", 54, Color.WHITE, Vector3(0, 0.46, 0.42), 0.0, "display", 8, Color("2f6fb5"))
+	# frosty inside and sliding glass lids
+	Art.box(r, Vector3(1.7, 0.02, 0.66), Art.mat(Color("e4f4fb"), 0.3, 0.0, 0.2), Vector3(0, 0.62, 0), 0.0)
+	for sx in [-1, 1]:
+		var lid := Art.box(r, Vector3(0.9, 0.012, 0.7), Art.glass(Color(0.85, 0.95, 1.0), 0.2), Vector3(sx * 0.45, 0.8, 0), 0.0)
+		lid.rotation.z = sx * 0.02
+	Art.box(r, Vector3(1.86, 0.04, 0.04), Art.mat(Cfg.STEEL, 0.25, 0.8), Vector3(0, 0.8, 0.38), 0.01)
+	Art.box(r, Vector3(1.86, 0.04, 0.04), Art.mat(Cfg.STEEL, 0.25, 0.8), Vector3(0, 0.8, -0.38), 0.01)
+	for s in 2:
+		var cx := -0.45 + s * 0.9
+		var units: Array[Transform3D] = []
+		for k in 12:
+			var x := cx - 0.3 + (k % 4) * 0.2
+			var z := -0.18 + (k / 4) * 0.18
+			units.append(Transform3D(Basis.from_euler(Vector3(-PI / 2 + 0.25, 0, randf_range(-0.3, 0.3))), Vector3(x, 0.66, z)))
+		m["slots"].append({"units": units, "tag": Vector3(cx, 0.72, 0.43)})
+	m["height"] = 0.95
+
+# ------------------------------------------------------------------ Şarküteri Tezgâhı (3x1 glass deli counter)
+static func _deli(m: Dictionary) -> void:
+	var r: Node3D = m["root"]
+	var wood := Art.mat(Cfg.WOOD_DARK, 0.7)
+	Art.box(r, Vector3(2.9, 0.8, 0.7), Art.mat(Color("8a2f2a"), 0.6), Vector3(0, 0.4, 0.0), 0.04)
+	Art.box(r, Vector3(2.92, 0.08, 0.74), wood, Vector3(0, 0.84, 0.0), 0.02)
+	Art.box(r, Vector3(2.9, 0.08, 0.5), Art.mat(Color("f4f1ea"), 0.4), Vector3(0, 0.92, -0.05), 0.01) # display bed
+	# curved-looking front glass and the top
+	var g := Art.box(r, Vector3(2.84, 0.46, 0.012), Art.glass(Color(0.85, 0.95, 1.0), 0.22), Vector3(0, 1.14, 0.22), 0.0)
+	g.rotation.x = -0.35
+	Art.box(r, Vector3(2.84, 0.012, 0.36), Art.glass(Color(0.85, 0.95, 1.0), 0.2), Vector3(0, 1.36, -0.08), 0.0)
+	for sx in [-1, 1]: Art.box(r, Vector3(0.04, 0.5, 0.5), Art.mat(Cfg.STEEL, 0.25, 0.8), Vector3(sx * 1.43, 1.13, -0.03), 0.01)
+	Art.box(r, Vector3(2.9, 0.03, 0.03), Art.mat(Color("fff4dc"), 0.2, 0.0, 2.5), Vector3(0, 1.33, -0.1), 0.0)
+	# scale on the staff side and a small striped sign
+	var sc := Node3D.new(); sc.position = Vector3(1.05, 1.37, -0.18); r.add_child(sc)
+	Art.box(sc, Vector3(0.3, 0.06, 0.24), Art.mat(Color("eef0f2"), 0.4, 0.2), Vector3(0, 0.03, 0), 0.02)
+	Art.box(sc, Vector3(0.2, 0.12, 0.03), Art.mat(Color("2d3348"), 0.4), Vector3(0, 0.12, -0.1), 0.01)
+	Art.box(sc, Vector3(0.12, 0.04, 0.012), Art.mat(Color("7fe3c8"), 0.3, 0.0, 2.0), Vector3(0, 0.13, -0.083), 0.0)
+	Art.box(r, Vector3(1.3, 0.3, 0.06), Art.mat(Color("8a2f2a"), 0.5), Vector3(-0.5, 1.72, -0.3), 0.03)
+	Art.label(r, "ŞARKÜTERİ", 52, Cfg.CREAM, Vector3(-0.5, 1.72, -0.265), 0.0, "display")
+	for sx in [-1, 1]: Art.box(r, Vector3(0.03, 0.4, 0.03), Art.mat(Cfg.STEEL_DARK, 0.4, 0.5), Vector3(-0.5 + sx * 0.55, 1.5, -0.3), 0.0)
+	var l := OmniLight3D.new(); l.light_color = Color("fff1dc"); l.light_energy = 0.7; l.omni_range = 2.0; l.position = Vector3(0, 1.4, 0.1)
+	r.add_child(l); m["lights"].append(l)
+	for s in 2:
+		var cx := -0.7 + s * 1.2
+		m["slots"].append({"units": _grid(_span(cx, 0.9, 5), [0.965], [0.08, -0.14]), "tag": Vector3(cx, 0.78, 0.36)})
+	m["height"] = 1.9

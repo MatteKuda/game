@@ -65,6 +65,32 @@ Durum etiketleri: ✅ uygulandı · 🟡 kısmen · ⬜ planlandı
 
 ---
 
+## Mahalle hayatı (tüm aşamalar) ✅
+
+**Hedef his:** "Otomatiğe bağladım ama dükkân hâlâ canlı; her gün küçük bir karar var."
+
+| Sistem | Durum | Not |
+|---|---|---|
+| Ürün çeşidi | ✅ | 15'ten 34 ürüne: büfe klasikleri (gazete, sakız, dondurma, salep, defter), market (yumurta, yoğurt, zeytin, şampuan, hurma, şemsiye), süpermarket (un, şeker, yağ, donuk pizza, bebek bezi, sucuk, kaşar) |
+| Dondurma dolabı, şarküteri | ✅ | Şarküteri tezgâhı bir ustayla çalışır; usta yoksa müşteri bekler ve vazgeçer |
+| Ürün analizi | ✅ | 7 günlük satış, kâr, kaçan satış, rafta boş kalma süresi, alıcı tipi, öneri |
+| Müdavimler | ✅ | İsimli sakinler, alışkanlık saati, sevdiği ürünler, sadakat, istekler |
+| Veresiye defteri | ✅ | Politika + limit, geç ödeyen / hiç ödemeyen, hatırlat / sil |
+| Takvim ve hava | ✅ | Hafta sonu, mevsim, okul açılışı, Ramazan, iki bayram, arife; güneşli/sıcak/bulutlu/yağmurlu/karlı, yarının tahmini, yağmur ve kar efekti |
+| Görevler | ✅ | Aynı anda 3 görev, günlük ve çok günlük, ödüller: nakit, puan, bedava eşya |
+| Rakip (UCUZA) | ✅ | Karşı kaldırımda açılır, müşteri karşıya geçer, fiyat eşleme, afiş, dayanışma, satın alma, 7 gün %75 pay ile kapanır |
+| Ekonomi | ✅ | Eşyaya göre elektrik faturası, güneş paneli, haftalık toptancı zammı, toplu fiyat güncelleme, 3 kredi seçeneği, kendi markan |
+| Personel | ✅ | Kişilikler (7 huy), deneyim, eğitim, moral, zam talebi, istifa |
+| Mahalle kedisi | ✅ | Kapıda belirir, sahiplenilir; gezinir, uyur, müşteriyi sevindirir, raftan ürün düşürür |
+| Radyo Köşebaşı | ✅ | Bağlama göre espriler ve duyurular |
+| Mahalleler (senaryolar) | ✅ | Moda Sahili, Kampüs Yolu, Çarşı, Serbest Mod; madalyalar |
+| Başarımlar | ✅ | 23 başarım, oyunlar arası kalıcı |
+| İnşa kolaylıkları | ✅ | Geri al (Ctrl+Z), kopyala (Ctrl+D) |
+| Rehber | ✅ | 8 adımlık kontrol listesi, dock düğmesini gösterir |
+| İngilizce | 🟡 | Arayüz, veriler, uyarılar, düşünceler ve radyo çevrildi; 3B tabelalar Türkçe kalıyor |
+
+---
+
 ## Teknik durum
 
 | Konu | Durum | Sonra |
@@ -81,8 +107,8 @@ Durum etiketleri: ✅ uygulandı · 🟡 kısmen · ⬜ planlandı
 
 Oda sistemi, tazelik ve AVM tesisleri (tuvalet, teknisyen, merdiven) Godot sürümünde tamamlandı. Sırada:
 
-1. **Rakip dükkân:** karşı köşeye açılan zincir market. Fiyat savaşı ve sadakat kartının anlamı.
-2. **Oyun testi ve denge:** gerçek oyuncularla hedef süreler (Büfe → Market ~45 dk, Market → Süpermarket ~2 saat, Süpermarket → AVM ~3 saat).
-3. **AVM tahliye tatbikatı / yangın alarmı:** güvenlik ve kapı düzeninin sınavı.
-4. **Kiracıya özel sesler ve etkinlik müziği.**
+1. **Oyun testi ve denge:** gerçek oyuncularla hedef süreler (Büfe → Market ~45 dk, Market → Süpermarket ~2 saat, Süpermarket → AVM ~3 saat).
+2. **AVM tahliye tatbikatı / yangın alarmı:** güvenlik ve kapı düzeninin sınavı.
+3. **Kiracıya özel sesler ve etkinlik müziği.**
+4. **Aynı oyunda birden çok şube** (şu an her mahalle ayrı oyun).
 5. **Windows için hazır `.exe` sürümü** (GitHub Releases üzerinden).

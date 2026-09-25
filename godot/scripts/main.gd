@@ -23,12 +23,24 @@ func _ready() -> void:
 		hud.start(true)
 		print("LOADED stage=", game.stage, " day=", game.day, " money=", game.money, " fixtures=", game.fixtures.size(), " staff=", game.staff.size(), " upgrades=", game.upgrades.keys(), " tenants=", game.mall.units.filter(func(u): return not u["tenant"].is_empty()).size() if game.mall else -1, " lot=", game.street.lot != null)
 		return
+	if SaveGame.pending_scenario != "":
+		var sid := SaveGame.pending_scenario
+		SaveGame.pending_scenario = ""
+		Scenarios.apply(game, sid)
+		hud.start(false)
+		game.alert("scenario", "map", "%s: %s" % [Scenarios.get_def(sid)["name"], Scenarios.get_def(sid)["goal"]], "info", null, 0.0)
+		return
 	var args := {}
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--"):
 			var i := a.find("=")
 			if i > 0: args[a.substr(2, i - 2)] = a.substr(i + 1)
 			else: args[a.substr(2)] = "1"
+	if args.has("lang"): Loc.set_lang(args["lang"])
+	if args.has("menu2"): hud.call_deferred("open_menu", args["menu2"])
+	if args.has("scenario"): Scenarios.apply(game, args["scenario"])
+	if args.has("load"):
+		SaveGame.apply(game, SaveGame._read(int(args["load"]))); hud.start(true)
 	if args.has("autostart") or args.has("sim"): hud.start()
 	if args.has("sim"):
 		for i in int(float(args["sim"]) * 30):
@@ -71,6 +83,7 @@ func _ready() -> void:
 	if args.has("overlay"): game.set_overlay(args["overlay"])
 	if args.has("event"): game.mall.schedule(args["event"], "today")
 	if args.has("hour"): game.clock = float(args["hour"]) * 60.0
+	if args.has("tab"): hud.hood_tab = args["tab"]; hud.prod_tab = args["tab"]
 	if args.has("panel2"): hud.open_panel(args["panel2"])
 	if args.has("selunit"):
 		var u: Dictionary = game.mall.units[int(args["selunit"])]
@@ -87,6 +100,7 @@ func _ready() -> void:
 		game.events_changed.emit()
 	if args.has("econ"):
 		if args.has("stocker"): game.hire({"role": "stocker", "name": "Can", "wage": 260, "skill": 1.0}, true)
+		if args.has("veresiye"): game.neighborhood.mode = args["veresiye"]
 		var vans := 0
 		var last_state: String = game.van["state"]
 		var evs := []
@@ -102,9 +116,13 @@ func _ready() -> void:
 					game.answer_event(ev["id"], c)
 			var st: Dictionary = game.stats
 			print("ECON day ", game.day, " money=", int(game.money), " rev=", st["revenue"], " served=", st["served"], " happy_total=", game.totals["happy"], " rating=", snappedf(game.rating, 0.01), " backstock=", game.backstock_total(), "/", game.depot_capacity(), " missed=", st["missed"])
+			print("   ", game.calendar.label(game.day), " ", game.calendar.weather, " util=", game.utilities(), " credit=", st["credit"], "/", st["credit_paid"], " debt=", game.neighborhood.total_debt(), " rival_lost=", st["rival_lost"], " quests_done=", game.quests.done.size(), " active=", game.quests.active.map(func(q): return q["title"]), " loyal=", game.neighborhood.residents.map(func(r): return int(r["loyalty"])))
 			if game.day_ended_flag: game.start_next_day()
 		print("ECON vans=", vans, " events=", evs)
 		hud.modal.visible = false
+		if args.has("saveto"):
+			print("SAVED ", SaveGame.save(game, int(args["saveto"])))
+			if DisplayServer.get_name() == "headless": get_tree().quit()
 	if args.has("dbgunit"):
 		var un: Node3D = game.mall_shell.unit_nodes[int(args["dbgunit"])]
 		for ch in un.get_children():
