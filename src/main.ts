@@ -41,6 +41,19 @@ async function boot() {
   if (import.meta.env.DEV) Object.assign(window, { FIX: FIXTURE_MAP, AUDIO: audio }); // for scripted tests
 
   let last = performance.now();
+  // Browsers stop requestAnimationFrame in background tabs and throttle timers on the page,
+  // so while the tab is hidden a worker's timer (not throttled the same way) keeps the shop running.
+  const bgTimer = new Worker(URL.createObjectURL(new Blob(['setInterval(() => postMessage(0), 200);'], { type: 'text/javascript' })));
+  bgTimer.onmessage = () => {
+    if (!document.hidden) return;
+    const now = performance.now();
+    let dt = Math.min(2, Math.max(0, (now - last) / 1000)); last = now;
+    while (dt > 0) { const step = Math.min(dt, 0.1); game.simulate(step); dt -= step; }
+    hud.update(1); // keep the HUD (and the tab title) current
+    document.title = `₺${Math.round(game.money).toLocaleString('tr-TR')} · Gün ${game.day} — Tezgâh`;
+  };
+  const baseTitle = document.title;
+  document.addEventListener('visibilitychange', () => { last = performance.now(); if (!document.hidden) document.title = baseTitle; });
   const loop = (now: number) => {
     const dt = Math.max(0, (now - last) / 1000); last = now;
     game.frame(dt);

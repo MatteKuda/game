@@ -940,16 +940,22 @@ export class Game {
   }
 
   // ---------------------------------------------------------------- main tick
-  frame(realDt: number) {
-    realDt = Math.max(0, Math.min(realDt, 0.1));
-    this.realTime += realDt;
-    this.cam.update(realDt);
+  /** advance the simulation only (no rendering); also used while the tab is in the background */
+  simulate(realDt: number) {
     const running = !this.paused && !this.dayEnded;
     if (running) {
       const total = realDt * this.speed;
       const steps = Math.ceil(total / (1 / 30));
       for (let i = 0; i < steps; i++) this.tick(total / steps);
     }
+    return running;
+  }
+
+  frame(realDt: number) {
+    realDt = Math.max(0, Math.min(realDt, 0.1));
+    this.realTime += realDt;
+    this.cam.update(realDt);
+    const running = this.simulate(realDt);
     const viewDt = running ? realDt * this.speed : 0;
     const far = this.cam.farFactor;
     const agents: Agent[] = [...this.customers, ...this.staff, ...(this.mall?.visitors ?? [])];
