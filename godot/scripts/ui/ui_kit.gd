@@ -21,7 +21,7 @@ static func sb(bg: Color, radius := 14, border := Color(0, 0, 0, 0), bw := 0, sh
 static func theme() -> Theme:
 	var t := Theme.new()
 	t.default_font = Art.body_font(500)
-	t.default_font_size = 14
+	t.default_font_size = roundi(14 * Settings.text_scale)
 	t.set_color("font_color", "Label", Cfg.INK)
 	t.set_color("font_color", "Button", Cfg.INK)
 	t.set_color("font_hover_color", "Button", Cfg.INK)
@@ -65,7 +65,7 @@ static func label(text: String, size := 14, col := Cfg.INK, kind := "body", weig
 	var l := Label.new()
 	l.text = Loc.t(text)
 	Glossary.scan(l.text)
-	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_font_size_override("font_size", roundi(size * Settings.text_scale))
 	l.add_theme_color_override("font_color", col)
 	l.add_theme_font_override("font", Art.font("display") if kind == "display" else (Art.font("display700") if kind == "display700" else Art.body_font(weight)))
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -91,7 +91,7 @@ static func button(text: String, ic := "", primary := false, small := false) -> 
 	b.text = Loc.t(text)
 	b.focus_mode = Control.FOCUS_NONE
 	if ic != "": b.icon = icon_tex(ic); b.expand_icon = false; b.add_theme_constant_override("icon_max_width", 16 if small else 18)
-	b.add_theme_font_size_override("font_size", 12 if small else 14)
+	b.add_theme_font_size_override("font_size", roundi((12 if small else 14) * Settings.text_scale))
 	var pad := Vector4(9, 5, 9, 5) if small else Vector4(14, 8, 14, 8)
 	if primary:
 		b.add_theme_stylebox_override("normal", sb(Cfg.TERRA, 11, Color(0, 0, 0, 0), 0, 0, pad))

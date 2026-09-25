@@ -35,6 +35,15 @@ func tick() -> void:
 	var h: int = int(g.clock / 60.0)
 	if h == _last_hour: return
 	_last_hour = h
+	# a player notices the depot running dry before evening and adds a depot shelf
+	if h == 17 and g.backstock_total() < g.depot_capacity() * 0.12 and g.depot_capacity() < 480 * (1 + g.stage) and g.money > 1500:
+		if place("depo") != null: note("built depot")
+		else: note("no room for depot")
+	# midday: products that ran out get a small urgent order (arrives within the hour)
+	if h == 12 and g.money > 1500:
+		for pid in g.backstock:
+			if g.is_stocked(pid) and int(g.backstock[pid]) == 0 and g.incoming(pid) == 0 and int(g.stats["missed"].get(pid, 0)) >= 3:
+				g.order(pid, 12, false, true)
 	_hourly()
 
 func _hourly() -> void:

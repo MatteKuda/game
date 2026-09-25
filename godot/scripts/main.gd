@@ -9,8 +9,10 @@ var args_extra := {}
 func _ready() -> void:
 	Settings.load_settings()
 	for a in OS.get_cmdline_user_args(): if a.begins_with("--lang="): Loc.set_lang(a.substr(7))
+	Keys.setup()
 	Settings.ensure_buses()
 	add_child(GameAudio.new())
+	add_child(PadCursor.new())
 	game = Game.new()
 	add_child(game)
 	Settings.apply(game, get_tree())
@@ -116,6 +118,9 @@ func _ready() -> void:
 				bot.tick()
 			var st: Dictionary = game.stats
 			print("BOT day %d stage %d money %d rev %d served %d happy_tot %d rating %.2f lost %d rival %d  |%s" % [game.day, game.stage, int(game.money), st["revenue"], st["served"], game.totals["happy"], game.rating, st["lost"], st["rival_lost"], " ".join(bot.log.slice(-6))])
+			var mw: Dictionary = st["mood_why"]
+			var ks := mw.keys(); ks.sort_custom(func(x, y): return float(mw[x][0]) < float(mw[y][0]))
+			print("  mood: ", ", ".join(ks.slice(0, 5).map(func(k): return "%s %d/%d" % [k, int(mw[k][0]), int(mw[k][1])])), " | missed ", st["missed"], " | depot %d/%d " % [game.backstock_total(), game.depot_capacity()], game.backstock.keys().filter(func(k): return game.is_stocked(k)).map(func(k): return "%s:%d" % [k, game.backstock[k]]))
 			bot.log.clear()
 			if game.day_ended_flag: game.start_next_day()
 		print("BOT stage_times=", bot.stage_times, " cpu_s=", (Time.get_ticks_msec() - t0) / 1000.0)

@@ -12,6 +12,15 @@ static var cutaway := true
 static var edge_pan := false
 static var lang := "tr"
 static var tutorial := true
+static var colorblind := false
+static var text_scale := 1.0
+static var vsync := true
+static var fps_cap := 0 # 0 = unlimited
+static var resolution := "" # windowed size "1600x900"; "" = leave as is
+static var keys := {} # action -> physical keycode (only the ones the player changed)
+const TEXT_SCALES := [1.0, 1.12, 1.25]
+const FPS_CAPS := [30, 60, 120, 0]
+const RESOLUTIONS := ["1280x720", "1600x900", "1920x1080", "2560x1440"]
 static var vol := {"Master": 0.8, "Music": 0.55, "SFX": 0.8, "Ambience": 0.6}
 static var _loaded := false
 
@@ -26,6 +35,13 @@ static func load_settings() -> void:
 	cutaway = bool(c.get_value("game", "cutaway", cutaway))
 	lang = str(c.get_value("game", "lang", lang))
 	tutorial = bool(c.get_value("game", "tutorial", tutorial))
+	colorblind = bool(c.get_value("access", "colorblind", colorblind))
+	text_scale = float(c.get_value("access", "text_scale", text_scale))
+	vsync = bool(c.get_value("video", "vsync", vsync))
+	fps_cap = int(c.get_value("video", "fps_cap", fps_cap))
+	resolution = str(c.get_value("video", "resolution", resolution))
+	keys = c.get_value("keys", "map", {})
+	Cfg.set_palette(colorblind)
 	Loc.set_lang(lang)
 	for k in vol: vol[k] = float(c.get_value("audio", k, vol[k]))
 
@@ -37,6 +53,12 @@ static func save_settings() -> void:
 	c.set_value("game", "cutaway", cutaway)
 	c.set_value("game", "lang", lang)
 	c.set_value("game", "tutorial", tutorial)
+	c.set_value("access", "colorblind", colorblind)
+	c.set_value("access", "text_scale", text_scale)
+	c.set_value("video", "vsync", vsync)
+	c.set_value("video", "fps_cap", fps_cap)
+	c.set_value("video", "resolution", resolution)
+	c.set_value("keys", "map", keys)
 	for k in vol: c.set_value("audio", k, vol[k])
 	c.save(FILE)
 
@@ -63,7 +85,19 @@ static func apply(game, tree: SceneTree) -> void:
 	var win := tree.root
 	win.content_scale_factor = ui_scale
 	var mode := DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
-	if DisplayServer.get_name() != "headless" and DisplayServer.window_get_mode() != mode: DisplayServer.window_set_mode(mode)
+	if DisplayServer.get_name() != "headless":
+		if DisplayServer.window_get_mode() != mode: DisplayServer.window_set_mode(mode)
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
+		if not fullscreen and resolution != "":
+			var p := resolution.split("x")
+			var sz := Vector2i(int(p[0]), int(p[1]))
+			var scr := DisplayServer.screen_get_usable_rect()
+			sz = sz.min(scr.size)
+			if DisplayServer.window_get_size() != sz:
+				DisplayServer.window_set_size(sz)
+				DisplayServer.window_set_position(scr.position + (scr.size - sz) / 2)
+	Engine.max_fps = fps_cap
+	Cfg.set_palette(colorblind)
 	if game == null: return
 	game.shop.cutaway = cutaway
 	var env: Environment = game.sky.env

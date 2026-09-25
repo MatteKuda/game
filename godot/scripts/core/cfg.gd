@@ -55,9 +55,10 @@ const STEEL := Color("c3cad2")
 const STEEL_DARK := Color("5b6570")
 const ASPHALT := Color("4a4f58")
 const CURB := Color("c9c2b6")
-const GOOD := Color("2fae7a")
-const WARN := Color("e8962c")
-const BAD := Color("e5484d")
+## good / warning / bad are variables: the colour-blind palette swaps green-red for blue-orange
+static var GOOD := Color("2fae7a")
+static var WARN := Color("e8962c")
+static var BAD := Color("e5484d")
 const VIOLET := Color("7a5ae0")
 const BLUE := Color("2f6fb5")
 
@@ -77,3 +78,14 @@ static func clock_str(minutes: float) -> String:
 
 ## exact centre of a tile rect (Rect2i.get_center() rounds down to whole tiles)
 static func rc(r: Rect2i) -> Vector2: return Vector2(r.position) + Vector2(r.size) * 0.5
+
+## Okabe–Ito inspired: blue for good, amber for warning, vermilion for bad — distinct for all common
+## kinds of colour blindness, and good/bad differ in brightness too
+static func set_palette(colorblind: bool) -> void:
+	GOOD = Color("2a7fc9") if colorblind else Color("2fae7a")
+	WARN = Color("e6b020") if colorblind else Color("e8962c")
+	BAD = Color("d0541a") if colorblind else Color("e5484d")
+
+static func place_color(ok: bool) -> Color:
+	var c: Color = GOOD if ok else BAD
+	return Color(c.r, c.g, c.b, 0.55)

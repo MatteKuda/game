@@ -34,6 +34,8 @@ func pan_by(right: float, fwd: float) -> void:
 	g_target += r * right + f * fwd
 	_clamp()
 
+func zoom_by(f: float) -> void: g_dist = clampf(g_dist * f, min_dist, max_dist)
+
 func focus(x: float, z: float, d := -1.0) -> void:
 	g_target = Vector3(x, g_target.y, z)
 	if d > 0.0: g_dist = d
@@ -96,12 +98,10 @@ func _process(dt: float) -> void:
 	var px := 0.0
 	var pz := 0.0
 	if not _typing():
-		if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP): pz += sp
-		if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN): pz -= sp
-		if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT): px -= sp
-		if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT): px += sp
-		if Input.is_key_pressed(KEY_Q): g_yaw += dt * 1.6
-		if Input.is_key_pressed(KEY_E): g_yaw -= dt * 1.6
+		# actions (Keys): keyboard keys are rebindable, the left stick gives analogue strength
+		pz += sp * (Input.get_action_strength("cam_up") - Input.get_action_strength("cam_down"))
+		px += sp * (Input.get_action_strength("cam_right") - Input.get_action_strength("cam_left"))
+		g_yaw += dt * 1.6 * (Input.get_action_strength("cam_rot_l") - Input.get_action_strength("cam_rot_r"))
 	if px != 0.0 or pz != 0.0: pan_by(px, pz)
 	var a := 1.0 - exp(-dt * 8.0)
 	target = target.lerp(g_target, a)

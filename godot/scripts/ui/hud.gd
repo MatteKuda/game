@@ -50,6 +50,7 @@ var modal: Control
 var welcome: Control
 var menu: Control
 var menu_page := "main"
+var _rebinding := "" # action waiting for a key on the controls page
 var toast: PanelContainer
 var events_box: VBoxContainer
 var event_bars := {} # event id -> ColorRect fill
@@ -812,7 +813,7 @@ func _p_products() -> void:
 		for a in DB.ARCHETYPES:
 			if a["stage"] > game.stage or not a["wants"].has(pid): continue
 			var ok: bool = price <= game.ref_price(pid) * (1.0 + a["tol"] + game.tolerance_bonus())
-			acc.add_child(UIKit.chip(a["name"].split(" ")[0], Cfg.GOOD if ok else Cfg.BAD, Color.WHITE, 10))
+			acc.add_child(UIKit.chip(Loc.t(a["name"]).split(" ")[0], Cfg.GOOD if ok else Cfg.BAD, Color.WHITE, 10))
 		row.add_child(acc)
 		for v in [game.shelf_stock(pid), game.backstock[pid], game.stats["sold"].get(pid, 0)]:
 			var l2 := UIKit.label(str(v), 16, Cfg.INK, "display"); l2.custom_minimum_size.x = 56; l2.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -1288,10 +1289,12 @@ func _render_place_hint() -> void:
 func _unhandled_input(e: InputEvent) -> void:
 	if not started: return
 	if menu != null and menu.visible:
-		if e is InputEventKey and e.pressed and e.keycode == KEY_ESCAPE: close_menu()
+		if _rebinding != "" and e is InputEventKey and e.pressed:
+			_finish_rebind(e as InputEventKey); return
+		if (e is InputEventKey and e.pressed and e.keycode == KEY_ESCAPE) or e.is_action_pressed("menu"): close_menu()
 		return
-	if e is InputEventKey and e.pressed and not e.echo:
-		_key(e as InputEventKey); return
+	if (e is InputEventKey and e.pressed and not e.echo) or (e is InputEventJoypadButton and e.pressed):
+		_key(e); return
 	if e is InputEventMouseButton:
 		var mb := e as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT:
@@ -1310,41 +1313,51 @@ func _unhandled_input(e: InputEvent) -> void:
 		elif not game.rig.is_dragging():
 			_hover(mm.position)
 
-func _key(k: InputEventKey) -> void:
-	match k.keycode:
-		KEY_ESCAPE:
+func _key(k: InputEvent) -> void:
+	var ctrl: bool = k is InputEventKey and ((k as InputEventKey).ctrl_pressed or (k as InputEventKey).meta_pressed)
+	if ctrl and k is InputEventKey:
+		match (k as InputEventKey).physical_keycode:
+			KEY_Z:
+				if game.undo(): _toast("Geri alındı")
+				return
+			KEY_D:
+				if game.selection.get("obj") is Fixture:
+					game.copy_fixture(game.selection["obj"]); open_panel("build")
+				return
+	var act := ""
+	for a in Keys.ACTIONS:
+		if k.is_action_pressed(a[0]): act = a[0]; break
+	if act == "" and k is InputEventKey and (k as InputEventKey).keycode == KEY_ESCAPE: act = "menu"
+	match act:
+		"menu":
 			if not game.placing.is_empty(): game.cancel_placement()
 			elif slot_picker >= 0: slot_picker = -1; insp_sig = ""
 			elif panel_id != "": open_panel("")
 			elif not game.selection.is_empty(): game.select({})
 			else: open_menu()
-		KEY_SPACE: set_speed(game.speed if game.paused else 0.0)
-		KEY_1: set_speed(1.0)
-		KEY_2: set_speed(2.0)
-		KEY_3: set_speed(4.0)
-		KEY_4: set_speed(8.0)
-		KEY_5: set_speed(16.0)
-		KEY_B: toggle_panel("build")
-		KEY_P: toggle_panel("products")
-		KEY_T: toggle_panel("supply")
-		KEY_H: toggle_panel("staff")
-		KEY_F: toggle_panel("finance")
-		KEY_U: toggle_panel("growth")
-		KEY_M: _dock_pressed("heat")
-		KEY_G: if game.stage >= 1: _dock_pressed("security")
-		KEY_K: toggle_panel("campaign")
-		KEY_N: toggle_panel("hood")
-		KEY_V: if game.stage >= 3: toggle_panel("mall")
-		KEY_PAGEUP, KEY_BRACKETRIGHT: game.set_view_floor(game.view_floor + 1)
-		KEY_PAGEDOWN, KEY_BRACKETLEFT: game.set_view_floor(game.view_floor - 1)
-		KEY_R: game.rotate_placement()
-		KEY_Z:
-			if k.ctrl_pressed or k.meta_pressed:
-				if game.undo(): _toast("Geri alındı")
-		KEY_D:
-			if (k.ctrl_pressed or k.meta_pressed) and game.selection.get("obj") is Fixture:
-				game.copy_fixture(game.selection["obj"]); open_panel("build")
-		KEY_C: game.shop.cutaway = not game.shop.cutaway
+		"pause": set_speed(game.speed if game.paused else 0.0)
+		"speed_1": set_speed(1.0)
+		"speed_2": set_speed(2.0)
+		"speed_4": set_speed(4.0)
+		"speed_8": set_speed(8.0)
+		"speed_16": set_speed(16.0)
+		"faster": set_speed(minf(16.0, game.speed * 2.0) if not game.paused else game.speed)
+		"slower": set_speed(maxf(1.0, game.speed * 0.5))
+		"build": toggle_panel("build")
+		"products": toggle_panel("products")
+		"supply": toggle_panel("supply")
+		"staff": toggle_panel("staff")
+		"finance": toggle_panel("finance")
+		"growth": toggle_panel("growth")
+		"heat": _dock_pressed("heat")
+		"security": if game.stage >= 1: _dock_pressed("security")
+		"campaign": toggle_panel("campaign")
+		"hood": toggle_panel("hood")
+		"mall": if game.stage >= 3: toggle_panel("mall")
+		"floor_up": game.set_view_floor(game.view_floor + 1)
+		"floor_down": game.set_view_floor(game.view_floor - 1)
+		"rotate": game.rotate_placement()
+		"cutaway": game.shop.cutaway = not game.shop.cutaway
 
 func _click(pos: Vector2, shift: bool) -> void:
 	if not game.placing.is_empty():
@@ -1911,7 +1924,7 @@ func _render_menu() -> void:
 	c.custom_minimum_size = Vector2(520, 0)
 	var v := UIKit.vbox(10)
 	var head := UIKit.hbox(10)
-	var title: String = {"main": "Menü", "save": "Oyunu Kaydet", "load": "Kayıt Yükle", "settings": "Ayarlar", "map": "Mahalle Haritası", "ach": "Başarımlar", "words": "Sözlük"}[menu_page]
+	var title: String = {"main": "Menü", "save": "Oyunu Kaydet", "load": "Kayıt Yükle", "settings": "Ayarlar", "keys": "Kontroller", "map": "Mahalle Haritası", "ach": "Başarımlar", "words": "Sözlük"}[menu_page]
 	var tl := UIKit.label(title, 30, Cfg.INK, "display"); tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(tl)
 	if menu_page != "main" and started:
@@ -1926,7 +1939,15 @@ func _render_menu() -> void:
 		"main": _menu_main(v)
 		"save": _menu_slots(v, true)
 		"load": _menu_slots(v, false)
-		"settings": _menu_settings(v)
+		"settings", "keys":
+			# long pages scroll on small screens (Steam Deck is 1280×800)
+			var sc := ScrollContainer.new(); sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+			var body := UIKit.vbox(10); body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if menu_page == "settings": _menu_settings(body)
+			else: _menu_keys(body)
+			sc.add_child(body)
+			sc.custom_minimum_size = Vector2(600, minf(body.get_combined_minimum_size().y + 8.0, root.size.y - 170.0))
+			v.add_child(sc)
 		"map": _menu_map(v)
 		"ach": _menu_ach(v)
 		"words": _menu_words(v)
@@ -2008,6 +2029,20 @@ func _menu_settings(v: VBoxContainer) -> void:
 	var cw := CheckButton.new(); cw.text = Loc.t("Yakınlaşınca kameraya bakan duvarları indir (C)"); cw.button_pressed = Settings.cutaway; cw.focus_mode = Control.FOCUS_NONE
 	cw.toggled.connect(func(on): Settings.cutaway = on; changed.call())
 	v.add_child(cw)
+	_set_row(v, "Pencere boyutu", _seg(Settings.RESOLUTIONS.map(func(r): return r.replace("x", "×")), Settings.RESOLUTIONS.find(Settings.resolution), func(i): Settings.resolution = Settings.RESOLUTIONS[i]; changed.call()))
+	_set_row(v, "Kare sınırı", _seg(["30", "60", "120", Loc.t("Sınırsız")], Settings.FPS_CAPS.find(Settings.fps_cap), func(i): Settings.fps_cap = Settings.FPS_CAPS[i]; changed.call()))
+	var vs := CheckButton.new(); vs.text = Loc.t("Dikey senkron (VSync)"); vs.button_pressed = Settings.vsync; vs.focus_mode = Control.FOCUS_NONE
+	vs.toggled.connect(func(on): Settings.vsync = on; changed.call())
+	v.add_child(vs)
+	v.add_child(UIKit.section("Erişilebilirlik"))
+	_set_row(v, "Yazı boyutu", _seg([Loc.t("Normal"), Loc.t("Büyük"), Loc.t("Çok büyük")], Settings.TEXT_SCALES.find(Settings.text_scale), func(i):
+		Settings.text_scale = Settings.TEXT_SCALES[i]; Settings.save_settings(); get_tree().reload_current_scene()))
+	var cb := CheckButton.new(); cb.text = Loc.t("Renk körü dostu renkler (yeşil/kırmızı yerine mavi/turuncu)"); cb.button_pressed = Settings.colorblind; cb.focus_mode = Control.FOCUS_NONE
+	cb.toggled.connect(func(on): Settings.colorblind = on; Settings.save_settings(); get_tree().reload_current_scene())
+	v.add_child(cb)
+	var kb := UIKit.button("Kontroller ve tuş atama", "settings", false, true)
+	kb.pressed.connect(func(): menu_page = "keys"; _render_menu())
+	v.add_child(kb)
 	v.add_child(UIKit.section("Ses"))
 	for k in [["Master", "Ana ses"], ["Music", "Müzik"], ["SFX", "Efektler"], ["Ambience", "Ortam sesi"]]:
 		var sl := HSlider.new(); sl.min_value = 0.0; sl.max_value = 1.0; sl.step = 0.05; sl.value = Settings.vol[k[0]]
@@ -2017,6 +2052,40 @@ func _menu_settings(v: VBoxContainer) -> void:
 		sl.drag_ended.connect(func(_c): Settings.save_settings())
 		_set_row(v, k[1], sl)
 	v.add_child(UIKit.label("Düşük kalite: gölge ve ortam ışığı sadeleşir, eski ekran kartlarında akıcı çalışır.", 11, Cfg.INK3, "body", 700))
+
+func _menu_keys(v: VBoxContainer) -> void:
+	v.add_child(UIKit.wrap(UIKit.label("Bir tuşa tıkla, sonra yeni tuşa bas. Başka bir işte kullanılan tuş seçilirse ikisi yer değiştirir.", 12, Cfg.INK3, "body", 700), 560))
+	var grid := GridContainer.new(); grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 18); grid.add_theme_constant_override("v_separation", 4)
+	for id in Keys.SHOWN:
+		var h := UIKit.hbox(8)
+		var l := UIKit.label(Keys.label_of(id), 13, Cfg.INK, "body", 800); l.custom_minimum_size.x = 160
+		h.add_child(l)
+		var waiting: bool = _rebinding == id
+		var b := UIKit.button("Bir tuşa bas…" if waiting else Keys.key_text(id), "", waiting, true)
+		b.custom_minimum_size.x = 96
+		var aid: String = id
+		b.pressed.connect(func(): _rebinding = "" if _rebinding == aid else aid; _render_menu())
+		h.add_child(b)
+		grid.add_child(h)
+	v.add_child(grid)
+	var foot := UIKit.hbox(10)
+	var rs := UIKit.button("Varsayılana dön", "undo", false, true)
+	rs.pressed.connect(func(): Keys.reset(); _rebinding = ""; _render_menu())
+	foot.add_child(rs)
+	v.add_child(foot)
+	v.add_child(UIKit.section("Oyun kolu"))
+	v.add_child(UIKit.wrap(UIKit.label("Sol çubuk: kamera · Sağ çubuk: imleç · A: tıkla · B: geri · X: inşa · Y: ürünler · LB/RB: çevir · LT/RT: yakınlaş · Yön tuşları: hız, döndür, duvarlar · Start: menü · Select: duraklat", 12, Cfg.INK2, "body", 700), 560))
+	v.add_child(UIKit.wrap(UIKit.label("Ctrl+Z geri al, Ctrl+D kopyala ve Esc sabittir.", 11, Cfg.INK3, "body", 700), 560))
+
+func _finish_rebind(k: InputEventKey) -> void:
+	var id := _rebinding
+	_rebinding = ""
+	if k.keycode != KEY_ESCAPE:
+		var phys: int = k.physical_keycode if k.physical_keycode != 0 else k.keycode
+		var clash := Keys.rebind(id, phys)
+		if clash != "": _toast(Loc.t("%s tuşu artık %s için; %s eski tuşu aldı.") % [Keys.key_text(id), Loc.t(Keys.label_of(id)), Loc.t(Keys.label_of(clash))])
+	_render_menu()
 
 func _menu_map(v: VBoxContainer) -> void:
 	v.add_child(UIKit.wrap(UIKit.label("Her mahalle ayrı bir oyun başlatır. Kazandığın mahallelere madalya işlenir.", 12, Cfg.INK3, "body", 700), 560))

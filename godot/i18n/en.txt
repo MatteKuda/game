@@ -1264,7 +1264,7 @@ Ucuz fiyat ⟶ Good price
 Sıcak ekmek ⟶ Hot bread
 Kuyruktan vazgeçti ⟶ Gave up in the queue
 Dükkân kedisi ⟶ Shop cat
-Reyon görevlisi al, depoyu dolu tut (Tedarik, T). ⟶ Hire a shelf stacker and keep the stockroom full (Supply, T).
+Reyon görevlisi al, depoyu dolu tut (Tedarik, T). Depo akşamdan boşalıyorsa bir Depo Rafı daha ekle. ⟶ Hire a shelf stacker and keep the stockroom full (Supply, T). If it runs dry by evening, add another Stock Rack.
 Analiz sekmesinde en çok sorulanları rafa koy. ⟶ Stock the most-asked-for products from the Analysis tab.
 Ürün & Fiyat'ta kırmızı arketipler var mı bak. ⟶ Check Products for red shopper types.
 Ek kasa, kasiyer ya da Temassız POS. ⟶ Another till, a cashier or Contactless POS.
@@ -1292,3 +1292,48 @@ Kiracı birimlerini AVM panelinden (V) doldur; her kiracının istediği farklı
 Üst kata PageUp ile çık. Yürüyen merdivenler bozulabilir, teknisyen al. ⟶ PageUp goes upstairs. Escalators break down, so hire a technician.
 Yemek katına masa, oyun alanı ve tuvalet koy; kirli masa keyfi düşürür. ⟶ Give the food court tables, a play area and toilets; dirty tables hurt moods.
 Etkinlik takviminden konser, imza günü, bayram indirimi planla. ⟶ Plan concerts, book signings and holiday sales from the events calendar.
+
+# --- settings, accessibility, controls
+Kontroller ⟶ Controls
+Erişilebilirlik ⟶ Accessibility
+Pencere boyutu ⟶ Window size
+Kare sınırı ⟶ Frame cap
+Sınırsız ⟶ Unlimited
+Dikey senkron (VSync) ⟶ Vertical sync (VSync)
+Yazı boyutu ⟶ Text size
+Büyük ⟶ Large
+Çok büyük ⟶ Extra large
+Renk körü dostu renkler (yeşil/kırmızı yerine mavi/turuncu) ⟶ Colour-blind friendly colours (blue/orange instead of green/red)
+Kontroller ve tuş atama ⟶ Controls and key bindings
+Bir tuşa tıkla, sonra yeni tuşa bas. Başka bir işte kullanılan tuş seçilirse ikisi yer değiştirir. ⟶ Click a key, then press the new one. If that key is already used for something else, the two swap.
+Bir tuşa bas… ⟶ Press a key…
+Varsayılana dön ⟶ Reset to defaults
+Oyun kolu ⟶ Gamepad
+Sol çubuk: kamera · Sağ çubuk: imleç · A: tıkla · B: geri · X: inşa · Y: ürünler · LB/RB: çevir · LT/RT: yakınlaş · Yön tuşları: hız, döndür, duvarlar · Start: menü · Select: duraklat ⟶ Left stick: camera · Right stick: pointer · A: click · B: back · X: build · Y: products · LB/RB: rotate · LT/RT: zoom · D-pad: speed, rotate, walls · Start: menu · Select: pause
+Ctrl+Z geri al, Ctrl+D kopyala ve Esc sabittir. ⟶ Ctrl+Z undo, Ctrl+D copy and Esc are fixed.
+%s tuşu artık %s için; %s eski tuşu aldı. ⟶ %s now does %s; %s got the old key.
+Duraklat / devam ⟶ Pause / resume
+Hızlandır ⟶ Faster
+Yavaşlat ⟶ Slower
+İnşa paneli ⟶ Build panel
+Güvenlik görünümü ⟶ Security view
+Trafik haritası ⟶ Traffic map
+Üst kat ⟶ Floor up
+Alt kat ⟶ Floor down
+Eşyayı döndür ⟶ Rotate item
+Duvarları indir ⟶ Cut away walls
+Kamera ileri ⟶ Camera forward
+Kamera geri ⟶ Camera back
+Kamera sola ⟶ Camera left
+Kamera sağa ⟶ Camera right
+Kamerayı çevir (sol) ⟶ Turn camera left
+Kamerayı çevir (sağ) ⟶ Turn camera right
+Menü / geri ⟶ Menu / back
+Büyüme ⟶ Growth
+Ürünler ⟶ Products
+Hız ×1 ⟶ Speed ×1
+Hız ×2 ⟶ Speed ×2
+Hız ×4 ⟶ Speed ×4
+Hız ×8 ⟶ Speed ×8
+Hız ×16 ⟶ Speed ×16
+Depo akşam olmadan boşaldı, raflar gün içinde boş kaldı. Bir Depo Rafı daha ekle (İnşa → Kasa & Depo): otomatik sipariş yarından itibaren daha çok getirir. ⟶ The stockroom ran dry before evening and shelves sat empty. Add another Stock Rack (Build → Tills & Stock): auto-orders will bring more from tomorrow.

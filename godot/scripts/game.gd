@@ -573,7 +573,7 @@ func update_placement(x: int, z: int) -> void:
 	var y := view_floor * Cfg.FLOOR_H
 	ghost.position = Vector3(gx + fp["fw"] * 0.5, y + 0.03, gz + fp["fd"] * 0.5)
 	ghost.rotation.y = placing["rot"] * PI / 2.0
-	var ok_col := Color(0.35, 0.82, 0.6, 0.55) if placing["ok"] else Color(0.9, 0.3, 0.3, 0.55)
+	var ok_col := Cfg.place_color(placing["ok"])
 	var tiles := []
 	for t in fp["tiles"]: tiles.append([t, ok_col])
 	if NEEDS_ACCESS.has(d["kind"]):
@@ -1125,18 +1125,29 @@ func auto_order() -> void:
 	var stocked_n := maxi(1, unlocked_products().filter(func(p): return is_stocked(p["id"]) and not (oven and DB.BAKERY.has(p["id"]))).size())
 	var fair := maxi(12, int((depot_capacity() - reserve) / stocked_n * 1.3))
 	var lines := []
+	# first work out what every product wants, then share the free depot room fairly — ordering
+	# one by one used to fill the room with the first products and leave the rest with nothing
+	var wants := {}
+	var total_need := 0
 	for p in unlocked_products():
 		var pid: String = p["id"]
 		if not auto[pid] or not is_stocked(pid) or (oven and DB.BAKERY.has(pid)): continue # own oven bakes the bread
 		var exp := calendar.expected(day + 1, pid)
 		if exp <= 0.0: continue # e.g. no pide outside Ramazan
-		var sold := maxi(int(last_sold.get(pid, 0)), int(stats["sold"].get(pid, 0)))
+		# demand = what sold plus what people asked for and could not find
+		var sold := maxi(int(last_sold.get(pid, 0)), int(stats["sold"].get(pid, 0)) + int(stats["missed"].get(pid, 0)) / 2)
 		var target := mini(int(fair * clampf(exp, 0.5, 2.0)), maxi(shelf_cap(pid) * 2, int(round(sold * 1.25 * clampf(exp / maxf(0.2, calendar.expected(day, pid)), 0.3, 3.0)))))
-		var have := int(backstock[pid]) + incoming(pid)
-		var room := depot_capacity() - reserve - backstock_total() - incoming_total()
-		if have < target and room >= 4:
-			var q := mini(room, ceili((target - have) / 6.0) * 6)
-			if order(pid, q, true): lines.append("%s ×%d" % [p["name"], q])
+		var need := target - (int(backstock[pid]) + incoming(pid))
+		if need >= 4: wants[pid] = need; total_need += need
+	var room := depot_capacity() - reserve - backstock_total() - incoming_total()
+	var share := minf(1.0, float(room) / maxf(1.0, float(total_need)))
+	for pid in wants:
+		var q := int(wants[pid] * share) / 6 * 6
+		if q < 6 and share < 1.0: q = mini(6, room)
+		room = depot_capacity() - reserve - backstock_total() - incoming_total()
+		q = mini(q, room)
+		if q < 4: continue
+		if order(pid, q, true): lines.append("%s ×%d" % [DB.product(pid)["name"], q])
 	if not lines.is_empty():
 		alert("autoorder", "box", "Yarın sabahki teslimat için otomatik sipariş verildi: %s%s" % [", ".join(lines.slice(0, 5)), "…" if lines.size() > 5 else ""], "info", null, 0.0)
 
@@ -1404,7 +1415,12 @@ func tick(dt: float) -> void:
 		van["cargo"] = due
 		orders = orders.filter(func(o): return not due.has(o))
 		van["state"] = "arriving"; van["x"] = -32.0
-	if prev < AUTO_ORDER_AT and clock >= AUTO_ORDER_AT: auto_order()
+	if prev < AUTO_ORDER_AT and clock >= AUTO_ORDER_AT:
+		# the depot ran dry before evening while shelves were empty: the shop has outgrown it
+		var empty_hits: int = int(stats["mood_why"].get("Raf boş", [0, 0])[1])
+		if backstock_total() < depot_capacity() * 0.1 and empty_hits >= 20:
+			alert("depodry", "box", "Depo akşam olmadan boşaldı, raflar gün içinde boş kaldı. Bir Depo Rafı daha ekle (İnşa → Kasa & Depo): otomatik sipariş yarından itibaren daha çok getirir.", "warn", null, 0.0)
+		auto_order()
 	_update_neighbor_events()
 	_status_acc += dt
 	if _status_acc > 0.25:

@@ -316,7 +316,7 @@ static func _verdict(r: Dictionary, g: Game) -> PanelContainer:
 
 # ================================================================== rating breakdown
 const MOOD_TIPS := {
-	"Raf boş": "Reyon görevlisi al, depoyu dolu tut (Tedarik, T).",
+	"Raf boş": "Reyon görevlisi al, depoyu dolu tut (Tedarik, T). Depo akşamdan boşalıyorsa bir Depo Rafı daha ekle.",
 	"Aradığı ürün satılmıyor": "Analiz sekmesinde en çok sorulanları rafa koy.",
 	"Fiyat pahalı": "Ürün & Fiyat'ta kırmızı arketipler var mı bak.",
 	"Kuyrukta uzun bekleme": "Ek kasa, kasiyer ya da Temassız POS.",
