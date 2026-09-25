@@ -55,7 +55,7 @@ export const EXPANSIONS: ExpansionDef[] = [
     goals: [
       { id: 'rating', label: 'Mağaza puanı', target: 3.6, unit: '★' },
       { id: 'served', label: 'Mutlu ayrılan müşteri', target: 200, unit: '' },
-      { id: 'cash', label: 'Kasada nakit', target: 12000, unit: '₺' },
+      { id: 'cash', label: 'Kasada nakit', target: 10000, unit: '₺' },
     ],
     unlocks: 'Manav tezgâhı · Orta gondol · Açık soğutucu · 3 kasa · Süt, deterjan, domates, elma · Aile alışverişçileri · Temizlik & güvenlik personeli · Kamera ve alarm kapısı · 2. kapı',
   },

@@ -53,8 +53,8 @@ export const FIXTURES: FixtureDef[] = [
     w: 2, d: 1, cost: 1500, stage: 0, maxCount: [1, 3, 4, 4],
   },
   {
-    id: 'depo', name: 'Depo Rafı', desc: 'Yedek stok burada tutulur. +80 birim depo kapasitesi.', kind: 'depot', category: 'Kasa & Depo',
-    w: 2, d: 1, cost: 800, stage: 0, depotCapacity: 80,
+    id: 'depo', name: 'Depo Rafı', desc: 'Yedek stok burada tutulur. +240 birim depo kapasitesi.', kind: 'depot', category: 'Kasa & Depo',
+    w: 2, d: 1, cost: 800, stage: 0, depotCapacity: 240,
   },
   {
     id: 'saksi', name: 'Saksı Bitki', desc: 'Çevresindeki alışverişi daha keyifli yapar.', kind: 'plant', category: 'Ortam',

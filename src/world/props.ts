@@ -226,7 +226,8 @@ function wickerMat() {
       ctx.fillRect(x + ((y / 8) % 2) * 8, y, 12, 6);
     }
   }, { repeat: [3, 1] });
-  return new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 });
+  // open basket shells: draw both sides, otherwise the far half vanishes and the wall shows through
+  return new THREE.MeshStandardMaterial({ map: t, roughness: 0.85, side: THREE.DoubleSide });
 }
 let _wicker: THREE.Material | null = null;
 

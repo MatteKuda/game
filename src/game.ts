@@ -31,7 +31,13 @@ import type { SaveData } from './sim/save';
 
 export interface Litter { tile: Tile; floor: number; obj: THREE.Object3D; claimed: number }
 export interface Puddle { id: number; tile: Tile; floor: number; obj: THREE.Object3D; sign: THREE.Object3D | null; claimed: number; dry: number; age: number }
-export interface Order { pid: string; qty: number; eta: number }
+import { rollEvent, resolveEvent, MATCH_FROM, type NeighborEvent } from './sim/events';
+export interface Order { pid: string; qty: number; eta: number; urgent?: boolean }
+/** the wholesaler's single daily round: right after opening */
+export const DELIVERY_AT = DAY_OPEN + 5;
+/** the daily auto-order is placed in the evening for the next morning */
+export const AUTO_ORDER_AT = 18 * 60;
+export const URGENT_FEE = 1.25;
 export interface AlertMsg { id: number; key: string; icon: IconKind; text: string; severity: 'info' | 'warn' | 'bad' | 'good'; focus?: THREE.Vector3; t: number }
 export interface DayStats {
   revenue: number; purchases: number; wages: number; rent: number; other: number; utilities: number;
@@ -103,6 +109,14 @@ export class Game {
   private walkAcc = 0;
   private farAcc = 0;
   private autoAcc = 0;
+  /** units sold per product yesterday (drives the evening auto-order) */
+  lastSold: Record<string, number> = {};
+  /** mahalle olayları waiting for the player's decision */
+  neighborEvents: NeighborEvent[] = [];
+  matchNight: { day: number; poster: boolean } | null = null;
+  inspectionAt = 0;
+  praiseUntil = 0;
+  private nextEventAt = 1440 + DAY_OPEN + 60;
   private statusAcc = 0;
   private heatAcc = 0;
   private listeners = new Map<string, Listener[]>();
@@ -153,7 +167,7 @@ export class Game {
     add('kasa', 19, 12, 1);
     add('saksi', 18, 15, 0);
     add('cop', 25, 15, 0);
-    for (const pid of ['cips', 'biskuvi', 'cikolata', 'kola', 'ayran', 'simit', 'ekmek']) this.backstock[pid] = 8;
+    for (const pid of ['cips', 'biskuvi', 'cikolata', 'kola', 'ayran', 'simit', 'ekmek']) this.backstock[pid] = 24;
     this.hire({ role: 'owner', name: 'Kemal Usta', wage: 0, skill: 1.1 }, true);
     this.rollCandidates();
     this.refreshAll();
@@ -207,7 +221,8 @@ export class Game {
   impulseMul() { return (this.campaigns.has('kasaonu') ? 2 : 1) * (this.upgrades.has('isik') ? 1.2 : 1); }
   isDiscounted(pid: string) { return this.campaigns.has('indirim') && this.discounts.includes(pid); }
   effectivePrice(pid: string) { const p = this.prices[pid]; return this.isDiscounted(pid) ? Math.round(p * 0.85) : p; }
-  demandMul(pid: string) { return (this.isDiscounted(pid) ? 1.8 : 1) * (this.campaigns.has('tadim') && (pid === 'simit' || pid === 'ekmek' || pid === 'peynir') ? 1.5 : 1); }
+  isMatchTime() { return !!this.matchNight && this.matchNight.day === this.day && this.clock >= MATCH_FROM && this.clock < DAY_CLOSE; }
+  demandMul(pid: string) { return (this.isDiscounted(pid) ? 1.8 : 1) * (this.campaigns.has('tadim') && (pid === 'simit' || pid === 'ekmek' || pid === 'peynir') ? 1.5 : 1) * (this.isMatchTime() && (pid === 'kola' || pid === 'cips') ? 2.5 : 1); }
   hasOven() { return this.fixtures.some((f) => f.def.kind === 'oven') && this.hasRole('baker'); }
   signNear(f: Fixture) { return this.fixtures.some((s) => s.def.kind === 'sign' && s.center.distanceTo(f.center) <= (s.def.radius ?? 5)); }
 
@@ -544,18 +559,23 @@ export class Game {
     this.emit('changed');
   }
 
-  order(pid: string, qty: number, auto = false): boolean {
+  /** absolute minute of the next regular delivery (tomorrow's opening round) */
+  nextDelivery() { return (this.day + 1) * 1440 + DELIVERY_AT; }
+
+  order(pid: string, qty: number, auto = false, urgent = false): boolean {
     const p = PRODUCT_MAP[pid];
     const room = this.depotCapacity() - this.backstockTotal() - this.incomingTotal();
     if (room <= 0) { this.alert('depofull', 'box', auto ? `Depo dolu: otomatik sipariş (${p.name}) verilemedi. Depo rafı ekle ya da yavaş satan ürünü azalt.` : 'Depo dolu — sipariş verilemedi. Depo rafı ekleyin.', 'warn', undefined, auto ? 120 : 45); return false; }
     qty = Math.min(qty, room);
-    const cost = qty * p.cost;
+    const cost = Math.round(qty * p.cost * (urgent ? URGENT_FEE : 1));
     if (this.money < cost) { this.alert('nomoney', 'wallet', 'Sipariş için yeterli nakit yok.', 'bad'); return false; }
     this.money -= cost;
     this.stats.purchases += cost;
-    let eta = this.absMinutes + 50;
-    if (this.clock + 50 >= DAY_CLOSE) eta = (this.day + 1) * 1440 + DAY_OPEN + 20;
-    this.orders.push({ pid, qty, eta });
+    // regular orders ride on tomorrow morning's round; urgent ones come by a separate van within the hour
+    let eta = this.nextDelivery();
+    if (urgent) eta = this.clock + 60 < DAY_CLOSE ? this.absMinutes + 60 : eta;
+    const same = this.orders.find((o) => o.pid === pid && o.eta === eta);
+    if (same) same.qty += qty; else this.orders.push({ pid, qty, eta, urgent });
     if (!auto) sfx.play('click');
     this.emit('changed');
     return true;
@@ -862,6 +882,9 @@ export class Game {
   // spawning ------------------------------------------------------------------
   private attract() {
     let a = 0.55 + (this.rating / 5) * 0.75;
+    if (this.stage === 0) a *= 1.35; // the büfe needs a busier street to be worth playing
+    if (this.absMinutes < this.praiseUntil) a *= 1.2;
+    if (this.isMatchTime()) a *= this.matchNight!.poster ? 1.55 : 1.2;
     if (this.upgrades.has('neon')) a *= this.hour() > 18 ? 1.45 : 1.15;
     if (this.upgrades.has('tente')) a *= 1.1;
     if (this.stage >= 1) a *= 1.3;
@@ -1063,20 +1086,8 @@ export class Game {
       this.van.cargo = due; this.orders = this.orders.filter((o) => !due.includes(o));
       this.van.state = 'arriving'; this.van.x = -32; this.env.van.visible = true;
     }
-    this.autoAcc += dt * MIN_PER_SEC;
-    if (this.autoAcc > 30) {
-      this.autoAcc = 0;
-      const stockedN = this.unlockedProducts().filter((p) => this.isStocked(p.id)).length || 1;
-      const fair = Math.max(8, Math.floor(this.depotCapacity() / stockedN * 1.4)); // no single product may hog the depot
-      if (this.clock < DAY_CLOSE - 60) for (const p of this.unlockedProducts()) {
-        if (!this.auto[p.id] || !this.isStocked(p.id)) continue;
-        if ((p.id === 'simit' || p.id === 'ekmek') && this.hasOven()) continue;
-        const cap = this.shelfCap(p.id);
-        const have = this.backstock[p.id] + this.incoming(p.id);
-        const target = Math.min(fair, Math.max(12, Math.round(cap * 1.2)));
-        if (have < target * 0.5) this.order(p.id, Math.ceil((target - have) / 6) * 6, true);
-      }
-    }
+    if (prevClock < AUTO_ORDER_AT && this.clock >= AUTO_ORDER_AT) this.autoOrder();
+    this.updateNeighborEvents();
     this.statusAcc += dt;
     if (this.statusAcc > 0.25) { this.statusAcc = 0; this.updateStatuses(); }
 
@@ -1150,8 +1161,65 @@ export class Game {
     }
   }
 
+  // mahalle olayları ------------------------------------------------------------
+  private updateNeighborEvents() {
+    const now = this.absMinutes;
+    if (this.isOpen() && now >= this.nextEventAt && this.neighborEvents.length < 2 && this.clock < 20 * 60) {
+      const ev = rollEvent(this);
+      if (ev) { this.neighborEvents.push(ev); this.emit('events'); sfx.play('alert'); }
+      this.nextEventAt = now + 150 + Math.random() * 150;
+    }
+    const before = this.neighborEvents.length;
+    this.neighborEvents = this.neighborEvents.filter((e) => e.expires > now);
+    if (this.neighborEvents.length !== before) this.emit('events');
+    if (this.inspectionAt && now >= this.inspectionAt) {
+      this.inspectionAt = 0;
+      const dirt = this.litter.filter((l) => l.floor === 0).length;
+      let empty = 0;
+      for (const f of this.fixtures) for (const s of f.slots) if (s.productId && s.stock === 0) empty++;
+      if (dirt + empty === 0) {
+        this.rating = Math.min(5, this.rating + 0.15);
+        this.alert('inspect', 'star', 'Zabıta denetimi: dükkân tertemiz, raflar dolu. Puanın yükseldi!', 'good', undefined, 0);
+      } else {
+        const fine = 150 * dirt + 100 * empty;
+        this.money -= fine; this.stats.other += fine;
+        this.alert('inspect', 'angry', `Zabıta denetimi: ${dirt} çöp, ${empty} boş raf bölmesi. ₺${fine} ceza.`, 'bad', undefined, 0);
+      }
+    }
+  }
+
+  answerEvent(id: number, choice: number) {
+    const ev = this.neighborEvents.find((e) => e.id === id);
+    if (!ev || ev.choices[choice]?.disabled) return;
+    this.neighborEvents = this.neighborEvents.filter((e) => e !== ev);
+    const msg = resolveEvent(this, ev, choice);
+    if (msg) this.alert('event' + ev.id, 'star', msg, 'good', undefined, 0);
+    this.emit('events'); this.emit('changed');
+  }
+
+  /** one evening order for tomorrow's round: enough for a day of sales plus a shelf refill, within the depot */
+  autoOrder() {
+    const stockedN = this.unlockedProducts().filter((p) => this.isStocked(p.id)).length || 1;
+    const fair = Math.max(12, Math.floor(this.depotCapacity() / stockedN * 1.3)); // no single product may hog the depot
+    const lines: string[] = [];
+    for (const p of this.unlockedProducts()) {
+      if (!this.auto[p.id] || !this.isStocked(p.id)) continue;
+      if ((p.id === 'simit' || p.id === 'ekmek') && this.hasOven()) continue;
+      const cap = this.shelfCap(p.id);
+      const sold = this.lastSold[p.id] ?? 0, today = this.stats.soldBy[p.id] ?? 0;
+      const target = Math.min(fair, Math.max(cap * 2, Math.round(Math.max(sold, today) * 1.25)));
+      const have = this.backstock[p.id] + this.incoming(p.id);
+      if (have < target) {
+        const q = Math.ceil((target - have) / 6) * 6;
+        if (this.order(p.id, q, true)) lines.push(`${p.name} ×${q}`);
+      }
+    }
+    if (lines.length) this.alert('autoorder', 'box', `Yarın sabahki teslimat için otomatik sipariş verildi: ${lines.slice(0, 5).join(', ')}${lines.length > 5 ? '…' : ''}`, 'info', undefined, 0);
+  }
+
   endDay() {
     if (this.dayEnded) return;
+    this.lastSold = { ...this.stats.soldBy };
     for (const c of this.customers) if (c.inside) { if (c.register) { const i = c.register.queue.indexOf(c); if (i >= 0) c.register.queue.splice(i, 1); } c.finishVisit(this, false); }
     const wages = this.wagesPerDay();
     const rent = this.rent();
@@ -1174,6 +1242,8 @@ export class Game {
   }
 
   startNextDay() {
+    this.neighborEvents = [];
+    this.nextEventAt = (this.day + 1) * 1440 + DAY_OPEN + 50 + Math.random() * 90;
     this.day++;
     this.clock = DAY_OPEN;
     this.stats = newStats();

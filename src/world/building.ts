@@ -9,6 +9,8 @@ interface WallSide {
   group: THREE.Group;
   normal: THREE.Vector3; // outward
   sink: number;
+  /** walls with door openings shrink in height instead of sliding down, so doorways stay open */
+  scaleSink?: boolean;
   extras: THREE.Object3D[]; // hidden when cut away (awning, sign)
 }
 
@@ -87,6 +89,9 @@ export class ShopShell {
       this.doors.push({ x: (a + b) / 2, z, left: L, right: R2, open: 0, baseL: a + w / 4, baseR: b - w / 4 });
       const sgn = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.3), backDoorSign());
       sgn.position.set((a + b) / 2, 2.6, z + 0.12); back.group.add(sgn);
+      back.scaleSink = true; back.extras.push(sgn);
+      const lintel = back.group.children.find((c) => (c as THREE.Mesh).isMesh && Math.abs(c.position.y - (2.35 + (WALL_H - 2.35) / 2)) < 0.01 && Math.abs(c.position.x - (a + b) / 2) < 0.01);
+      if (lintel) back.extras.push(lintel);
     }
     // LEFT wall (x0), normal -x
     const left = mkSide(new THREE.Vector3(-1, 0, 0));
@@ -96,6 +101,7 @@ export class ShopShell {
     this.solidWall(right.group, r.x1 + th / 2, r.z0, r.x1 + th / 2, r.z1, th, 'z', -1);
     // FRONT storefront (z1), normal +z
     const front = mkSide(new THREE.Vector3(0, 0, 1));
+    front.scaleSink = true;
     this.storefront(front, r.x0, r.x1, r.z1 + th / 2 - 0.05);
 
     this.decorateBackWall(r.x0, r.x1, r.z0 + 0.01);
@@ -189,8 +195,9 @@ export class ShopShell {
     }
     // top band
     const bandH = WALL_H - topH;
-    addMesh(g, rbox(x1 - x0 + 0.1, bandH, 0.3, 0.02), M.teal, (x0 + x1) / 2, topH + bandH / 2, z);
-    addMesh(g, rbox(x1 - x0 + 0.1, 0.08, 0.4, 0.02), M.cream, (x0 + x1) / 2, WALL_H + 0.04, z, 0, 0, 0, false);
+    // the band over the doors is hidden while the storefront is lowered (it would block the doorways)
+    side.extras.push(addMesh(g, rbox(x1 - x0 + 0.1, bandH, 0.3, 0.02), M.teal, (x0 + x1) / 2, topH + bandH / 2, z));
+    side.extras.push(addMesh(g, rbox(x1 - x0 + 0.1, 0.08, 0.4, 0.02), M.cream, (x0 + x1) / 2, WALL_H + 0.04, z, 0, 0, 0, false));
     // SIGN
     const sub = this.stage === 0 ? 'BÜFE · SİMİT · SOĞUK İÇECEK' : 'MAHALLE MARKETİ';
     const tex = signTexture('KÖŞEBAŞI', sub, { bg: '#fff1dc', fg: '#e0663c', accent: '#1f8a86', w: 1024, h: 256, neon: false });
@@ -198,7 +205,8 @@ export class ShopShell {
     const signW = Math.min(6.4, (x1 - x0) * 0.62);
     const signX = this.stage === 0 ? (x0 + x1) / 2 : (x0 + x1) / 2 + 3.5;
     const sign = new THREE.Mesh(new THREE.BoxGeometry(signW, signW / 4, 0.12), [M.cream, M.cream, M.cream, M.cream, this.signMat, M.cream]);
-    sign.position.set(signX, topH + bandH / 2 + 0.05, z + 0.22); sign.castShadow = true;
+    // sits on top of the band, clear of the awnings in front
+    sign.position.set(signX, topH + signW / 8 + 0.04, z + 0.22); sign.castShadow = true;
     g.add(sign); side.extras.push(sign);
     // campaign banner (toggled by setCampaign)
     this.banner = new THREE.Mesh(new THREE.PlaneGeometry(Math.min(4.2, (x1 - x0) * 0.5), 0.55), campaignMat());
@@ -225,11 +233,11 @@ export class ShopShell {
       const w = endX - runStart; if (w < 1) return;
       const t = awTex.clone(); t.repeat.set(w / 2, 1); t.needsUpdate = true;
       const aw = new THREE.Mesh(new THREE.BoxGeometry(w - 0.1, 0.06, 1.2), [M.cream, M.cream, new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 }), M.cream, new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 }), M.cream]);
-      aw.position.set(runStart + w / 2, topH - 0.05, z + 0.62); aw.rotation.x = 0.32; aw.castShadow = true;
+      aw.position.set(runStart + w / 2, topH - 0.3, z + 0.62); aw.rotation.x = 0.32; aw.castShadow = true;
       g.add(aw); side.extras.push(aw); this.awnings.push(aw);
       // scalloped valance
       const val = new THREE.Mesh(new THREE.BoxGeometry(w - 0.1, 0.22, 0.03), new THREE.MeshStandardMaterial({ map: t, roughness: 0.85 }));
-      val.position.set(runStart + w / 2, topH - 0.33, z + 1.2); g.add(val); side.extras.push(val);
+      val.position.set(runStart + w / 2, topH - 0.58, z + 1.2); g.add(val); side.extras.push(val);
     };
     for (let x = x0; x <= x1; x++) {
       if (x === x1 || doors.has(x)) { flush(x); runStart = x + 1; }
@@ -302,7 +310,8 @@ export class ShopShell {
       let target = this.cutaway && facing > 0.15 ? 1 : 0;
       target *= 1 - zoomFar; // walls come back up when zoomed far out
       s.sink = THREE.MathUtils.clamp(s.sink + (target - s.sink) * Math.min(1, Math.max(0, dt) * 7), 0, 1);
-      s.group.position.y = -(WALL_H - 0.45) * s.sink;
+      if (s.scaleSink) { s.group.scale.y = THREE.MathUtils.lerp(1, 0.45 / WALL_H, s.sink); s.group.position.y = 0; }
+      else s.group.position.y = -(WALL_H - 0.45) * s.sink;
       const showExtras = s.sink < 0.4;
       for (const e of s.extras) e.visible = showExtras;
     }

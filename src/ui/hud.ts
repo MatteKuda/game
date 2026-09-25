@@ -119,6 +119,8 @@ export class HUD {
           <button data-action="speed" data-v="1" title="Normal (1)">${icon('play', 16)}</button>
           <button data-action="speed" data-v="2" title="Hızlı (2)">${icon('fast', 16)}</button>
           <button data-action="speed" data-v="4" title="Çok hızlı (3)">${icon('fast', 16)}<span class="x">4</span></button>
+          <button data-action="speed" data-v="8" title="Süper hızlı (4)">${icon('fast', 16)}<span class="x">8</span></button>
+          <button data-action="speed" data-v="16" title="Işık hızı (5)">${icon('fast', 16)}<span class="x">16</span></button>
         </div>
       </div>
     </div>
@@ -129,6 +131,7 @@ export class HUD {
       <button class="icon-btn card" data-action="settings" title="Ayarlar & Kayıt (O)">${icon('settings', 18)}</button>
     </div>
     <div class="alerts" data-el="alerts"></div>
+    <div class="nevents" data-el="nevents"></div>
     <div class="floors card" data-el="floors"></div>
     <div class="inspector card" data-el="inspector"></div>
     <div class="panel card" data-el="panel"></div>
@@ -166,6 +169,7 @@ export class HUD {
   private bindGame() {
     const g = this.game;
     g.on('alert', (_a: AlertMsg) => this.renderAlerts());
+    g.on('events', () => this.renderEvents());
     g.on('select', () => { this.slotPicker = null; this.lastInspectorHtml = ''; this.renderInspector(true); });
     g.on('placing', (p: unknown) => { this.renderPlaceHint(); this.root.classList.toggle('placing', !!p); });
     g.on('placingUpdate', () => this.renderPlaceHint());
@@ -197,6 +201,8 @@ export class HUD {
       if (k === '1') this.setSpeed(1);
       if (k === '2') this.setSpeed(2);
       if (k === '3') this.setSpeed(4);
+      if (k === '4') this.setSpeed(8);
+      if (k === '5') this.setSpeed(16);
       if (k === 'b') this.togglePanel('build');
       if (k === 'p') this.togglePanel('products');
       if (k === 't') this.togglePanel('supply');
@@ -395,7 +401,7 @@ export class HUD {
         break;
       }
       case 'priceReset': { const pid = t.dataset.pid!; g.setPrice(pid, PRODUCT_MAP[pid].basePrice); this.lastPanelHtml = ''; break; }
-      case 'order': { g.order(t.dataset.pid!, Number(t.dataset.q)); this.lastPanelHtml = ''; break; }
+      case 'order': { g.order(t.dataset.pid!, Number(t.dataset.q), false, t.dataset.urgent === '1'); this.lastPanelHtml = ''; break; }
       case 'auto': { const pid = t.dataset.pid!; g.auto[pid] = !g.auto[pid]; sfx.play('click'); this.lastPanelHtml = ''; break; }
       case 'hire': { const c = g.candidates[Number(t.dataset.i)]; if (c) g.hire(c, false, (t.dataset.shift as Shift) ?? 'full'); this.lastPanelHtml = ''; break; }
       case 'fire': {
@@ -429,6 +435,7 @@ export class HUD {
         if (al?.focus) { if (g.stage >= 3) g.setViewFloor(al.focus.y > 2 ? 1 : 0); g.cam.focus(al.focus.x, al.focus.z, 18); }
         break;
       }
+      case 'eventChoice': { g.answerEvent(Number(t.dataset.id), Number(t.dataset.c)); e.stopPropagation(); break; }
       case 'dismissAlert': { g.alerts = g.alerts.filter((x) => x.id !== Number(t.dataset.id)); this.renderAlerts(); e.stopPropagation(); break; }
       case 'nextDay': this.el.modal.classList.remove('show'); this.dayEndOpen = false; g.startNextDay(); break;
       case 'deselect': g.select(null); break;
@@ -522,6 +529,10 @@ export class HUD {
     this.acc = 0;
     const g = this.game;
     this.el.money.textContent = fmt(g.money);
+    for (const ev of g.neighborEvents) {
+      const bar = this.el.nevents.querySelector<HTMLElement>(`[data-evbar="${ev.id}"]`);
+      if (bar) bar.style.width = `${Math.max(0, Math.min(100, (ev.expires - g.absMinutes) / 0.6))}%`;
+    }
     const net = g.stats.revenue + g.stats.mallIncome - g.stats.purchases - g.stats.other;
     this.el.moneyDelta.innerHTML = `bugün <b class="${net >= 0 ? 'pos' : 'neg'}">${net >= 0 ? '+' : '−'}${fmt(Math.abs(net))}</b>`;
     this.el.rating.innerHTML = `${stars(g.rating, 15)}<span class="num">${g.rating.toFixed(1)}</span>`;
@@ -628,6 +639,18 @@ export class HUD {
       <div class="ph-legend"><span class="lg fp"></span>Eşya <span class="lg acc"></span>Erişim ${p.def.kind === 'register' ? '<span class="lg back"></span>Kasiyer' : ''}${p.def.kind === 'camera' ? '<span class="lg cam"></span>Görüş' : ''}</div>
       <div class="ph-keys"><kbd>R</kbd> Döndür <kbd>Sol tık</kbd> Yerleştir <kbd>Shift</kbd> Çoklu <kbd>Esc</kbd> İptal</div>
       <div class="ph-btns"><button class="btn small" data-action="phRotate">${icon('rotate', 14)} Döndür</button><button class="btn small primary" data-action="phPlace">${icon('check', 14)} Yerleştir</button><button class="btn small" data-action="phCancel">${icon('close', 14)}</button></div>`;
+  }
+
+  // ------------------------------------------------------------------ mahalle olayları
+  private renderEvents() {
+    const g = this.game;
+    this.el.nevents.innerHTML = g.neighborEvents.map((ev) => `
+      <div class="nev">
+        <div class="nev-head"><span class="nev-ico">${icon(ev.icon as never, 18)}</span><b>${esc(ev.title)}</b><span class="nev-tag">Mahalle</span></div>
+        <p>${esc(ev.text)}</p>
+        <div class="nev-time"><div data-evbar="${ev.id}"></div></div>
+        <div class="nev-btns">${ev.choices.map((c, i) => `<button class="btn small ${c.primary ? 'primary' : ''}" data-action="eventChoice" data-id="${ev.id}" data-c="${i}" ${c.disabled ? 'disabled' : ''}>${esc(c.label)}${c.hint ? `<em>${esc(c.hint)}</em>` : ''}</button>`).join('')}</div>
+      </div>`).join('');
   }
 
   // ------------------------------------------------------------------ alerts
@@ -925,11 +948,11 @@ export class HUD {
       const baked = (p.id === 'simit' || p.id === 'ekmek') && g.hasOven();
       return `<div class="srow ${stocked ? '' : 'dim'}"><img src="${this.thumbs.products[p.id]}"/><div class="pname"><b>${p.name}</b><span>${baked ? 'Kendi fırınında pişiyor' : `Toptan ${fmt(p.cost)}/adet`}</span></div>
         <div class="pnum"><b>${g.backstock[p.id]}</b><span>depoda</span></div><div class="pnum"><b>${g.incoming(p.id) || '—'}</b><span>yolda</span></div>
-        <div class="orders">${[6, 12, 24].map((q) => `<button class="btn small" data-action="order" data-pid="${p.id}" data-q="${q}">+${q}<em>${fmt(q * p.cost)}</em></button>`).join('')}</div>
+        <div class="orders">${[12, 24, 48].map((q) => `<button class="btn small" data-action="order" data-pid="${p.id}" data-q="${q}" title="Yarın sabahki teslimatla gelir">+${q}<em>${fmt(q * p.cost)}</em></button>`).join('')}<button class="btn small urgent" data-action="order" data-pid="${p.id}" data-q="12" data-urgent="1" title="1 saat içinde ayrı minibüsle gelir, %25 pahalı">Acil +12<em>${fmt(Math.round(12 * p.cost * 1.25))}</em></button></div>
         <button class="toggle ${g.auto[p.id] ? 'on' : ''}" data-action="auto" data-pid="${p.id}" title="Otomatik sipariş"><span></span>Oto</button></div>`;
     }).join('');
     const pending = [...g.orders].sort((a, b) => a.eta - b.eta).slice(0, 6).map((o) => `<span class="chip">${PRODUCT_MAP[o.pid].name} ×${o.qty} · ${clock(o.eta % 1440)}</span>`).join('');
-    return `${this.pHead('Tedarik', 'Toptancı minibüsü ~50 dakikada gelir. Oto: stok azalınca kendiliğinden sipariş verir.', 'truck')}
+    return `${this.pHead('Tedarik', 'Toptancı her sabah açılışta bir kez gelir; verdiğin siparişler ertesi sabah teslim edilir. Oto: her akşam 18:00\'de yarının ihtiyacını sipariş eder. Acil sipariş 1 saatte gelir ama %25 pahalıdır.', 'truck')}
       <div class="p-sub"><div class="kv"><span>Depo doluluğu</span><b>${tot} + ${inc} yolda / ${cap}</b></div><div class="bar ${tot + inc > cap * 0.9 ? 'warn' : 'good'}"><div style="width:${Math.min(100, ((tot + inc) / Math.max(1, cap)) * 100)}%"></div></div>
       ${pending ? `<div class="chips">${icon('truck', 14)} ${pending}</div>` : ''}${g.van.state !== 'idle' ? `<div class="flag blue">${icon('truck', 14)} Minibüs ${g.van.state === 'unloading' ? 'boşaltıyor' : g.van.state === 'arriving' ? 'yolda' : 'ayrılıyor'}</div>` : ''}</div>
       <div class="p-scroll">${rows}</div>`;
