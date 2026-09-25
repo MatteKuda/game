@@ -2,7 +2,17 @@
 
 Oyunun yeni ana sürümü. Masaüstünde normal bir oyun gibi çalışır; tarayıcı, `npm` ya da Node.js gerekmez.
 
-![Mahalle Marketi](docs/market.jpg)
+![Köşebaşı AVM](docs/avm.jpg)
+
+| Süpermarket | AVM 1. kat: yemek katı ve bayram süsü |
+|---|---|
+| ![Süpermarket](docs/supermarket.jpg) | ![AVM 1. kat](docs/avm-kat1.jpg) |
+| **AVM paneli: kiracılar** | **Kiracı kartı: memnuniyetin gerekçeleri** |
+| ![AVM paneli](docs/avm-panel.jpg) | ![Kiracı](docs/kiraci.jpg) |
+| **Kampanyalar** | **Vardiya ve enerji** |
+| ![Kampanya](docs/kampanya.jpg) | ![Vardiya](docs/vardiya.jpg) |
+| **Güvenlik katmanı (G): kırmızı = kör nokta** | **Mahalle Marketi** |
+| ![Güvenlik](docs/guvenlik.jpg) | ![Mahalle Marketi](docs/market.jpg) |
 
 | Gece | Rafa ürün atama |
 |---|---|

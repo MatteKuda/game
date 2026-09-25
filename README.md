@@ -2,7 +2,7 @@
 
 > **Yeni ana sürüm Godot'da:** [`godot/`](godot/README.md) klasörü. Masaüstünde normal bir oyun gibi çalışır, npm gerekmez; yeni görsel yön, Fredoka/Nunito tipografi ve animasyonlu karakterlerle geliyor. Kurulum adımları [godot/README.md](godot/README.md) içinde. Godot sürümünde artık dört aşamanın dördü de var (Büfe, Mahalle Marketi, Süpermarket, Köşebaşı AVM). Aşağıdaki metin, kökteki eski **web (Three.js) sürümünü** anlatır.
 
-![Godot sürümü: Mahalle Marketi](godot/docs/market.jpg)
+![Godot sürümü: Köşebaşı AVM](godot/docs/avm.jpg)
 
 Sıcak, esprili ve okunaklı bir **3D perakende yönetim oyunu**. Köşedeki küçük bir büfeyle başlarsın; rafları dizer, fiyatları ayarlar, stoku yönetir, personel alırsın. Yan dükkânı devralıp **Mahalle Marketi**'ne, ardından bantlı kasaları ve fırınıyla bir **Süpermarket**'e, en sonunda kiracıları, yemek katı ve etkinlikleriyle iki katlı **Köşebaşı AVM**'ye dönüşürsün.
 

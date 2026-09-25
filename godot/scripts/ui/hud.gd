@@ -809,6 +809,14 @@ func _insp_fixture(v: VBoxContainer, f: Fixture) -> void:
 		b.add_child(UIKit.label("Kasiyer: " + cn, 14, Cfg.INK if f.cashier else Cfg.BAD, "body", 800))
 		b.add_child(UIKit.label("Kuyrukta: %d kişi" % f.queue.size(), 14, Cfg.INK, "body", 800))
 		b.add_child(UIKit.wrap(UIKit.label("Sarı noktalar kuyruğun izleyeceği yolu gösterir. Kasayı kapıdan uzağa koymak kuyruğu içeride tutar.", 12, Cfg.INK2, "body", 700), 310))
+	elif d["kind"] == "oven":
+		b.add_child(UIKit.section("Fırın"))
+		b.add_child(UIKit.label("Fırıncı: " + ("var" if game.has_role("baker") else "yok, Personel panelinden al"), 14, Cfg.INK if game.has_role("baker") else Cfg.BAD, "body", 800))
+		b.add_child(UIKit.label("Durum: " + ("pişiyor" if f.baking else "bekliyor"), 14, Cfg.INK, "body", 800))
+		if not (game.is_stocked("simit") or game.is_stocked("ekmek")):
+			b.add_child(UIKit.wrap(UIKit.label("Pişen simit ve ekmek depoya gider. Satmak için bir Fırın Sepeti kurup bölmesine simit ya da ekmek ata.", 12, Cfg.BAD, "body", 800), 310))
+		else:
+			b.add_child(UIKit.wrap(UIKit.label("Fırıncı depoda simit/ekmek azalınca pişirir; toptancıdan almaktan ucuzdur ve müşteriye \"sıcacık\" keyfi verir.", 12, Cfg.INK2, "body", 700), 310))
 	elif d["kind"] == "depot":
 		b.add_child(UIKit.section("Depo"))
 		b.add_child(UIKit.label("%d / %d birim dolu" % [game.backstock_total(), game.depot_capacity()], 16, Cfg.INK, "display"))
