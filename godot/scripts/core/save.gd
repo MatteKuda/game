@@ -112,6 +112,7 @@ static func serialize(game) -> Dictionary:
 		"cat": game.cat.serialize(),
 		"scenario": game.scenario,
 		"style": game.style,
+		"strike_day": game.strike_day,
 		"rival": game.rival.serialize(),
 		"economy": {"cost_mul": game.cost_mul, "price_mul": game.price_mul, "next_hike": game._next_hike_day, "loan": game.loan, "vouchers": game.vouchers},
 		"midday": _midday(game),
@@ -140,7 +141,7 @@ static func _midday(game) -> Dictionary:
 	var cargo := []
 	for o in game.van["cargo"]: cargo.append({"pid": o["pid"], "qty": o["qty"], "eta": game.abs_minutes()})
 	return {"clock": game.clock, "stats": game.stats, "campaigns": game.campaigns.keys(), "discounts": game.discounts, "multi": game.multi,
-		"energy": energies, "cargo": cargo, "match": game.match_night, "inspection": game.inspection_at, "praise": game.praise_until}
+		"energy": energies, "cargo": cargo, "match": game.match_night, "inspection": game.inspection_at, "praise": game.praise_until, "outage": game.outage_until}
 
 static func _apply_midday(game, m: Dictionary) -> void:
 	if m.is_empty(): return
@@ -154,7 +155,7 @@ static func _apply_midday(game, m: Dictionary) -> void:
 	for o in m.get("cargo", []): game.orders.append({"pid": o["pid"], "qty": int(o["qty"]), "eta": float(o["eta"])})
 	game.match_night = m.get("match", {})
 	if game.match_night.has("day"): game.match_night["day"] = int(game.match_night["day"])
-	game.inspection_at = float(m.get("inspection", 0.0)); game.praise_until = float(m.get("praise", 0.0))
+	game.inspection_at = float(m.get("inspection", 0.0)); game.praise_until = float(m.get("praise", 0.0)); game.outage_until = float(m.get("outage", 0.0))
 	game.neighborhood.today = game.neighborhood.today.filter(func(v): return float(v["at"]) > game.clock)
 	game._next_announce = game.abs_minutes() + 60.0
 	game.refresh_all(); game._campaign_visuals()
@@ -169,6 +170,7 @@ static func apply(game, d: Dictionary) -> void:
 	game.day = int(d.get("day", 1))
 	game.money = float(d.get("money", 0))
 	game.rating = float(d.get("rating", 3.0))
+	game.strike_day = int(d.get("strike_day", -1))
 	for k in d.get("prices", {}): game.prices[k] = int(d["prices"][k])
 	for k in d.get("auto", {}): game.auto[k] = bool(d["auto"][k])
 	for k in d.get("backstock", {}): game.backstock[k] = int(d["backstock"][k])

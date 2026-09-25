@@ -1002,10 +1002,20 @@ func _p_growth() -> void:
 			v.add_child(row)
 			v.add_child(UIKit.bar(float(g["value"]) / float(g["target"]), Cfg.GOOD if g["done"] else Cfg.MUSTARD, 0, 6))
 		v.add_child(UIKit.wrap(UIKit.label("Açılanlar: " + e["unlocks"], 12, Cfg.TEAL, "body", 800), 440))
-		var b := UIKit.button("Genişlet · " + Cfg.fmt_money(e["cost"]), "arrowUp", true)
-		b.disabled = not game.can_expand()
-		b.pressed.connect(func(): if game.expand(): open_panel(""))
-		v.add_child(b)
+		if Demo.stage_locked(game.stage):
+			var dc := UIKit.card(Color(0.48, 0.35, 0.88, 0.1), 12, Vector4(12, 10, 12, 10), 0)
+			var dv := UIKit.vbox(6)
+			dv.add_child(UIKit.label("Demo burada bitiyor", 16, Cfg.VIOLET, "body", 900))
+			dv.add_child(UIKit.wrap(UIKit.label("Süpermarket, AVM, Kampüs ve Çarşı tam sürümde. Kaydın tam sürüme aynen geçer.", 12, Cfg.INK2, "body", 700), 420))
+			var wb := UIKit.button("İstek listesine ekle", "heart", true)
+			wb.pressed.connect(Demo.wishlist)
+			dv.add_child(wb)
+			dc.add_child(dv); v.add_child(dc)
+		else:
+			var b := UIKit.button("Genişlet · " + Cfg.fmt_money(e["cost"]), "arrowUp", true)
+			b.disabled = not game.can_expand()
+			b.pressed.connect(func(): if game.expand(): open_panel(""))
+			v.add_child(b)
 		c.add_child(v); body.add_child(c)
 	body.add_child(UIKit.section("Dükkânın rengi (ücretsiz)"))
 	for row in [["wall", "Duvar", ShopShell.WALLS], ["floor", "Zemin", ShopShell.FLOORS], ["awning", "Tente", ShopShell.AWNINGS]]:
@@ -1523,6 +1533,7 @@ func _show_welcome() -> void:
 	var kick := UIKit.label("PERAKENDE YÖNETİM OYUNU", 13, Cfg.TEAL, "body", 900); kick.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	kick.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	top.add_child(kick)
+	if Demo.active(): top.add_child(UIKit.chip("DEMO", Cfg.VIOLET, Color.WHITE, 12))
 	top.add_child(UIKit.icon("globe", 18, Cfg.INK3))
 	top.add_child(_seg(["Türkçe", "English"], 1 if Loc.lang == "en" else 0, func(i):
 		Settings.lang = "en" if i == 1 else "tr"; Loc.set_lang(Settings.lang); Settings.save_settings(); get_tree().reload_current_scene()))
@@ -2101,8 +2112,9 @@ func _menu_map(v: VBoxContainer) -> void:
 		tv.add_child(UIKit.wrap(UIKit.label("Hedef: " + sd["goal"], 12, Cfg.TEAL, "body", 800), 380))
 		h.add_child(tv)
 		var sid: String = sd["id"]
-		var b := UIKit.button("Başla", "play", true, true); b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		b.pressed.connect(func(): SaveGame.pending_scenario = sid; SaveGame.pending = {}; get_tree().reload_current_scene())
+		var b := UIKit.button("Tam sürümde" if Demo.scenario_locked(sid) else "Başla", "lock" if Demo.scenario_locked(sid) else "play", not Demo.scenario_locked(sid), true); b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		if Demo.scenario_locked(sid): b.pressed.connect(Demo.wishlist)
+		else: b.pressed.connect(func(): SaveGame.pending_scenario = sid; SaveGame.pending = {}; get_tree().reload_current_scene())
 		h.add_child(b)
 		row.add_child(h); v.add_child(row)
 
@@ -2156,18 +2168,20 @@ func _render_events() -> void:
 	event_bars.clear()
 	for ev in game.neighbor_events:
 		var c := PanelContainer.new()
-		var st := UIKit.sb(Color(1.0, 0.98, 0.95, 0.97), 16, Cfg.MUSTARD, 0, 12, Vector4(14, 12, 14, 12))
-		st.border_width_top = 5; st.border_color = Cfg.MUSTARD
+		var crisis: bool = ev.get("crisis", false)
+		var accent: Color = Cfg.BAD if crisis else Cfg.MUSTARD
+		var st := UIKit.sb(Color(1.0, 0.98, 0.95, 0.97), 16, accent, 0, 12, Vector4(14, 12, 14, 12))
+		st.border_width_top = 5; st.border_color = accent
 		c.add_theme_stylebox_override("panel", st)
 		c.mouse_filter = Control.MOUSE_FILTER_STOP
 		var v := UIKit.vbox(6)
 		var h := UIKit.hbox(8)
-		var ib := PanelContainer.new(); ib.add_theme_stylebox_override("panel", UIKit.sb(Cfg.MUSTARD, 10, Color(0, 0, 0, 0), 0, 0, Vector4(6, 6, 6, 6)))
+		var ib := PanelContainer.new(); ib.add_theme_stylebox_override("panel", UIKit.sb(accent, 10, Color(0, 0, 0, 0), 0, 0, Vector4(6, 6, 6, 6)))
 		ib.add_child(UIKit.icon(ev["icon"], 18, Color.WHITE)); h.add_child(ib)
 		var tl := UIKit.label(ev["title"], 18, Cfg.INK, "display"); tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		h.add_child(tl)
-		var tag := UIKit.label("MAHALLE", 11, Cfg.TEAL, "body", 900); tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		var tag := UIKit.label("KRİZ" if crisis else "MAHALLE", 11, Cfg.BAD if crisis else Cfg.TEAL, "body", 900); tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		h.add_child(tag)
 		v.add_child(h)
 		v.add_child(UIKit.wrap(UIKit.label(ev["text"], 13, Cfg.INK2, "body", 700), 410))

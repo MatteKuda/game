@@ -33,6 +33,10 @@ static func build(def: Dictionary) -> Dictionary:
 		"sarkuteri": _deli(m)
 		"depooda", "soguk", "molaodasi": _room(m, def)
 		"wc": _wc(m)
+		"lamba": _lamp(m)
+		"cicekstand": _flower_stand(m)
+		"akvaryum": _aquarium(m)
+		"fiskiye": _fountain(m)
 	return m
 
 # ------------------------------------------------------------------ helpers
@@ -677,3 +681,67 @@ static func _deli(m: Dictionary) -> void:
 		var cx := -0.7 + s * 1.2
 		m["slots"].append({"units": _grid(_span(cx, 0.9, 5), [0.965], [0.08, -0.14]), "tag": Vector3(cx, 0.78, 0.36)})
 	m["height"] = 1.9
+
+# ------------------------------------------------------------------ Dekorasyon
+static func _lamp(m: Dictionary) -> void:
+	var r: Node3D = m["root"]
+	var brass := Art.mat(Color("c9a45a"), 0.35, 0.6)
+	Art.cyl(r, 0.2, 0.22, 0.05, brass, Vector3(0, 0.025, 0))
+	Art.cyl(r, 0.025, 0.025, 1.45, brass, Vector3(0, 0.75, 0))
+	Art.cyl(r, 0.16, 0.26, 0.3, Art.mat(Color("f6e2b3"), 0.8, 0.0, 0.35), Vector3(0, 1.55, 0))
+	var l := OmniLight3D.new(); l.light_color = Color("ffd89a"); l.light_energy = 0.9; l.omni_range = 2.6; l.position = Vector3(0, 1.45, 0)
+	r.add_child(l); m["lights"].append(l)
+	m["height"] = 1.75
+
+static func _flower_stand(m: Dictionary) -> void:
+	var r: Node3D = m["root"]
+	var wood := Art.mat(Cfg.WOOD, 0.7)
+	# stepped wooden stand with zinc buckets on two tiers
+	Art.box(r, Vector3(1.8, 0.35, 0.7), wood, Vector3(0, 0.175, 0), 0.02)
+	Art.box(r, Vector3(1.8, 0.35, 0.35), wood, Vector3(0, 0.52, -0.17), 0.02)
+	var zinc := Art.mat(Color("b8c0c8"), 0.35, 0.6)
+	var cols := [Color("e5484d"), Color("f2b33d"), Color("f08fb4"), Color("ffffff"), Color("7a5ae0"), Color("f2b33d")]
+	for i in 6:
+		var back := i >= 3
+		var x := -0.6 + (i % 3) * 0.6
+		var y := 0.7 if back else 0.35
+		var z := -0.17 if back else 0.18
+		Art.cyl(r, 0.14, 0.11, 0.24, zinc, Vector3(x, y + 0.12, z))
+		for k in 5:
+			var a := k * 1.26 + i
+			Art.cyl(r, 0.008, 0.008, 0.3, Art.mat(Color("4c8f4f")), Vector3(x + cos(a) * 0.05, y + 0.36, z + sin(a) * 0.05))
+			Art.sphere(r, 0.06, Art.mat(cols[i], 0.7), Vector3(x + cos(a) * 0.07, y + 0.52 + (k % 2) * 0.05, z + sin(a) * 0.07), 0.8)
+	m["height"] = 1.3
+
+static func _aquarium(m: Dictionary) -> void:
+	var r: Node3D = m["root"]
+	Art.box(r, Vector3(1.7, 0.75, 0.6), Art.mat(Color("2d3348"), 0.5), Vector3(0, 0.375, 0), 0.03)
+	Art.box(r, Vector3(1.6, 0.6, 0.5), Art.mat(Color("3aa6d9"), 0.1, 0.0, 0.45), Vector3(0, 1.05, 0), 0.0)
+	Art.box(r, Vector3(1.66, 0.66, 0.56), Art.glass(Color(0.8, 0.95, 1.0), 0.18), Vector3(0, 1.06, 0), 0.01)
+	Art.box(r, Vector3(1.7, 0.06, 0.6), Art.mat(Color("2d3348"), 0.5), Vector3(0, 1.41, 0), 0.02)
+	Art.box(r, Vector3(1.55, 0.06, 0.45), Art.mat(Color("e9d7a8"), 0.9), Vector3(0, 0.78, 0), 0.0)
+	var fish := [Color("f2b33d"), Color("e0663c"), Color("f08fb4"), Color("ffffff"), Color("f2b33d")]
+	for i in fish.size():
+		var f := Art.sphere(r, 0.05, Art.mat(fish[i], 0.4, 0.0, 0.2), Vector3(-0.55 + i * 0.27, 0.92 + (i % 3) * 0.1, -0.1 + (i % 2) * 0.2), 0.6)
+		f.scale = Vector3(1.6, 0.8, 0.6)
+	for x in [-0.5, 0.35]:
+		for k in 3: Art.cyl(r, 0.012, 0.012, 0.25 + k * 0.06, Art.mat(Color("3f7f47")), Vector3(x + k * 0.05, 0.93, -0.12))
+	var l := OmniLight3D.new(); l.light_color = Color("9fdcff"); l.light_energy = 0.5; l.omni_range = 1.8; l.position = Vector3(0, 1.2, 0.4)
+	r.add_child(l); m["lights"].append(l)
+	m["height"] = 1.5
+
+static func _fountain(m: Dictionary) -> void:
+	var r: Node3D = m["root"]
+	var stone := Art.mat(Color("e6ddd0"), 0.8)
+	Art.cyl(r, 0.95, 0.98, 0.42, stone, Vector3(0, 0.21, 0), 32)
+	Art.cyl(r, 0.84, 0.84, 0.05, Art.mat(Color("5fb8d9"), 0.05, 0.0, 0.25), Vector3(0, 0.38, 0), 32)
+	Art.cyl(r, 0.12, 0.16, 0.7, stone, Vector3(0, 0.6, 0))
+	Art.cyl(r, 0.38, 0.3, 0.1, stone, Vector3(0, 0.95, 0), 24)
+	Art.cyl(r, 0.33, 0.33, 0.03, Art.mat(Color("5fb8d9"), 0.05, 0.0, 0.25), Vector3(0, 1.0, 0), 24)
+	# the jet: a few translucent drops
+	for i in 6:
+		Art.sphere(r, 0.05 - i * 0.004, Art.glass(Color(0.75, 0.92, 1.0), 0.5), Vector3(0, 1.1 + i * 0.1, 0))
+	for i in 8:
+		var a := i * TAU / 8.0
+		Art.sphere(r, 0.04, Art.glass(Color(0.75, 0.92, 1.0), 0.45), Vector3(cos(a) * 0.45, 0.62, sin(a) * 0.45))
+	m["height"] = 1.7

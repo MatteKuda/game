@@ -78,6 +78,11 @@ const FIXTURES := [
 	{"id": "masa", "name": "Yemek Masası", "desc": "Yemek katı için 4 kişilik masa. Kirlenince temizlik görevlisi toplar.", "kind": "table", "cat": "AVM", "w": 2, "d": 2, "cost": 700, "stage": 3, "zone": "mall", "seats": 4},
 	{"id": "oyunalani", "name": "Çocuk Oyun Alanı", "desc": "Kaydırak ve top havuzu. Aileler uzun kalır, oyuncakçı mutlu olur.", "kind": "play", "cat": "AVM", "w": 3, "d": 3, "cost": 6000, "stage": 3, "zone": "mall"},
 	{"id": "wc", "name": "Tuvalet", "desc": "Bay ve bayan tuvaleti. Ziyaretçiler ihtiyaç duyar; kirlenince temizlik görevlisi siler. Tuvaletsiz AVM'de herkes söylenir.", "kind": "wc", "cat": "AVM", "w": 3, "d": 2, "cost": 5000, "stage": 3, "zone": "mall"},
+	# decoration: all count as greenery/ambiance around them (kind "plant") and raise queue patience
+	{"id": "lamba", "name": "Ayaklı Lamba", "desc": "Sıcak sarı ışık. Çevresi daha davetkâr olur, akşamları dükkân yuva gibi görünür.", "kind": "plant", "cat": "Ortam", "w": 1, "d": 1, "cost": 300, "stage": 0, "zone": "any", "deco": true},
+	{"id": "cicekstand", "name": "Çiçek Standı", "desc": "Kovalarda mevsim çiçekleri. Kapının yanında herkesin yüzünü güldürür.", "kind": "plant", "cat": "Ortam", "w": 2, "d": 1, "cost": 650, "stage": 1, "zone": "any", "deco": true},
+	{"id": "akvaryum", "name": "Akvaryum", "desc": "Kasanın yanında renkli balıklar: kuyrukta bekleyenler oyalanır, çocuklar bayılır.", "kind": "plant", "cat": "Ortam", "w": 2, "d": 1, "cost": 1500, "stage": 2, "zone": "any", "deco": true},
+	{"id": "fiskiye", "name": "Süs Havuzu", "desc": "Fıskiyeli küçük havuz. AVM'nin buluşma noktası olur.", "kind": "plant", "cat": "Ortam", "w": 2, "d": 2, "cost": 3800, "stage": 3, "zone": "mall", "deco": true},
 	{"id": "bank", "name": "Dinlenme Bankı", "desc": "Yorulan ziyaretçiler oturur, AVM keyfi artar.", "kind": "bench", "cat": "AVM", "w": 2, "d": 1, "cost": 400, "stage": 3, "zone": "mall"},
 ]
 

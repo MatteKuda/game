@@ -29,6 +29,7 @@ func tick() -> void:
 			"inspect": pick = 1 if g.money > 1500 and g.litter.size() > 1 else 0
 			"raise": pick = 0 if g.money > 4000 else 1
 			"cat": pick = 0
+			"power", "pipe", "strike": pick = 0 if g.money > 3000 else 1
 		if ev["choices"][pick].get("disabled", false): pick = ev["choices"].size() - 1
 		g.answer_event(ev["id"], pick)
 	if not g.is_open(): return
@@ -36,7 +37,8 @@ func tick() -> void:
 	if h == _last_hour: return
 	_last_hour = h
 	# a player notices the depot running dry before evening and adds a depot shelf
-	if h == 17 and g.backstock_total() < g.depot_capacity() * 0.12 and g.depot_capacity() < 480 * (1 + g.stage) and g.money > 1500:
+	var dry: int = g.backstock.keys().filter(func(k): return g.is_stocked(k) and int(g.backstock[k]) == 0).size()
+	if h == 17 and dry >= 3 and g.depot_capacity() < 480 * (1 + g.stage) and g.money > 1500:
 		if place("depo") != null: note("built depot")
 		else: note("no room for depot")
 	# midday: products that ran out get a small urgent order (arrives within the hour)

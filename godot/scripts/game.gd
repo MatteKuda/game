@@ -49,6 +49,8 @@ var neighbor_events: Array = []
 var match_night := {}
 var inspection_at := 0.0
 var praise_until := 0.0
+var outage_until := 0.0 # crisis: power cut (fewer shoppers)
+var strike_day := -1 # crisis: deliveries on this day come in the afternoon
 var _next_event_at := 1440.0 + Cfg.DAY_OPEN + 60.0
 var neighborhood := Neighborhood.new()
 var calendar := Calendar.new()
@@ -320,7 +322,7 @@ func goals() -> Array:
 		out.append({"id": g[0], "label": g[1], "target": g[2], "value": v, "done": v >= g[2]})
 	return out
 func can_expand() -> bool:
-	if expansion() == null: return false
+	if expansion() == null or Demo.stage_locked(stage): return false
 	if scenario.get("id", "") == "serbest": return money >= expansion()["cost"]
 	for g in goals(): if not g["done"]: return false
 	return true
@@ -696,6 +698,7 @@ func order(pid: String, qty: int, is_auto := false, urgent := false) -> bool:
 	if not is_auto: manual_orders += 1
 	# regular orders ride on tomorrow morning's round; urgent ones come by a separate van within the hour
 	var eta := next_delivery()
+	if strike_day == day + 1: eta += 7.0 * 60.0
 	if urgent and clock + 60.0 < Cfg.DAY_CLOSE: eta = abs_minutes() + 60.0
 	for o in orders:
 		if o["pid"] == pid and o["eta"] == eta:
@@ -1089,6 +1092,9 @@ func _update_neighbor_events() -> void:
 		if not ev.is_empty():
 			neighbor_events.append(ev); events_changed.emit(); GameAudio.play("bell", -6.0)
 		_next_event_at = now + 150.0 + randf() * 150.0
+	# a crisis nobody answered happens anyway (the "do nothing" choice)
+	for e in neighbor_events.duplicate():
+		if e.get("crisis", false) and e["expires"] <= now: answer_event(e["id"], e["choices"].size() - 1)
 	var n := neighbor_events.size()
 	neighbor_events = neighbor_events.filter(func(e): return e["expires"] > now)
 	if neighbor_events.size() != n: events_changed.emit()
@@ -1136,7 +1142,8 @@ func auto_order() -> void:
 		if exp <= 0.0: continue # e.g. no pide outside Ramazan
 		# demand = what sold plus what people asked for and could not find
 		var sold := maxi(int(last_sold.get(pid, 0)), int(stats["sold"].get(pid, 0)) + int(stats["missed"].get(pid, 0)) / 2)
-		var target := mini(int(fair * clampf(exp, 0.5, 2.0)), maxi(shelf_cap(pid) * 2, int(round(sold * 1.25 * clampf(exp / maxf(0.2, calendar.expected(day, pid)), 0.3, 3.0)))))
+		# floor: one shelf's worth of reserve for proven sellers, two for new products with no history
+		var target := mini(int(fair * clampf(exp, 0.5, 2.0)), maxi(shelf_cap(pid) * (2 if sold == 0 else 1), int(round(sold * 1.25 * clampf(exp / maxf(0.2, calendar.expected(day, pid)), 0.3, 3.0)))))
 		var need := target - (int(backstock[pid]) + incoming(pid))
 		if need >= 4: wants[pid] = need; total_need += need
 	var room := depot_capacity() - reserve - backstock_total() - incoming_total()
@@ -1153,6 +1160,7 @@ func auto_order() -> void:
 
 func _attract() -> float:
 	var a := 0.55 + (rating / 5.0) * 0.75
+	if abs_minutes() < outage_until: a *= 0.6 # power cut: a dark shop looks closed
 	if stage == 0: a *= 1.35 # the büfe needs a busier street to be worth playing
 	if abs_minutes() < praise_until: a *= 1.2
 	if is_match_time(): a *= 1.55 if match_night.get("poster", false) else 1.2
@@ -1418,8 +1426,9 @@ func tick(dt: float) -> void:
 	if prev < AUTO_ORDER_AT and clock >= AUTO_ORDER_AT:
 		# the depot ran dry before evening while shelves were empty: the shop has outgrown it
 		var empty_hits: int = int(stats["mood_why"].get("Raf boş", [0, 0])[1])
-		if backstock_total() < depot_capacity() * 0.1 and empty_hits >= 20:
-			alert("depodry", "box", "Depo akşam olmadan boşaldı, raflar gün içinde boş kaldı. Bir Depo Rafı daha ekle (İnşa → Kasa & Depo): otomatik sipariş yarından itibaren daha çok getirir.", "warn", null, 0.0)
+		var dry := unlocked_products().filter(func(p): return is_stocked(p["id"]) and int(backstock[p["id"]]) == 0).size()
+		if dry >= 3 and empty_hits >= 20:
+			alert("depodry", "box", "Depo akşam olmadan boşaldı, raflar gün içinde boş kaldı. Bir Depo Rafı daha ekle (İnşa → Kasa & Depo): otomatik sipariş yarından itibaren daha çok getirir. Az satan ürünler depoda yer kaplıyorsa Ürünler'den kaldır.", "warn", null, 0.0)
 		auto_order()
 	_update_neighbor_events()
 	_status_acc += dt

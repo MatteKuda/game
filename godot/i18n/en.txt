@@ -1336,5 +1336,37 @@ Hız ×2 ⟶ Speed ×2
 Hız ×4 ⟶ Speed ×4
 Hız ×8 ⟶ Speed ×8
 Hız ×16 ⟶ Speed ×16
-Depo akşam olmadan boşaldı, raflar gün içinde boş kaldı. Bir Depo Rafı daha ekle (İnşa → Kasa & Depo): otomatik sipariş yarından itibaren daha çok getirir. ⟶ The stockroom ran dry before evening and shelves sat empty. Add another Stock Rack (Build → Tills & Stock): auto-orders will bring more from tomorrow.
+Depo akşam olmadan boşaldı, raflar gün içinde boş kaldı. Bir Depo Rafı daha ekle (İnşa → Kasa & Depo): otomatik sipariş yarından itibaren daha çok getirir. Az satan ürünler depoda yer kaplıyorsa Ürünler'den kaldır. ⟶ The stockroom ran dry before evening and shelves sat empty. Add another Stock Rack (Build → Tills & Stock): auto-orders will bring more from tomorrow. If slow sellers are hogging the room, drop them in Products.
 %s · Gün %d ⟶ $1 · Day $2
+Demo burada bitiyor ⟶ The demo ends here
+Süpermarket, AVM, Kampüs ve Çarşı tam sürümde. Kaydın tam sürüme aynen geçer. ⟶ The Supermarket, the Mall, Campus and Bazaar are in the full game. Your save carries over as is.
+İstek listesine ekle ⟶ Add to wishlist
+Tam sürümde ⟶ Full game
+Ayaklı Lamba ⟶ Floor Lamp
+Sıcak sarı ışık. Çevresi daha davetkâr olur, akşamları dükkân yuva gibi görünür. ⟶ Warm yellow light. The area around it feels inviting and the shop looks homely in the evening.
+Çiçek Standı ⟶ Flower Stand
+Kovalarda mevsim çiçekleri. Kapının yanında herkesin yüzünü güldürür. ⟶ Seasonal flowers in buckets. By the door, it puts a smile on every face.
+Akvaryum ⟶ Aquarium
+Kasanın yanında renkli balıklar: kuyrukta bekleyenler oyalanır, çocuklar bayılır. ⟶ Colourful fish by the till: people in the queue stay entertained and children love it.
+Süs Havuzu ⟶ Fountain
+Fıskiyeli küçük havuz. AVM'nin buluşma noktası olur. ⟶ A small pool with a fountain. It becomes the mall's meeting point.
+KRİZ ⟶ CRISIS
+Elektrikler kesildi! ⟶ Power cut!
+Mahalledeki trafo arızalandı, 2 saat elektrik yok. Dolaplar ısınırsa soğuk ürünlerin bir kısmı bozulur, ışıksız dükkândan müşteri kaçar. ⟶ The neighbourhood transformer has failed: no power for 2 hours. If the fridges warm up, some chilled stock spoils, and a dark shop scares shoppers away.
+Jeneratör kirala · ₺%d ⟶ Rent a generator · ₺$1
+Beklemek zorundayız ⟶ We'll have to wait
+Jeneratör çalışıyor, dolaplar soğuk kaldı. ⟶ The generator is running; the fridges stayed cold.
+Elektrik yok: dolaplardan %d ürün bozuldu, 2 saat daha az müşteri gelecek. ⟶ No power: $1 items spoiled in the fridges, and fewer shoppers will come for 2 hours.
+Su borusu patladı ⟶ Burst pipe
+Tavandaki boru sızdırıyor, dükkânın ortası su içinde kalacak. Islak zeminde müşteriler kayar. ⟶ A pipe in the ceiling is leaking and the middle of the shop is about to flood. Shoppers slip on wet floors.
+Tesisatçı çağır · ₺%d ⟶ Call a plumber · ₺$1
+Paspasla idare ederiz ⟶ We'll mop it up
+Tesisatçı boruyu hemen yamadı. ⟶ The plumber patched the pipe right away.
+Patlak borudan su sızdı ⟶ Water leaked from the burst pipe
+Yerler su içinde: temizlik görevlisi paspaslasın. ⟶ The floor is flooded: get the cleaner mopping.
+Nakliyeciler grevde ⟶ Drivers on strike
+Toptancının şoförleri iş bıraktı: yarın sabahki teslimat öğleden sonraya kalacak. Sabah rafları boş kalabilir. ⟶ The wholesaler's drivers have walked out: tomorrow morning's delivery will come in the afternoon. Shelves may be empty in the morning.
+Kendi kamyonetinle al · ₺%d ⟶ Fetch it in your own van · ₺$1
+Bekleriz ⟶ We'll wait
+Malı kendin getireceksin, teslimat sabah vaktinde. ⟶ You'll fetch the goods yourself; the delivery arrives in the morning as usual.
+Yarınki teslimat öğleden sonra gelecek. ⟶ Tomorrow's delivery will arrive in the afternoon.

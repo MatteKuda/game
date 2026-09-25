@@ -103,7 +103,17 @@ func _ready() -> void:
 	if args.has("cam"):
 		var c: PackedStringArray = args["cam"].split(",")
 		game.rig.focus(float(c[0]), float(c[1]), float(c[2]))
+	if args.has("yaw"): game.rig.g_yaw = float(args["yaw"])
+	if args.has("pitch"): game.rig.g_pitch = float(args["pitch"])
+	if args.has("nohud"): hud.visible = false # clean key art for store capsules
 	if args.has("menu"): hud.open_menu(args["menu"])
+	if args.has("crisis"):
+		for k in args["crisis"].split(","):
+			var ev := NeighborEvents.roll(game, k)
+			game.neighbor_events.append(ev)
+			var before := [game.puddles.size(), game.stats.get("spoiled", 0), game.orders.map(func(o): return o["eta"])]
+			game.answer_event(ev["id"], 1)
+			print("CRISIS %s: %s | before %s after puddles=%d spoiled=%s outage=%.0f strike=%d orders=%s" % [k, ev["title"], before, game.puddles.size(), game.stats.get("spoiled", 0), game.outage_until - game.abs_minutes(), game.strike_day, game.orders.map(func(o): return o["eta"])])
 	if args.has("nev"):
 		for i in 2:
 			var ev := NeighborEvents.roll(game)

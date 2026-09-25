@@ -10,13 +10,18 @@ static func next_id() -> int:
 	return _next_id - 1
 
 ## returns {id, kind, title, text, icon, expires, choices: [{label, hint, primary, disabled}], data} or {}
-static func roll(g) -> Dictionary:
+static func roll(g, force := "") -> Dictionary:
 	var stocked: Array = g.unlocked_products().filter(func(p): return g.is_stocked(p["id"]))
 	if stocked.is_empty(): return {}
 	var kinds := ["deal", "deal", "bulk", "bulk", "praise"]
 	if g.clock < 16 * 60 and g.match_night.get("day", -1) != g.day: kinds.append("match")
 	if g.clock < 18 * 60: kinds.append("inspect")
 	var kind: String = kinds.pick_random()
+	# now and then, from the market on, something goes wrong: a crisis instead of a normal event
+	if g.stage >= 1 and g.clock < 18 * 60 and int(g.stats.get("crises", 0)) == 0 and randf() < 0.14:
+		kind = ["power", "pipe", "strike"].pick_random()
+		g.stats["crises"] = 1
+	if force != "": kind = force
 	var scale: float = [1.0, 1.8, 3.0, 4.0][g.stage]
 	var now: float = g.abs_minutes()
 	var ev := {"id": _next_id, "kind": kind, "expires": now + 45.0}
@@ -60,6 +65,27 @@ static func roll(g) -> Dictionary:
 			ev.merge({"title": "Zabıta denetimi geliyor", "icon": "alert",
 				"text": "Belediye 1 saat içinde denetime gelecek. Yerde çöp ya da boş raf varsa ceza keser; temiz dükkâna puan artar.",
 				"choices": [{"label": "Hazırız"}, {"label": "Temizlikçi çağır · ₺120", "primary": true, "disabled": g.money < 120}], "data": {}})
+		"power":
+			var gen := int(round(260 * scale / 10.0)) * 10
+			ev["expires"] = now + 30.0
+			ev.merge({"title": "Elektrikler kesildi!", "icon": "bolt", "crisis": true,
+				"text": "Mahalledeki trafo arızalandı, 2 saat elektrik yok. Dolaplar ısınırsa soğuk ürünlerin bir kısmı bozulur, ışıksız dükkândan müşteri kaçar.",
+				"choices": [{"label": "Jeneratör kirala · ₺%d" % gen, "primary": true, "disabled": g.money < gen}, {"label": "Beklemek zorundayız"}],
+				"data": {"cost": gen}})
+		"pipe":
+			var fix := int(round(180 * scale / 10.0)) * 10
+			ev["expires"] = now + 30.0
+			ev.merge({"title": "Su borusu patladı", "icon": "drop", "crisis": true,
+				"text": "Tavandaki boru sızdırıyor, dükkânın ortası su içinde kalacak. Islak zeminde müşteriler kayar.",
+				"choices": [{"label": "Tesisatçı çağır · ₺%d" % fix, "primary": true, "disabled": g.money < fix}, {"label": "Paspasla idare ederiz"}],
+				"data": {"cost": fix}})
+		"strike":
+			var van := int(round(220 * scale / 10.0)) * 10
+			ev["expires"] = now + 60.0
+			ev.merge({"title": "Nakliyeciler grevde", "icon": "truck", "crisis": true,
+				"text": "Toptancının şoförleri iş bıraktı: yarın sabahki teslimat öğleden sonraya kalacak. Sabah rafları boş kalabilir.",
+				"choices": [{"label": "Kendi kamyonetinle al · ₺%d" % van, "primary": true, "disabled": g.money < van}, {"label": "Bekleriz"}],
+				"data": {"cost": van}})
 		_:
 			ev["expires"] = now + 30.0
 			ev.merge({"title": "Muhtar dükkânı övdü", "icon": "heart",
@@ -114,6 +140,41 @@ static func resolve(g, ev: Dictionary, choice: int) -> String:
 				s.quit_day = g.day + 2
 				g.alert("notice%d" % s.get_instance_id(), "staff", "%s kırıldı ve istifasını verdi: 2 gün sonra ayrılıyor." % s.person_name, "bad", null, 0.0)
 			return "%s zam alamadı, morali bozuk." % s.person_name
+		"power":
+			if choice == 0:
+				g.money -= d["cost"]; g.stats["other"] += int(d["cost"])
+				return "Jeneratör çalışıyor, dolaplar soğuk kaldı."
+			var lost := 0
+			for f in g.fixtures:
+				if not f.is_display() or not ["fridge", "freezer", "deli"].has(f.def["display"]): continue
+				for s in f.slots:
+					var l := int(s["stock"]) * 35 / 100
+					s["stock"] = int(s["stock"]) - l; lost += l
+			g.stats["spoiled"] = int(g.stats.get("spoiled", 0)) + lost
+			g.outage_until = g.abs_minutes() + 120.0
+			g.refresh_all()
+			return "Elektrik yok: dolaplardan %d ürün bozuldu, 2 saat daha az müşteri gelecek." % lost
+		"pipe":
+			if choice == 0:
+				g.money -= d["cost"]; g.stats["other"] += int(d["cost"])
+				return "Tesisatçı boruyu hemen yamadı."
+			var r: Rect2i = g.grid.interior()
+			var n := 0
+			for i in 40:
+				if n >= 5: break
+				var t := Vector2i(randi_range(r.position.x + 1, r.end.x - 2), randi_range(r.position.y + 1, r.end.y - 2))
+				if g.grid.walkable(t.x, t.y):
+					g.spill_at(t, 0, "Patlak borudan su sızdı"); n += 1
+			return "Yerler su içinde: temizlik görevlisi paspaslasın."
+		"strike":
+			var due: float = g.next_delivery()
+			if choice == 0:
+				g.money -= d["cost"]; g.stats["other"] += int(d["cost"])
+				return "Malı kendin getireceksin, teslimat sabah vaktinde."
+			for o in g.orders:
+				if float(o["eta"]) == due: o["eta"] = due + 7.0 * 60.0
+			g.strike_day = g.day + 1
+			return "Yarınki teslimat öğleden sonra gelecek."
 		"cat":
 			if choice == 0:
 				g.cat.adopt(g)
