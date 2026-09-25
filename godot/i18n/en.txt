@@ -1337,3 +1337,4 @@ Hız ×4 ⟶ Speed ×4
 Hız ×8 ⟶ Speed ×8
 Hız ×16 ⟶ Speed ×16
 Depo akşam olmadan boşaldı, raflar gün içinde boş kaldı. Bir Depo Rafı daha ekle (İnşa → Kasa & Depo): otomatik sipariş yarından itibaren daha çok getirir. ⟶ The stockroom ran dry before evening and shelves sat empty. Add another Stock Rack (Build → Tills & Stock): auto-orders will bring more from tomorrow.
+%s · Gün %d ⟶ $1 · Day $2

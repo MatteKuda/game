@@ -9,6 +9,8 @@ var args_extra := {}
 func _ready() -> void:
 	Settings.load_settings()
 	for a in OS.get_cmdline_user_args(): if a.begins_with("--lang="): Loc.set_lang(a.substr(7))
+	SteamBridge.init()
+	Settings.deck_defaults()
 	Keys.setup()
 	Settings.ensure_buses()
 	add_child(GameAudio.new())
@@ -303,3 +305,12 @@ func _itest() -> void:
 			await click.call(p)
 			print("ITEST clicked customer -> selected=", game.selection.get("obj") is Customer)
 			break
+
+var _presence_t := 0.0
+func _process(dt: float) -> void:
+	SteamBridge.tick()
+	_presence_t -= dt
+	if _presence_t <= 0.0 and game != null and SteamBridge.ok:
+		_presence_t = 15.0
+		var names := ["Büfe", "Mahalle Marketi", "Süpermarket", "Köşebaşı AVM"]
+		SteamBridge.presence(Loc.t("%s · Gün %d") % [Loc.t(names[game.stage]), game.day])

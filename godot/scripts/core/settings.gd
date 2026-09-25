@@ -23,12 +23,21 @@ const FPS_CAPS := [30, 60, 120, 0]
 const RESOLUTIONS := ["1280x720", "1600x900", "1920x1080", "2560x1440"]
 static var vol := {"Master": 0.8, "Music": 0.55, "SFX": 0.8, "Ambience": 0.6}
 static var _loaded := false
+static var first_run := false
+
+## Steam Deck (1280×800, 7"): bigger UI and text, fullscreen — only on the very first launch
+static func deck_defaults() -> void:
+	if not first_run or not SteamBridge.is_deck(): return
+	ui_scale = 1.15; text_scale = 1.12; fullscreen = true
+	save_settings()
 
 static func load_settings() -> void:
 	if _loaded: return
 	_loaded = true
 	var c := ConfigFile.new()
-	if c.load(FILE) != OK: return
+	if c.load(FILE) != OK:
+		first_run = true
+		return
 	quality = int(c.get_value("video", "quality", quality))
 	fullscreen = bool(c.get_value("video", "fullscreen", fullscreen))
 	ui_scale = float(c.get_value("video", "ui_scale", ui_scale))

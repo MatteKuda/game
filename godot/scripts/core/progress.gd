@@ -55,6 +55,7 @@ static func unlock(id: String) -> bool:
 	if data["ach"].has(id): return false
 	data["ach"][id] = Time.get_date_string_from_system()
 	save_data()
+	SteamBridge.achievement(id)
 	return true
 
 static func medal(id: String) -> bool:
